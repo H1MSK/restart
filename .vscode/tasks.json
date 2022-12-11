@@ -1,0 +1,14 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "rm_run",
+            "command":"rm",
+            "type": "shell",
+            "args": [
+                "-rf",
+                "run"
+            ]
+        }
+    ]
+}
