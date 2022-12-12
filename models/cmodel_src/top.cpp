@@ -95,11 +95,11 @@ CM_API void actor_arr_top(NN_OP op,
                           cm_float* in_x,
                           cm_float* in_grad_y,
                           cm_float* out_y) {
-    hls::stream<cm_float> s_in_param("actor_in_param");
-    hls::stream<cm_float> s_out_grad("actor_out_grad");
-    hls::stream<cm_float> s_in_x("actor_in_x");
-    hls::stream<cm_float> s_in_grad_y("actor_in_grad_y");
-    hls::stream<cm_float> s_out_y("actor_out_y");
+    static hls::stream<cm_float> s_in_param("actor_in_param");
+    static hls::stream<cm_float> s_out_grad("actor_out_grad");
+    static hls::stream<cm_float> s_in_x("actor_in_x");
+    static hls::stream<cm_float> s_in_grad_y("actor_in_grad_y");
+    static hls::stream<cm_float> s_out_y("actor_out_y");
 
     switch (op) {
         case NN_OP_LoadParam:
@@ -154,11 +154,11 @@ CM_API void critic_arr_top(NN_OP op,
                            cm_float* in_x,
                            cm_float* in_grad_y,
                            cm_float* out_y) {
-    hls::stream<cm_float> s_in_param("critic_in_param");
-    hls::stream<cm_float> s_out_grad("critic_out_grad");
-    hls::stream<cm_float> s_in_x("critic_in_x");
-    hls::stream<cm_float> s_in_grad_y("critic_in_grad_y");
-    hls::stream<cm_float> s_out_y("critic_out_y");
+    static hls::stream<cm_float> s_in_param("critic_in_param");
+    static hls::stream<cm_float> s_out_grad("critic_out_grad");
+    static hls::stream<cm_float> s_in_x("critic_in_x");
+    static hls::stream<cm_float> s_in_grad_y("critic_in_grad_y");
+    static hls::stream<cm_float> s_out_y("critic_out_y");
 
     switch (op) {
         case NN_OP_LoadParam:
