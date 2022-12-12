@@ -1,0 +1,16 @@
+{
+    "files.associations": {
+        "internet": "cpp",
+        "cmath": "cpp",
+        "array": "cpp",
+        "chrono": "cpp",
+        "compare": "cpp",
+        "executor": "cpp",
+        "functional": "cpp",
+        "ratio": "cpp",
+        "tuple": "cpp",
+        "type_traits": "cpp",
+        "utility": "cpp",
+        "algorithm": "cpp"
+    }
+}

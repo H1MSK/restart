@@ -1,9 +1,11 @@
 import gym
+from models.cmodel import CActirCritic
 from models.pymodel import PyActorCritic
 from py.agent import PPOAgent
 
 model_choices = {
-    'py': PyActorCritic
+    'py': PyActorCritic,
+    'c': CActirCritic
 }
 
 agent_choices = {

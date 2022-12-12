@@ -1,7 +1,40 @@
 #pragma once
 
-#define OBS_DIM 376
-#define ACT_DIM 16
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#pragma GCC diagnostic ignored "-Wsign-compare"
+#include <hls_stream.h>
+#pragma GCC diagnostic pop
+
+#ifndef OBS_DIM
+#define OBS_DIM         376
+#endif
+
+#ifndef ACT_DIM
+#define ACT_DIM         8
+#endif
+
+#ifndef HIDDEN_WIDTH
+#define HIDDEN_WIDTH    64
+#endif
+
+#ifndef ACT_CONTINUOUS
+#define ACT_CONTINUOUS  1
+#endif
+
+#ifndef CM_WITH_BACKWARD
+#define CM_WITH_BACKWARD 1
+#endif
+
+#ifndef __SYNTHESIS__
+#   if defined(WIN32)
+#       define CM_API extern "C" __declspec(dllexport)
+#   elif defined(__linux__)
+#       define CM_API extern "C" __attribute__((visibility("default")))
+#   endif
+#else
+#   define CM_API
+#endif
 
 enum NN_OP {
     NN_OP_None              = 0x00,
@@ -13,3 +46,17 @@ enum NN_OP {
 };
 
 using cm_float = float;
+
+#include <hls_math.h>
+
+#define CM_UNUSED(x)            ((void)(x))
+
+#ifdef __SYNTHESIS__
+#   define CM_PRINT(...)
+#else
+#   ifdef DEBUG
+#       define CM_PRINT(...)    printf(__VA_ARGS__)
+#   else
+#       define CM_PRINT(...)
+#   endif
+#endif

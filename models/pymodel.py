@@ -1,4 +1,5 @@
 from itertools import chain
+import logging
 from typing import Tuple, Union
 import torch
 from torch import nn
@@ -67,6 +68,11 @@ class PyActorCritic():
                  lr_critic=1e-3,
                  hidden_width=64,
                  act_continuous=True) -> None:
+        logging.info("Init PyActorCritic with "
+            f"obs_dim={obs_dim} "
+            f"act_dim={act_dim} "
+            f"hidden_width={hidden_width} "
+            f"act_continuous={act_continuous}")
         self.model = PyModel(
             obs_dim=obs_dim,
             act_dim=act_dim,
@@ -107,14 +113,14 @@ class PyActorCritic():
         for p in self.optim_actor.param_groups:
             p['lr'] = value
 
-    def act(self, obs: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+    def act(self, obs: torch.Tensor, requires_grad=False) -> Tuple[torch.Tensor, torch.Tensor]:
         act_feat = self.model.act_feat_net(obs)
         mu = self.model.mu_net(act_feat)
         rho = self.model.rho_net(act_feat)
         sigma = torch.exp(rho)
         return mu, sigma
 
-    def critic(self, obs: torch.Tensor) -> torch.Tensor:
+    def critic(self, obs: torch.Tensor, requires_grad=False) -> torch.Tensor:
         return self.model.critic_net(obs)
 
     def forward(self, obs: torch.Tensor)-> Tuple[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
@@ -124,8 +130,11 @@ class PyActorCritic():
         rho = self.model.rho_net(act_feat)
         return (value, (mu, rho))
 
-    def backward(self, value_grad, mu_grad, rho_grad):
-        pass
+    def critic_backward(self, value_grad: torch.Tensor):
+        assert(False)
+
+    def actor_backward(self, mu_grad, std_grad):
+        assert(False)
 
     def critic_zero_grad(self):
         self.optim_critic.zero_grad()
