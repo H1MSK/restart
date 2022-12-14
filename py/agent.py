@@ -68,11 +68,13 @@ class Agent():
         self.obs_normalizer.load(f'{prefix}.obsnorm.npz')
         self.ac.load(f"{prefix}.model.dat")
 
-    def choose_action(self, obs):
+    def choose_action(self, obs)-> Tuple[np.ndarray, np.ndarray]:
         mu, sigma = self.ac.act(obs, requires_grad=False)
         pi = self.distribution(mu, sigma)
-        a = pi.sample().detach()
-        return a.numpy()
+        a = pi.sample()
+        logprob = pi.log_prob(a).detach()
+        a = a.detach()
+        return a.numpy(), logprob.sum(dim=1, keepdim=True).detach()
 
     def get_logprob(self, obs, act):
         mu, std = self.ac.act(obs, requires_grad=False)
@@ -144,14 +146,16 @@ class Agent():
                 print(f"{steps}", end='\r')
                 steps += 1
                 # 选择行为
-                a = self.choose_action(torch.from_numpy(
-                    np.array(s).astype(np.float32)).unsqueeze(0))[0]
+                a, p = self.choose_action(torch.from_numpy(
+                    np.array(s).astype(np.float32)).unsqueeze(0))
+                a = a[0]
+                p = p[0]
 
                 s_, r, done, _, info = env.step(a)
                 s_ = self.obs_normalizer(s_)
 
                 mask = (1-done)*1
-                memory.append([s, a, r, mask])
+                memory.append([s, a, r, mask, p])
 
                 # print(f"Sync state2:{s_}")
 

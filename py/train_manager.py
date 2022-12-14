@@ -1,6 +1,6 @@
 import math
 import os
-from typing import List, Literal, Optional, Tuple, Type
+from typing import List, Literal, Optional, Tuple, Type, Union
 from gym import Env
 import torch
 from torch.utils.tensorboard.writer import SummaryWriter
@@ -554,13 +554,14 @@ class TrainManager:
             self.train_count = ints[0]
             self.test_count = ints[1]
 
-    def save(self, prefix: Literal['last', 'best']):
+    def save(self, prefix: Union[Literal['last', 'best'], str]):
         self.agent.save(f"./run/{self.session_name}/{prefix}")
         with open(f"./run/{self.session_name}/{prefix}.run", 'w') as f:
             f.write(f"{self.train_count} {self.test_count}")
 
-    def run(self, total_train_steps=20000000, epoch_size=2048, batch_size=64, test_interval=40960):
+    def run(self, total_train_steps=2000000, epoch_size=2048, batch_size=64, test_interval=40960):
         best_reward = -math.inf
+        last_checkpoint = self.train_count // 100000
         while self.train_count < total_train_steps:
             if self.train_count // test_interval != (self.train_count-1) // test_interval:
                 self.test_episode()
@@ -569,6 +570,8 @@ class TrainManager:
             if rew > best_reward:
                 best_reward = rew
                 self.save('best')
+            if self.train_count // 100000 > last_checkpoint:
+                self.save(str(self.train_count // 100000))
 
     def test(self, count=10):
         for i in range(count):
