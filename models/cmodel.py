@@ -246,6 +246,7 @@ class CActirCritic():
             )
 
     def actor_zero_grad(self):
+        return
         dummy = torch.zeros_like(self.aparams)
         self.actor_arr_top(
             NN_OP_DumpGradAndZero,
@@ -257,6 +258,7 @@ class CActirCritic():
         )
 
     def critic_zero_grad(self):
+        return
         dummy = torch.zeros_like(self.cparams)
         self.critic_arr_top(
             NN_OP_DumpGradAndZero,
