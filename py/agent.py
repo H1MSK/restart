@@ -232,34 +232,3 @@ class PPOAgent(Agent):
         print(f"Sync state3: {actor_loss} {critic_loss}")
 
         return critic_loss, actor_loss
-
-    def train_batch0(self, b_obs, b_acts, b_target_logprobs, b_returns, b_advantages):
-        values, pi = self.ac.forward(b_obs.detach())
-        mu, rho = pi
-        sigma = torch.exp(rho)
-        distribs = self.distribution(mu, sigma)
-
-        critic_loss = self.critic_loss_func(values, b_returns.detach())
-
-        logprobs = distribs.log_prob(b_acts.detach()).sum(dim=-1, keepdim=True)
-
-        ratios = torch.exp(logprobs - b_target_logprobs.detach())
-
-        surrogate_loss = b_advantages.detach() * ratios
-        clipped_loss = (
-            torch.clamp(ratios, 1 - self.epsilon, 1 + self.epsilon)
-            * b_advantages.detach()
-        )
-        ppo_loss = -torch.min(surrogate_loss, clipped_loss).mean()
-
-        entropy_loss = -0.01 * distribs.entropy().sum(dim=-1).mean()
-
-        loss = critic_loss + ppo_loss + entropy_loss
-
-        self.ac.optim_zero_grad()
-        loss.backward()
-        if mu.is_leaf:
-            self.ac.backward(values.grad, mu.grad, rho.grad)
-        self.ac.optim_step()
-
-        return critic_loss.item(), ppo_loss.item(), entropy_loss.item()
