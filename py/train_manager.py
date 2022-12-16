@@ -38,9 +38,9 @@ class TrainManager:
                    lr_critic > 0 and
                    isinstance(hidden_width, int))
             iter = 1
-            while os.path.exists(f'./run/session_{iter}'):
+            while os.path.exists(f'./run/{env_name}_{agent_name}_{model_name}_{iter}'):
                 iter += 1
-            session_name=f'session_{iter}'
+            session_name=f'{env_name}_{agent_name}_{model_name}_{iter}'
             os.mkdir(f'./run/{session_name}')
             self.conf = configparser.ConfigParser()
             self.conf.add_section('default')
