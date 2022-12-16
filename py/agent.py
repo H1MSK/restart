@@ -3,11 +3,10 @@ import torch
 from models.cmodel import CActirCritic
 from models.pymodel import PyActorCritic
 from py.optimizations.observation_normalizer import ObservationNormalizer
-from py.rollout_buffer import RolloutBuffer, gae
+from py.optimizations.gae import gae
 from gym import Env
 import logging
 import numpy as np
-
 
 class Agent():
     def __init__(
@@ -101,35 +100,6 @@ class Agent():
     @property
     def act_dim(self):
         return self._act_dim
-
-    def generate_rb(self, env: Env, stop_when_terminated=False, max_steps=2048, max_episode_steps=10000, discount=0.99, lambda_gae=0.9, training=False):
-        rb = RolloutBuffer()
-
-        self.obs_normalizer.update_normalizer = training
-
-        rewards: List[Tuple[int, float]] = []
-        while rb.n < max_steps:
-            obs, _ = env.reset()
-            obs = self.obs_normalizer(obs)
-            obs = torch.tensor(obs, dtype=torch.float32)
-            episode_reward = 0
-            for _ in range(max_episode_steps):
-                value, distrib = self.predict(obs.unsqueeze(0))
-                act = distrib.sample()
-                logprob = distrib.log_prob(act).detach()
-                next_obs, reward, terminated, _, __ = env.step(
-                    act[0].detach().numpy())
-                next_obs = self.obs_normalizer(next_obs)
-                episode_reward += reward
-                rb.append(obs, act, reward, value, logprob.sum(
-                    1, keepdim=True), terminated)
-                if terminated:
-                    break
-                obs = torch.tensor(next_obs, dtype=torch.float32)
-
-        rewards.append((rb.n, episode_reward))
-
-        return rb, rewards
 
     def generate_epoch(self, env: Env, epoch_size: int, max_episode_steps: int):
         episodes = 0
