@@ -8,6 +8,7 @@ from param_choice import *
 import imageio
 import numpy as np
 import logging
+import py.config as config
 
 class TrainManager:
     def __init__(self, /,
@@ -37,33 +38,27 @@ class TrainManager:
                 iter += 1
             session_name=f'{env_name}_{agent_name}_{model_name}_{iter}'
             os.mkdir(f'./run/{session_name}')
-            self.conf = configparser.ConfigParser()
-            self.conf.add_section('default')
-            self.conf.set('default', 'model', model_name)
-            self.conf.set('default', 'agent', agent_name)
-            self.conf.set('default', 'env', env_name)
-            self.conf.set('default', 'lr_actor', str(lr_actor))
-            self.conf.set('default', 'lr_critic', str(lr_critic))
-            self.conf.set('default', 'hidden_width', str(hidden_width))
-            self.conf.set('default', 'seed', str(seed))
-            with open(f'./run/{session_name}/conf.ini', 'w') as f:
-                self.conf.write(f)
+            self.conf = {"params": {}}
+            self.conf["params"]["model"] = model_name
+            self.conf["params"]["agent"] = agent_name
+            self.conf["params"]["env"] = env_name
+            self.conf["params"]["hidden_width"] = str(hidden_width)
+            self.conf["params"]["seed"] = str(seed)
+            self.conf["params"]["lr_actor"] = str(lr_actor)
+            self.conf["params"]["lr_critic"] = str(lr_critic)
+            config.save_config(f'./run/{session_name}/conf.ini', self.conf)
             need_load = False
         else:
-            if not os.path.isdir(f'./run/{session_name}'):
-                raise ValueError(f'Session(./run/{session_name}) not found')
-            elif not os.path.isfile(f'./run/{session_name}/conf.ini'):
-                raise ValueError(f'Config for session(./run/{session_name}/conf.ini) not found')
-            self.conf = configparser.ConfigParser()
-            self.conf.read(f'./run/{session_name}/conf.ini')
+            # No need to check existance since open(f, m) will raise errors
+            self.conf = config.load_config(f'./run/{session_name}/conf.ini')
             need_load = True
-            model_name = self.conf.get('default', 'model')
-            agent_name = self.conf.get('default', 'agent')
-            env_name = self.conf.get('default', 'env')
-            lr_actor = float(self.conf.get('default', 'lr_actor'))
-            lr_critic = float(self.conf.get('default', 'lr_critic'))
-            hidden_width = int(self.conf.get('default', 'hidden_width'))
-            seed = int(self.conf.get('default', 'seed'))
+            model_name = self.conf["params"]["model"]
+            agent_name = self.conf["params"]["agent"]
+            env_name = self.conf["params"]["env"]
+            lr_actor = float(self.conf["params"]["lr_actor"])
+            lr_critic = float(self.conf["params"]["lr_critic"])
+            hidden_width = int(self.conf["params"]["hidden_width"])
+            seed = int(self.conf["params"]["seed"])
             assert(model_name in model_choices.keys() and
                    agent_name in agent_choices.keys() and
                    env_name in env_choices.keys() and
