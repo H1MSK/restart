@@ -1,18 +1,13 @@
 import math
 import os
-from typing import List, Literal, Optional, Tuple, Type, Union
-from gym import Env
+from typing import Literal, Optional, Union
 import torch
 from torch.utils.tensorboard.writer import SummaryWriter
-from models.pymodel import PyActorCritic
 import configparser
 from param_choice import *
-from py.agent import Agent
 import imageio
 import numpy as np
 import logging
-
-from py.rollout_buffer import RolloutBuffer, gae
 
 class TrainManager:
     def __init__(self, /,
@@ -166,7 +161,8 @@ class TrainManager:
 
         return score_avg
 
-    def test_episode(self, max_step=2048, save_gif=True):
+    def test_episode(self, / , gif_name: str, max_step=2048, save_gif=True):
+        assert(isinstance(gif_name, str))
         rb, rewards = self.agent.generate_epoch(
             self.test_env,
             epoch_size=1,
@@ -177,8 +173,10 @@ class TrainManager:
         logging.info(f"Test  #{self.test_count:8d}: reward={rewards[0][1]:8.2f} steps={len(rb)}")
         if save_gif:
             frames = self.test_env.render()
-            name = f'./run/{self.session_name}/{self.test_count}({rewards[0][1]:.2f}).gif'
+            name = f'./run/{self.session_name}/{gif_name}.gif'
             imageio.mimsave(name, frames, fps=30)
+            with open(f"./run/{self.session_name}/{gif_name}.result.txt", "wb") as f:
+                f.write(f"{rewards[0]}".encode())
 
     def load(self, prefix: Literal['last', 'best']):
         self.agent.load(f"./run/{self.session_name}/{prefix}")
@@ -193,19 +191,17 @@ class TrainManager:
         with open(f"./run/{self.session_name}/{prefix}.run", 'w') as f:
             f.write(f"{self.train_count} {self.test_count}")
 
-    def run(self, total_train_steps=2000000, epoch_size=2048, batch_size=64, test_interval=40960):
+    def run(self, total_train_steps=2000000, epoch_size=2048, batch_size=64, test_interval=4096):
         best_reward = -math.inf
-        last_checkpoint = self.train_count // 100000
         while self.train_count < total_train_steps:
             if self.train_count // test_interval != (self.train_count-1) // test_interval:
-                self.test_episode()
+                self.test_episode(str(self.train_count // test_interval))
+                self.save(str(self.train_count // test_interval))
             rew = self.train_epoch(epoch_size=epoch_size, batch_size=batch_size)
             self.save('last')
             if rew > best_reward:
                 best_reward = rew
                 self.save('best')
-            if self.train_count // 100000 > last_checkpoint:
-                self.save(str(self.train_count // 100000))
 
     def test(self, count=10):
         for i in range(count):
