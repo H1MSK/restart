@@ -2,9 +2,12 @@ from typing import List, Tuple, Type, Union
 import torch
 from models.cmodel import CActirCritic
 from models.pymodel import PyActorCritic
-from py.optimizations.observation_normalizer import ObservationNormalizer
-from py.optimizations.gae import gae
-from gym import Env
+from core.optimizations.observation_normalizer import ObservationNormalizer
+from core.optimizations.gae import gae
+try:
+    from gym import Env
+except ModuleNotFoundError:
+    from gymnasium import Env
 import logging
 import numpy as np
 
