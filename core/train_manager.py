@@ -8,7 +8,7 @@ from param_choice import *
 import imageio
 import numpy as np
 import logging
-import py.config as config
+import core.config as config
 
 class TrainManager:
     def __init__(self, /,

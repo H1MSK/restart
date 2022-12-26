@@ -1,7 +1,11 @@
-import gym
+try:
+    import gym
+except ImportError:
+    import gymnasium as gym
+
 from models.cmodel import CActirCritic
 from models.pymodel import PyActorCritic
-from py.agent import PPOAgent
+from core.agent import PPOAgent
 
 model_choices = {
     'py': PyActorCritic,
