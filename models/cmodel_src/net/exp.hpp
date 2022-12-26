@@ -31,10 +31,10 @@ struct Exp {
     void forward(hls::stream<cm_float>& in_x,
                  hls::stream<cm_float>& out_y,
                  bool enable_grad) {
-#pragma HLS INTERFACE type = ap_ctrl_chain port = return
-#pragma HLS INTERFACE type = ap_fifo port = in_x
-#pragma HLS INTERFACE type = ap_fifo port = out_y
-#pragma HLS INTERFACE type = ap_none port = enable_grad
+#pragma HLS INTERFACE mode = ap_ctrl_chain port = return
+#pragma HLS INTERFACE mode = ap_fifo port = in_x
+#pragma HLS INTERFACE mode = ap_fifo port = out_y
+#pragma HLS INTERFACE mode = ap_none port = enable_grad
 #pragma HLS STABLE variable = enable_grad
         for (int i = 0; i < in_size; ++i) {
             cm_float x = in_x.read();
@@ -50,9 +50,9 @@ struct Exp {
 #if CM_WITH_BACKWARD
     void backward(hls::stream<cm_float>& in_grad_y,
                   hls::stream<cm_float>& out_grad_x) {
-#pragma HLS INTERFACE type = ap_ctrl_chain port = return
-#pragma HLS INTERFACE type = ap_fifo port = in_grad_y
-#pragma HLS INTERFACE type = ap_fifo port = out_grad_x
+#pragma HLS INTERFACE mode = ap_ctrl_chain port = return
+#pragma HLS INTERFACE mode = ap_fifo port = in_grad_y
+#pragma HLS INTERFACE mode = ap_fifo port = out_grad_x
         for (int i = 0; i < in_size; ++i) {
             cm_float grad_y_i = in_grad_y.read();
             cm_float cache_y_i = cache.read();

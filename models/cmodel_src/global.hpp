@@ -5,6 +5,7 @@
 #pragma GCC diagnostic ignored "-Wsign-compare"
 #include <hls_stream.h>
 #pragma GCC diagnostic pop
+#include <cstring>
 
 #ifndef OBS_DIM
 #define OBS_DIM         376
@@ -37,12 +38,13 @@
 #endif
 
 enum NN_OP {
-    NN_OP_None              = 0x00,
-    NN_OP_LoadParam         = 0x01,
-    NN_OP_DumpGradAndZero   = 0x02,
-    NN_OP_Forward           = 0x10,
-    NN_OP_ForwardWithCache  = 0x20,
-    NN_OP_Backward          = 0x40,
+    NN_OP_None                  = 0x00,
+    NN_OP_LoadParam             = 0x01,
+    NN_OP_DumpGradAndZero       = 0x02,
+    NN_OP_Forward               = 0x10,
+    NN_OP_ForwardWithCache      = 0x20,
+    NN_OP_Backward              = 0x40,
+	NN_OP_ForwardAndBackward    = 0x60,
 };
 
 using cm_float = float;

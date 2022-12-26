@@ -25,11 +25,11 @@ struct CopyFork {
                  hls::stream<cm_float>& out_y1,
                  hls::stream<cm_float>& out_y2,
                  bool enable_grad) {
-#pragma HLS INTERFACE type = ap_ctrl_chain port = return
-#pragma HLS INTERFACE type = ap_fifo port = in_x
-#pragma HLS INTERFACE type = ap_fifo port = out_y1
-#pragma HLS INTERFACE type = ap_fifo port = out_y2
-#pragma HLS INTERFACE type = ap_none port = enable_grad
+#pragma HLS INTERFACE mode = ap_ctrl_chain port = return
+#pragma HLS INTERFACE mode = ap_fifo port = in_x
+#pragma HLS INTERFACE mode = ap_fifo port = out_y1
+#pragma HLS INTERFACE mode = ap_fifo port = out_y2
+#pragma HLS INTERFACE mode = ap_none port = enable_grad
 #pragma HLS STABLE variable = enable_grad
         CM_UNUSED(enable_grad);
         for (int i = 0; i < in_size; ++i) {
@@ -43,9 +43,10 @@ struct CopyFork {
     void backward2(hls::stream<cm_float>& in_grad_y1,
                   hls::stream<cm_float>& in_grad_y2,
                   hls::stream<cm_float>& out_grad_x) {
-#pragma HLS INTERFACE type = ap_ctrl_chain port = return
-#pragma HLS INTERFACE type = ap_fifo port = in_grad_y
-#pragma HLS INTERFACE type = ap_fifo port = out_grad_x
+#pragma HLS INTERFACE mode = ap_ctrl_chain port = return
+#pragma HLS INTERFACE mode = ap_fifo port = in_grad_y1
+#pragma HLS INTERFACE mode = ap_fifo port = in_grad_y2
+#pragma HLS INTERFACE mode = ap_fifo port = out_grad_x
         for (int i = 0; i < in_size; ++i) {
             cm_float gy1 = in_grad_y1.read();
             cm_float gy2 = in_grad_y2.read();
@@ -78,11 +79,11 @@ struct VecCat {
                  hls::stream<cm_float>& in_x2,
                  hls::stream<cm_float>& out_y,
                  bool enable_grad) {
-#pragma HLS INTERFACE type = ap_ctrl_chain port = return
-#pragma HLS INTERFACE type = ap_fifo port = in_x1
-#pragma HLS INTERFACE type = ap_fifo port = in_x2
-#pragma HLS INTERFACE type = ap_fifo port = out_y
-#pragma HLS INTERFACE type = ap_none port = enable_grad
+#pragma HLS INTERFACE mode = ap_ctrl_chain port = return
+#pragma HLS INTERFACE mode = ap_fifo port = in_x1
+#pragma HLS INTERFACE mode = ap_fifo port = in_x2
+#pragma HLS INTERFACE mode = ap_fifo port = out_y
+#pragma HLS INTERFACE mode = ap_none port = enable_grad
 #pragma HLS STABLE variable = enable_grad
         CM_UNUSED(enable_grad);
         for (int i = 0; i < In1Size; ++i) {
@@ -99,10 +100,10 @@ struct VecCat {
     void backward2(hls::stream<cm_float>& in_grad_y,
                   hls::stream<cm_float>& out_grad_x1,
                   hls::stream<cm_float>& out_grad_x2) {
-#pragma HLS INTERFACE type = ap_ctrl_chain port = return
-#pragma HLS INTERFACE type = ap_fifo port = in_grad_y
-#pragma HLS INTERFACE type = ap_fifo port = out_grad_x1
-#pragma HLS INTERFACE type = ap_fifo port = out_grad_x2
+#pragma HLS INTERFACE mode = ap_ctrl_chain port = return
+#pragma HLS INTERFACE mode = ap_fifo port = in_grad_y
+#pragma HLS INTERFACE mode = ap_fifo port = out_grad_x1
+#pragma HLS INTERFACE mode = ap_fifo port = out_grad_x2
         for (int i = 0; i < In1Size; ++i) {
             cm_float grad_y_i = in_grad_y.read();
             out_grad_x1 << grad_y_i;
@@ -150,12 +151,12 @@ struct ForkJoin {
     void forward(hls::stream<cm_float>& in_x,
                  hls::stream<cm_float>& out_y,
                  bool enable_grad) {
-#pragma HLS INTERFACE type = ap_ctrl_chain port = return
-#pragma HLS INTERFACE type = ap_fifo port = in_x
-#pragma HLS INTERFACE type = ap_fifo port = out_y
-#pragma HLS INTERFACE type = ap_none port = enable_grad
+#pragma HLS INTERFACE mode = ap_ctrl_chain port = return
+#pragma HLS INTERFACE mode = ap_fifo port = in_x
+#pragma HLS INTERFACE mode = ap_fifo port = out_y
+#pragma HLS INTERFACE mode = ap_none port = enable_grad
 #pragma HLS STABLE variable = enable_grad
-#pragma HLS DATAFLOW
+//#pragma HLS DATAFLOW
         hls::stream<cm_float> in_x1, in_x2;
         hls::stream<cm_float> out_y1, out_y2;
 
@@ -168,10 +169,10 @@ struct ForkJoin {
 #if CM_WITH_BACKWARD
     void backward(hls::stream<cm_float>& in_grad_y,
                   hls::stream<cm_float>& out_grad_x) {
-#pragma HLS INTERFACE type = ap_ctrl_chain port = return
-#pragma HLS INTERFACE type = ap_fifo port = in_grad_y
-#pragma HLS INTERFACE type = ap_fifo port = out_grad_x
-#pragma HLS DATAFLOW
+#pragma HLS INTERFACE mode = ap_ctrl_chain port = return
+#pragma HLS INTERFACE mode = ap_fifo port = in_grad_y
+#pragma HLS INTERFACE mode = ap_fifo port = out_grad_x
+//#pragma HLS DATAFLOW
         hls::stream<cm_float> in_grad_y1, in_grad_y2;
         hls::stream<cm_float> out_grad_x1, out_grad_x2;
         joiner.backward2(in_grad_y, in_grad_y1, in_grad_y2);
@@ -184,9 +185,9 @@ struct ForkJoin {
 //  content in either branch in compiling, then dataflow will be applied as
 //  my intention.
 //     void backward(hls::stream<cm_float>& in_grad_y) {
-// #pragma HLS INTERFACE type = ap_ctrl_chain port = return
-// #pragma HLS INTERFACE type = ap_fifo port = in_grad_y
-// #pragma HLS INTERFACE type = ap_fifo port = out_grad_x
+// #pragma HLS INTERFACE mode = ap_ctrl_chain port = return
+// #pragma HLS INTERFACE mode = ap_fifo port = in_grad_y
+// #pragma HLS INTERFACE mode = ap_fifo port = out_grad_x
 // #pragma HLS DATAFLOW
 //         hls::stream<cm_float> in_grad_y1, in_grad_y2;
 //         hls::stream<cm_float> out_grad_x1, out_grad_x2;

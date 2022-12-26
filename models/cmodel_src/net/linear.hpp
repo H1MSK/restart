@@ -34,10 +34,10 @@ struct Linear {
     void forward(hls::stream<cm_float>& in_x,
                  hls::stream<cm_float>& out_y,
                  bool enable_grad) {
-#pragma HLS INTERFACE type = ap_ctrl_chain port = return
-#pragma HLS INTERFACE type = ap_fifo port = in_x
-#pragma HLS INTERFACE type = ap_fifo port = out_y
-#pragma HLS INTERFACE type = ap_none port = enable_grad
+#pragma HLS INTERFACE mode = ap_ctrl_chain port = return
+#pragma HLS INTERFACE mode = ap_fifo port = in_x
+#pragma HLS INTERFACE mode = ap_fifo port = out_y
+#pragma HLS INTERFACE mode = ap_none port = enable_grad
 #pragma HLS STABLE variable = enable_grad
         cm_float x[in_size];
         const cm_float *const w = param;
@@ -65,9 +65,9 @@ struct Linear {
 #if CM_WITH_BACKWARD
     void backward(hls::stream<cm_float>& in_grad_y,
                   hls::stream<cm_float>& out_grad_x) {
-#pragma HLS INTERFACE type = ap_ctrl_chain port = return
-#pragma HLS INTERFACE type = ap_fifo port = in_grad_y
-#pragma HLS INTERFACE type = ap_fifo port = out_grad_x
+#pragma HLS INTERFACE mode = ap_ctrl_chain port = return
+#pragma HLS INTERFACE mode = ap_fifo port = in_grad_y
+#pragma HLS INTERFACE mode = ap_fifo port = out_grad_x
         cm_float grad_y[out_size];
         const cm_float *const w = param;
         cm_float *const grad_w = grad;
@@ -95,8 +95,8 @@ struct Linear {
         CM_PRINT("B:Linear%dx%d:%d\n", in_size, out_size, (int)cache.size());
     }
     void backward(hls::stream<cm_float>& in_grad_y) {
-#pragma HLS INTERFACE type = ap_ctrl_chain port = return
-#pragma HLS INTERFACE type = ap_fifo port = in_grad_y
+#pragma HLS INTERFACE mode = ap_ctrl_chain port = return
+#pragma HLS INTERFACE mode = ap_fifo port = in_grad_y
         cm_float grad_y[out_size];
         cm_float *const grad_w = grad;
         cm_float *const grad_b = grad + in_size * out_size;

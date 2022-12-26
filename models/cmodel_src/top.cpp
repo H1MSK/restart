@@ -24,12 +24,31 @@ using ActorNetType = Sequence<Linear<OBS_DIM, HIDDEN_WIDTH>,
                               Softmax<ACT_DIM> >;
 #endif
 
+
+template <typename NetType>
+void forwardAndBackward(NetType& net,
+						hls::stream<cm_float>& in_x,
+						hls::stream<cm_float>& in_grad_y,
+						hls::stream<cm_float>& out_y) {
+#pragma HLS INTERFACE mode=ap_ctrl_chain port=return
+//#pragma HLS DATAFLOW
+    net.forward(in_x, out_y, true);
+    net.backward(in_grad_y);
+}
+
 void actor_top(NN_OP op,
                hls::stream<cm_float>& in_param,
                hls::stream<cm_float>& out_grad,
                hls::stream<cm_float>& in_x,
                hls::stream<cm_float>& in_grad_y,
                hls::stream<cm_float>& out_y) {
+#pragma HLS INTERFACE mode=ap_ctrl_chain port=return
+#pragma HLS INTERFACE mode=s_axilite port=op
+#pragma HLS INTERFACE mode=axis port=in_param register_mode=reverse
+#pragma HLS INTERFACE mode=axis port=out_grad register_mode=forward
+#pragma HLS INTERFACE mode=axis port=in_x register_mode=reverse
+#pragma HLS INTERFACE mode=axis port=in_grad_y register_mode=reverse
+#pragma HLS INTERFACE mode=axis port=out_y register_mode=forward
     static ActorNetType net;
     switch (op) {
         case NN_OP_LoadParam:
@@ -41,12 +60,18 @@ void actor_top(NN_OP op,
         case NN_OP_Forward:
             net.forward(in_x, out_y, false);
             break;
+        case NN_OP_ForwardAndBackward:
+            net.forward(in_x, out_y, true);
+            net.backward(in_grad_y);
+        	break;
+#ifndef __SYNTHESIS__
         case NN_OP_ForwardWithCache:
             net.forward(in_x, out_y, true);
             break;
         case NN_OP_Backward:
             net.backward(in_grad_y);
             break;
+#endif
         default:
             break;
     }
@@ -69,12 +94,18 @@ void critic_top(NN_OP op,
         case NN_OP_Forward:
             net.forward(in_x, out_y, false);
             break;
+        case NN_OP_ForwardAndBackward:
+            net.forward(in_x, out_y, true);
+            net.backward(in_grad_y);
+        	break;
+#ifndef __SYNTHESIS__
         case NN_OP_ForwardWithCache:
             net.forward(in_x, out_y, true);
             break;
         case NN_OP_Backward:
             net.backward(in_grad_y);
             break;
+#endif
         default:
             break;
     }

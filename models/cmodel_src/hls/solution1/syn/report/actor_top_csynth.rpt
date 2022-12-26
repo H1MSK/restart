@@ -1,0 +1,330 @@
+
+
+================================================================
+== Vitis HLS Report for 'actor_top'
+================================================================
+* Date:           Mon Dec 26 02:54:55 2022
+
+* Version:        2022.1 (Build 3526262 on Mon Apr 18 15:47:01 MDT 2022)
+* Project:        hls
+* Solution:       solution1 (Vivado IP Flow Target)
+* Product family: zynq
+* Target device:  xc7z020-clg400-2
+
+
+================================================================
+== Performance Estimates
+================================================================
++ Timing: 
+    * Summary: 
+    +--------+---------+----------+------------+
+    |  Clock |  Target | Estimated| Uncertainty|
+    +--------+---------+----------+------------+
+    |ap_clk  |  5.00 ns|  5.256 ns|     1.35 ns|
+    +--------+---------+----------+------------+
+
++ Latency: 
+    * Summary: 
+    +---------+---------+----------+----------+-----+--------+---------+
+    |  Latency (cycles) |  Latency (absolute) |   Interval   | Pipeline|
+    |   min   |   max   |    min   |    max   | min |   max  |   Type  |
+    +---------+---------+----------+----------+-----+--------+---------+
+    |        1|   261816|  5.256 ns|  1.376 ms|    2|  261817|       no|
+    +---------+---------+----------+----------+-----+--------+---------+
+
+    + Detail: 
+        * Instance: 
+        +-------------------------------------------------+--------------------------------------+---------+---------+-----------+-----------+--------+--------+---------+
+        |                                                 |                                      |  Latency (cycles) |   Latency (absolute)  |     Interval    | Pipeline|
+        |                     Instance                    |                Module                |   min   |   max   |    min    |    max    |   min  |   max  |   Type  |
+        +-------------------------------------------------+--------------------------------------+---------+---------+-----------+-----------+--------+--------+---------+
+        |grp_forward_fu_186                               |forward                               |   222936|   223526|   1.168 ms|   1.171 ms|  222936|  223526|       no|
+        |grp_actor_top_Pipeline_VITIS_LOOP_27_1_fu_225    |actor_top_Pipeline_VITIS_LOOP_27_1    |    24130|    24130|   0.121 ms|   0.121 ms|   24130|   24130|       no|
+        |grp_actor_top_Pipeline_VITIS_LOOP_20_1_fu_233    |actor_top_Pipeline_VITIS_LOOP_20_1    |    24130|    24130|   0.121 ms|   0.121 ms|   24130|   24130|       no|
+        |grp_backward_fu_241                              |backward                              |    13440|    13440|  70.645 us|  70.645 us|   13440|   13440|       no|
+        |grp_actor_top_Pipeline_VITIS_LOOP_103_1_fu_286   |actor_top_Pipeline_VITIS_LOOP_103_1   |       67|       67|   0.335 us|   0.335 us|      67|      67|       no|
+        |grp_actor_top_Pipeline_VITIS_LOOP_106_2_fu_292   |actor_top_Pipeline_VITIS_LOOP_106_2   |    24129|    24129|   0.121 ms|   0.121 ms|   24129|   24129|       no|
+        |grp_actor_top_Pipeline_VITIS_LOOP_112_4_fu_301   |actor_top_Pipeline_VITIS_LOOP_112_4   |      643|      643|   3.215 us|   3.215 us|     643|     643|       no|
+        |grp_actor_top_Pipeline_6_fu_308                  |actor_top_Pipeline_6                  |    24130|    24130|   0.121 ms|   0.121 ms|   24130|   24130|       no|
+        |grp_actor_top_Pipeline_VITIS_LOOP_27_119_fu_314  |actor_top_Pipeline_VITIS_LOOP_27_119  |     4162|     4162|  20.810 us|  20.810 us|    4162|    4162|       no|
+        |grp_actor_top_Pipeline_8_fu_322                  |actor_top_Pipeline_8                  |     4162|     4162|  20.810 us|  20.810 us|    4162|    4162|       no|
+        |grp_actor_top_Pipeline_VITIS_LOOP_27_120_fu_328  |actor_top_Pipeline_VITIS_LOOP_27_120  |      522|      522|   2.610 us|   2.610 us|     522|     522|       no|
+        |grp_actor_top_Pipeline_10_fu_336                 |actor_top_Pipeline_10                 |      522|      522|   2.610 us|   2.610 us|     522|     522|       no|
+        |grp_actor_top_Pipeline_VITIS_LOOP_27_121_fu_342  |actor_top_Pipeline_VITIS_LOOP_27_121  |      522|      522|   2.610 us|   2.610 us|     522|     522|       no|
+        |grp_actor_top_Pipeline_12_fu_350                 |actor_top_Pipeline_12                 |      522|      522|   2.610 us|   2.610 us|     522|     522|       no|
+        |grp_actor_top_Pipeline_VITIS_LOOP_20_116_fu_356  |actor_top_Pipeline_VITIS_LOOP_20_116  |     4162|     4162|  20.810 us|  20.810 us|    4162|    4162|       no|
+        |grp_actor_top_Pipeline_VITIS_LOOP_20_117_fu_364  |actor_top_Pipeline_VITIS_LOOP_20_117  |      522|      522|   2.610 us|   2.610 us|     522|     522|       no|
+        |grp_actor_top_Pipeline_VITIS_LOOP_20_118_fu_372  |actor_top_Pipeline_VITIS_LOOP_20_118  |      522|      522|   2.610 us|   2.610 us|     522|     522|       no|
+        +-------------------------------------------------+--------------------------------------+---------+---------+-----------+-----------+--------+--------+---------+
+
+        * Loop: 
+        N/A
+
+
+
+================================================================
+== Utilization Estimates
+================================================================
+* Summary: 
++-----------------+---------+-----+--------+-------+-----+
+|       Name      | BRAM_18K| DSP |   FF   |  LUT  | URAM|
++-----------------+---------+-----+--------+-------+-----+
+|DSP              |        -|    -|       -|      -|    -|
+|Expression       |        -|    -|       0|      8|    -|
+|FIFO             |        2|    -|     848|    548|    -|
+|Instance         |       39|   83|   71957|  46380|    0|
+|Memory           |      169|    -|       0|      0|    0|
+|Multiplexer      |        -|    -|       -|   1145|    -|
+|Register         |        -|    -|      62|      -|    -|
++-----------------+---------+-----+--------+-------+-----+
+|Total            |      210|   83|   72867|  48081|    0|
++-----------------+---------+-----+--------+-------+-----+
+|Available        |      280|  220|  106400|  53200|    0|
++-----------------+---------+-----+--------+-------+-----+
+|Utilization (%)  |       75|   37|      68|     90|    0|
++-----------------+---------+-----+--------+-------+-----+
+
++ Detail: 
+    * Instance: 
+    +-------------------------------------------------+--------------------------------------+---------+----+-------+-------+-----+
+    |                     Instance                    |                Module                | BRAM_18K| DSP|   FF  |  LUT  | URAM|
+    +-------------------------------------------------+--------------------------------------+---------+----+-------+-------+-----+
+    |grp_actor_top_Pipeline_10_fu_336                 |actor_top_Pipeline_10                 |        0|   0|     23|     53|    0|
+    |grp_actor_top_Pipeline_12_fu_350                 |actor_top_Pipeline_12                 |        0|   0|     23|     53|    0|
+    |grp_actor_top_Pipeline_6_fu_308                  |actor_top_Pipeline_6                  |        0|   0|     33|     59|    0|
+    |grp_actor_top_Pipeline_8_fu_322                  |actor_top_Pipeline_8                  |        0|   0|     29|     56|    0|
+    |grp_actor_top_Pipeline_VITIS_LOOP_103_1_fu_286   |actor_top_Pipeline_VITIS_LOOP_103_1   |        0|   0|     58|     59|    0|
+    |grp_actor_top_Pipeline_VITIS_LOOP_106_2_fu_292   |actor_top_Pipeline_VITIS_LOOP_106_2   |        0|   0|   5424|   2576|    0|
+    |grp_actor_top_Pipeline_VITIS_LOOP_112_4_fu_301   |actor_top_Pipeline_VITIS_LOOP_112_4   |        0|   0|    223|    198|    0|
+    |grp_actor_top_Pipeline_VITIS_LOOP_20_1_fu_233    |actor_top_Pipeline_VITIS_LOOP_20_1    |        0|   0|     65|     70|    0|
+    |grp_actor_top_Pipeline_VITIS_LOOP_20_116_fu_356  |actor_top_Pipeline_VITIS_LOOP_20_116  |        0|   0|     61|     67|    0|
+    |grp_actor_top_Pipeline_VITIS_LOOP_20_117_fu_364  |actor_top_Pipeline_VITIS_LOOP_20_117  |        0|   0|     55|     64|    0|
+    |grp_actor_top_Pipeline_VITIS_LOOP_20_118_fu_372  |actor_top_Pipeline_VITIS_LOOP_20_118  |        0|   0|     55|     64|    0|
+    |grp_actor_top_Pipeline_VITIS_LOOP_27_1_fu_225    |actor_top_Pipeline_VITIS_LOOP_27_1    |        0|   0|     18|     69|    0|
+    |grp_actor_top_Pipeline_VITIS_LOOP_27_119_fu_314  |actor_top_Pipeline_VITIS_LOOP_27_119  |        0|   0|     16|     66|    0|
+    |grp_actor_top_Pipeline_VITIS_LOOP_27_120_fu_328  |actor_top_Pipeline_VITIS_LOOP_27_120  |        0|   0|     13|     63|    0|
+    |grp_actor_top_Pipeline_VITIS_LOOP_27_121_fu_342  |actor_top_Pipeline_VITIS_LOOP_27_121  |        0|   0|     13|     63|    0|
+    |grp_backward_fu_241                              |backward                              |       17|  19|  22795|  14810|    0|
+    |control_s_axi_U                                  |control_s_axi                         |        0|   0|     68|    104|    0|
+    |faddfsub_32ns_32ns_32_9_full_dsp_1_U348          |faddfsub_32ns_32ns_32_9_full_dsp_1    |        0|   2|    324|    433|    0|
+    |fmul_32ns_32ns_32_6_max_dsp_1_U349               |fmul_32ns_32ns_32_6_max_dsp_1         |        0|   3|    165|    326|    0|
+    |grp_forward_fu_186                               |forward                               |       22|  59|  42496|  27127|    0|
+    +-------------------------------------------------+--------------------------------------+---------+----+-------+-------+-----+
+    |Total                                            |                                      |       39|  83|  71957|  46380|    0|
+    +-------------------------------------------------+--------------------------------------+---------+----+-------+-------+-----+
+
+    * DSP: 
+    N/A
+
+    * Memory: 
+    +---------------------------------------------------+---------------------------------------------------------+---------+---+----+-----+-------+-----+------+-------------+
+    |                       Memory                      |                          Module                         | BRAM_18K| FF| LUT| URAM| Words | Bits| Banks| W*Bits*Banks|
+    +---------------------------------------------------+---------------------------------------------------------+---------+---+----+-----+-------+-----+------+-------------+
+    |grad_y_U                                           |grad_y_RAM_1WNR_AUTO_1R1W                                |        1|  0|   0|    0|     64|   32|     1|         2048|
+    |net_first_grad_U                                   |net_first_grad_RAM_AUTO_1R1W                             |       64|  0|   0|    0|  24128|   32|     1|       772096|
+    |net_first_param_U                                  |net_first_param_RAM_AUTO_1R1W                            |       64|  0|   0|    0|  24128|   32|     1|       772096|
+    |net_next_next_first_grad_U                         |net_next_next_first_grad_RAM_AUTO_1R1W                   |       16|  0|   0|    0|   4160|   32|     1|       133120|
+    |net_next_next_first_param_U                        |net_next_next_first_param_RAM_AUTO_1R1W                  |       16|  0|   0|    0|   4160|   32|     1|       133120|
+    |net_next_next_next_next_first_node1_grad_U         |net_next_next_next_next_first_node1_grad_RAM_AUTO_1R1W   |        2|  0|   0|    0|    520|   32|     1|        16640|
+    |net_next_next_next_next_first_node2_first_grad_U   |net_next_next_next_next_first_node1_grad_RAM_AUTO_1R1W   |        2|  0|   0|    0|    520|   32|     1|        16640|
+    |net_next_next_next_next_first_node1_param_U        |net_next_next_next_next_first_node1_param_RAM_AUTO_1R1W  |        2|  0|   0|    0|    520|   32|     1|        16640|
+    |net_next_next_next_next_first_node2_first_param_U  |net_next_next_next_next_first_node1_param_RAM_AUTO_1R1W  |        2|  0|   0|    0|    520|   32|     1|        16640|
+    +---------------------------------------------------+---------------------------------------------------------+---------+---+----+-----+-------+-----+------+-------------+
+    |Total                                              |                                                         |      169|  0|   0|    0|  58720|  288|     9|      1879040|
+    +---------------------------------------------------+---------------------------------------------------------+---------+---+----+-----+-------+-----+------+-------------+
+
+    * FIFO: 
+    +-------------------------------------------------------------+---------+-----+----+-----+------+-----+---------+
+    |                             Name                            | BRAM_18K|  FF | LUT| URAM| Depth| Bits| Size:D*B|
+    +-------------------------------------------------------------+---------+-----+----+-----+------+-----+---------+
+    |mid_fifo_U                                                   |        2|  155|   0|    -|    64|   32|     2048|
+    |net_first_cache_fifo_U                                       |        0|   99|   0|    -|     2|   32|       64|
+    |net_next_first_cache_fifo_U                                  |        0|   99|   0|    -|     2|   32|       64|
+    |net_next_next_first_cache_fifo_U                             |        0|   99|   0|    -|     2|   32|       64|
+    |net_next_next_next_first_cache_fifo_U                        |        0|   99|   0|    -|     2|   32|       64|
+    |net_next_next_next_next_first_node1_cache_fifo_U             |        0|   99|   0|    -|     2|   32|       64|
+    |net_next_next_next_next_first_node2_first_cache_fifo_U       |        0|   99|   0|    -|     2|   32|       64|
+    |net_next_next_next_next_first_node2_next_first_cache_fifo_U  |        0|   99|   0|    -|     2|   32|       64|
+    +-------------------------------------------------------------+---------+-----+----+-----+------+-----+---------+
+    |Total                                                        |        2|  848|   0|    0|    78|  256|     2496|
+    +-------------------------------------------------------------+---------+-----+----+-----+------+-----+---------+
+
+    * Expression: 
+    +-----------------------------------------------------------------+----------+----+---+----+------------+------------+
+    |                          Variable Name                          | Operation| DSP| FF| LUT| Bitwidth P0| Bitwidth P1|
+    +-----------------------------------------------------------------+----------+----+---+----+------------+------------+
+    |ap_block_state27_on_subcall_done                                 |       and|   0|  0|   1|           1|           1|
+    |grp_actor_top_Pipeline_VITIS_LOOP_27_119_fu_314_out_grad_TREADY  |       and|   0|  0|   1|           1|           1|
+    |grp_actor_top_Pipeline_VITIS_LOOP_27_120_fu_328_out_grad_TREADY  |       and|   0|  0|   1|           1|           1|
+    |grp_actor_top_Pipeline_VITIS_LOOP_27_121_fu_342_out_grad_TREADY  |       and|   0|  0|   1|           1|           1|
+    |grp_actor_top_Pipeline_VITIS_LOOP_27_1_fu_225_out_grad_TREADY    |       and|   0|  0|   1|           1|           1|
+    |ap_block_state1                                                  |        or|   0|  0|   1|           1|           1|
+    |ap_block_state27                                                 |        or|   0|  0|   1|           1|           1|
+    |grp_forward_fu_186_out_y_TREADY                                  |        or|   0|  0|   1|           1|           1|
+    +-----------------------------------------------------------------+----------+----+---+----+------------+------------+
+    |Total                                                            |          |   0|  0|   8|           8|           8|
+    +-----------------------------------------------------------------+----------+----+---+----+------------+------------+
+
+    * Multiplexer: 
+    +------------------------------------------------------------+-----+-----------+-----+-----------+
+    |                            Name                            | LUT | Input Size| Bits| Total Bits|
+    +------------------------------------------------------------+-----+-----------+-----+-----------+
+    |ap_NS_fsm                                                   |  169|         38|    1|         38|
+    |ap_done                                                     |    9|          2|    1|          2|
+    |grad_y_address0                                             |   17|          4|    6|         24|
+    |grad_y_ce0                                                  |   17|          4|    1|          4|
+    |grad_y_we0                                                  |    9|          2|    1|          2|
+    |grp_forward_fu_186_enable_grad                              |   13|          3|    1|          3|
+    |grp_fu_394_ce                                               |   17|          4|    1|          4|
+    |grp_fu_394_opcode                                           |   17|          4|    2|          8|
+    |grp_fu_394_p0                                               |   17|          4|   32|        128|
+    |grp_fu_394_p1                                               |   17|          4|   32|        128|
+    |grp_fu_398_ce                                               |   13|          3|    1|          3|
+    |grp_fu_398_p0                                               |   13|          3|   32|         96|
+    |grp_fu_398_p1                                               |   13|          3|   32|         96|
+    |in_grad_y_TREADY_int_regslice                               |    9|          2|    1|          2|
+    |in_param_TREADY_int_regslice                                |   21|          5|    1|          5|
+    |in_x_TREADY_int_regslice                                    |    9|          2|    1|          2|
+    |mid_read                                                    |    9|          2|    1|          2|
+    |mid_write                                                   |    9|          2|    1|          2|
+    |net_first_cache_read                                        |    9|          2|    1|          2|
+    |net_first_cache_write                                       |    9|          2|    1|          2|
+    |net_first_grad_address0                                     |   21|          5|   15|         75|
+    |net_first_grad_ce0                                          |   21|          5|    1|          5|
+    |net_first_grad_ce1                                          |    9|          2|    1|          2|
+    |net_first_grad_d0                                           |   17|          4|   32|        128|
+    |net_first_grad_we0                                          |   17|          4|    1|          4|
+    |net_first_grad_we1                                          |    9|          2|    1|          2|
+    |net_first_param_address0                                    |   13|          3|   15|         45|
+    |net_first_param_ce0                                         |   13|          3|    1|          3|
+    |net_first_param_we0                                         |    9|          2|    1|          2|
+    |net_next_first_cache_read                                   |    9|          2|    1|          2|
+    |net_next_first_cache_write                                  |    9|          2|    1|          2|
+    |net_next_next_first_cache_read                              |    9|          2|    1|          2|
+    |net_next_next_first_cache_write                             |    9|          2|    1|          2|
+    |net_next_next_first_grad_address0                           |   17|          4|   13|         52|
+    |net_next_next_first_grad_ce0                                |   17|          4|    1|          4|
+    |net_next_next_first_grad_ce1                                |    9|          2|    1|          2|
+    |net_next_next_first_grad_d0                                 |   13|          3|   32|         96|
+    |net_next_next_first_grad_we0                                |   13|          3|    1|          3|
+    |net_next_next_first_grad_we1                                |    9|          2|    1|          2|
+    |net_next_next_first_param_address0                          |   17|          4|   13|         52|
+    |net_next_next_first_param_address1                          |   13|          3|   13|         39|
+    |net_next_next_first_param_ce0                               |   17|          4|    1|          4|
+    |net_next_next_first_param_ce1                               |   13|          3|    1|          3|
+    |net_next_next_first_param_we0                               |    9|          2|    1|          2|
+    |net_next_next_next_first_cache_read                         |    9|          2|    1|          2|
+    |net_next_next_next_first_cache_write                        |    9|          2|    1|          2|
+    |net_next_next_next_next_first_node1_cache_read              |    9|          2|    1|          2|
+    |net_next_next_next_next_first_node1_cache_write             |    9|          2|    1|          2|
+    |net_next_next_next_next_first_node1_grad_address0           |   17|          4|   10|         40|
+    |net_next_next_next_next_first_node1_grad_ce0                |   17|          4|    1|          4|
+    |net_next_next_next_next_first_node1_grad_ce1                |    9|          2|    1|          2|
+    |net_next_next_next_next_first_node1_grad_d0                 |   13|          3|   32|         96|
+    |net_next_next_next_next_first_node1_grad_we0                |   13|          3|    1|          3|
+    |net_next_next_next_next_first_node1_grad_we1                |    9|          2|    1|          2|
+    |net_next_next_next_next_first_node1_param_address0          |   17|          4|   10|         40|
+    |net_next_next_next_next_first_node1_param_address1          |   13|          3|   10|         30|
+    |net_next_next_next_next_first_node1_param_ce0               |   17|          4|    1|          4|
+    |net_next_next_next_next_first_node1_param_ce1               |   13|          3|    1|          3|
+    |net_next_next_next_next_first_node1_param_we0               |    9|          2|    1|          2|
+    |net_next_next_next_next_first_node2_first_cache_read        |    9|          2|    1|          2|
+    |net_next_next_next_next_first_node2_first_cache_write       |    9|          2|    1|          2|
+    |net_next_next_next_next_first_node2_first_grad_address0     |   17|          4|   10|         40|
+    |net_next_next_next_next_first_node2_first_grad_ce0          |   17|          4|    1|          4|
+    |net_next_next_next_next_first_node2_first_grad_ce1          |    9|          2|    1|          2|
+    |net_next_next_next_next_first_node2_first_grad_d0           |   13|          3|   32|         96|
+    |net_next_next_next_next_first_node2_first_grad_we0          |   13|          3|    1|          3|
+    |net_next_next_next_next_first_node2_first_grad_we1          |    9|          2|    1|          2|
+    |net_next_next_next_next_first_node2_first_param_address0    |   17|          4|   10|         40|
+    |net_next_next_next_next_first_node2_first_param_address1    |   13|          3|   10|         30|
+    |net_next_next_next_next_first_node2_first_param_ce0         |   17|          4|    1|          4|
+    |net_next_next_next_next_first_node2_first_param_ce1         |   13|          3|    1|          3|
+    |net_next_next_next_next_first_node2_first_param_we0         |    9|          2|    1|          2|
+    |net_next_next_next_next_first_node2_next_first_cache_read   |    9|          2|    1|          2|
+    |net_next_next_next_next_first_node2_next_first_cache_write  |    9|          2|    1|          2|
+    |out_grad_TDATA_int_regslice                                 |   21|          5|   32|        160|
+    |out_grad_TVALID_int_regslice                                |   21|          5|    1|          5|
+    |out_y_TVALID_int_regslice                                   |    9|          2|    1|          2|
+    +------------------------------------------------------------+-----+-----------+-----+-----------+
+    |Total                                                       | 1145|        263|  480|       1721|
+    +------------------------------------------------------------+-----+-----------+-----+-----------+
+
+    * Register: 
+    +--------------------------------------------------------------+----+----+-----+-----------+
+    |                             Name                             | FF | LUT| Bits| Const Bits|
+    +--------------------------------------------------------------+----+----+-----+-----------+
+    |ap_CS_fsm                                                     |  37|   0|   37|          0|
+    |ap_done_reg                                                   |   1|   0|    1|          0|
+    |empty_reg_384                                                 |   7|   0|    7|          0|
+    |grp_actor_top_Pipeline_10_fu_336_ap_start_reg                 |   1|   0|    1|          0|
+    |grp_actor_top_Pipeline_12_fu_350_ap_start_reg                 |   1|   0|    1|          0|
+    |grp_actor_top_Pipeline_6_fu_308_ap_start_reg                  |   1|   0|    1|          0|
+    |grp_actor_top_Pipeline_8_fu_322_ap_start_reg                  |   1|   0|    1|          0|
+    |grp_actor_top_Pipeline_VITIS_LOOP_103_1_fu_286_ap_start_reg   |   1|   0|    1|          0|
+    |grp_actor_top_Pipeline_VITIS_LOOP_106_2_fu_292_ap_start_reg   |   1|   0|    1|          0|
+    |grp_actor_top_Pipeline_VITIS_LOOP_112_4_fu_301_ap_start_reg   |   1|   0|    1|          0|
+    |grp_actor_top_Pipeline_VITIS_LOOP_20_116_fu_356_ap_start_reg  |   1|   0|    1|          0|
+    |grp_actor_top_Pipeline_VITIS_LOOP_20_117_fu_364_ap_start_reg  |   1|   0|    1|          0|
+    |grp_actor_top_Pipeline_VITIS_LOOP_20_118_fu_372_ap_start_reg  |   1|   0|    1|          0|
+    |grp_actor_top_Pipeline_VITIS_LOOP_20_1_fu_233_ap_start_reg    |   1|   0|    1|          0|
+    |grp_actor_top_Pipeline_VITIS_LOOP_27_119_fu_314_ap_start_reg  |   1|   0|    1|          0|
+    |grp_actor_top_Pipeline_VITIS_LOOP_27_120_fu_328_ap_start_reg  |   1|   0|    1|          0|
+    |grp_actor_top_Pipeline_VITIS_LOOP_27_121_fu_342_ap_start_reg  |   1|   0|    1|          0|
+    |grp_actor_top_Pipeline_VITIS_LOOP_27_1_fu_225_ap_start_reg    |   1|   0|    1|          0|
+    |grp_backward_fu_241_ap_start_reg                              |   1|   0|    1|          0|
+    |grp_forward_fu_186_ap_start_reg                               |   1|   0|    1|          0|
+    +--------------------------------------------------------------+----+----+-----+-----------+
+    |Total                                                         |  62|   0|   62|          0|
+    +--------------------------------------------------------------+----+----+-----+-----------+
+
+
+
+================================================================
+== Interface
+================================================================
+* Summary: 
++-----------------------+-----+-----+---------------+--------------+--------------+
+|       RTL Ports       | Dir | Bits|    Protocol   | Source Object|    C Type    |
++-----------------------+-----+-----+---------------+--------------+--------------+
+|s_axi_control_AWVALID  |   in|    1|          s_axi|       control|        scalar|
+|s_axi_control_AWREADY  |  out|    1|          s_axi|       control|        scalar|
+|s_axi_control_AWADDR   |   in|    5|          s_axi|       control|        scalar|
+|s_axi_control_WVALID   |   in|    1|          s_axi|       control|        scalar|
+|s_axi_control_WREADY   |  out|    1|          s_axi|       control|        scalar|
+|s_axi_control_WDATA    |   in|   32|          s_axi|       control|        scalar|
+|s_axi_control_WSTRB    |   in|    4|          s_axi|       control|        scalar|
+|s_axi_control_ARVALID  |   in|    1|          s_axi|       control|        scalar|
+|s_axi_control_ARREADY  |  out|    1|          s_axi|       control|        scalar|
+|s_axi_control_ARADDR   |   in|    5|          s_axi|       control|        scalar|
+|s_axi_control_RVALID   |  out|    1|          s_axi|       control|        scalar|
+|s_axi_control_RREADY   |   in|    1|          s_axi|       control|        scalar|
+|s_axi_control_RDATA    |  out|   32|          s_axi|       control|        scalar|
+|s_axi_control_RRESP    |  out|    2|          s_axi|       control|        scalar|
+|s_axi_control_BVALID   |  out|    1|          s_axi|       control|        scalar|
+|s_axi_control_BREADY   |   in|    1|          s_axi|       control|        scalar|
+|s_axi_control_BRESP    |  out|    2|          s_axi|       control|        scalar|
+|ap_clk                 |   in|    1|  ap_ctrl_chain|     actor_top|  return value|
+|ap_rst_n               |   in|    1|  ap_ctrl_chain|     actor_top|  return value|
+|ap_start               |   in|    1|  ap_ctrl_chain|     actor_top|  return value|
+|ap_done                |  out|    1|  ap_ctrl_chain|     actor_top|  return value|
+|ap_continue            |   in|    1|  ap_ctrl_chain|     actor_top|  return value|
+|ap_idle                |  out|    1|  ap_ctrl_chain|     actor_top|  return value|
+|ap_ready               |  out|    1|  ap_ctrl_chain|     actor_top|  return value|
+|in_param_TDATA         |   in|   32|           axis|      in_param|       pointer|
+|in_param_TVALID        |   in|    1|           axis|      in_param|       pointer|
+|in_param_TREADY        |  out|    1|           axis|      in_param|       pointer|
+|out_grad_TDATA         |  out|   32|           axis|      out_grad|       pointer|
+|out_grad_TVALID        |  out|    1|           axis|      out_grad|       pointer|
+|out_grad_TREADY        |   in|    1|           axis|      out_grad|       pointer|
+|in_x_TDATA             |   in|   32|           axis|          in_x|       pointer|
+|in_x_TVALID            |   in|    1|           axis|          in_x|       pointer|
+|in_x_TREADY            |  out|    1|           axis|          in_x|       pointer|
+|in_grad_y_TDATA        |   in|   32|           axis|     in_grad_y|       pointer|
+|in_grad_y_TVALID       |   in|    1|           axis|     in_grad_y|       pointer|
+|in_grad_y_TREADY       |  out|    1|           axis|     in_grad_y|       pointer|
+|out_y_TDATA            |  out|   32|           axis|         out_y|       pointer|
+|out_y_TVALID           |  out|    1|           axis|         out_y|       pointer|
+|out_y_TREADY           |   in|    1|           axis|         out_y|       pointer|
++-----------------------+-----+-----+---------------+--------------+--------------+
+
