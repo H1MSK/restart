@@ -186,13 +186,38 @@ class TrainManager:
         with open(f"./run/{self.session_name}/{prefix}.run", 'w') as f:
             f.write(f"{self.train_count} {self.test_count}")
 
-    def run(self, total_train_steps=2000000, epoch_size=2048, batch_size=64, test_interval=4096):
+    def set_run(self, /, total_train_epochs=2000000, epoch_size=2048, max_episode_steps=10000, batch_size=64, test_interval=4096):
+        self.conf.update({"run": {}})
+        self.conf["run"].update({
+            "steps": str(total_train_epochs),
+            "epoch_size": str(epoch_size),
+            "max_episode_step": str(max_episode_steps),
+            "batch_size": str(batch_size),
+            "test_interval": str(test_interval)
+        })
+        config.save_config(f'./run/{self.session_name}/conf.ini', self.conf)
+
+    def run(self, total_train_epochs=2000000, epoch_size=2048, max_episode_steps=10000, batch_size=64, test_interval=4096):
+        s = self.conf["run"]
+        total_train_epochs = int(s["steps"])
+        epoch_size = int(s["epoch_size"])
+        max_episode_steps = int(s["max_episode_step"])
+        batch_size = int(s["batch_size"])
+        test_interval = int(s["test_interval"])
+
+        logging.info(f"Running with total_train_epochs={total_train_epochs}, "
+                     f"epoch_size={epoch_size}, "
+                     f"max_episode_steps={max_episode_steps}, "
+                     f"batch_size={batch_size}, "
+                     f"test_interval={test_interval}"
+        )
+
         best_reward = -math.inf
-        while self.train_count < total_train_steps:
+        while self.train_count < total_train_epochs:
             if self.train_count // test_interval != (self.train_count-1) // test_interval:
                 self.test_episode(str(self.train_count // test_interval))
                 self.save(str(self.train_count // test_interval))
-            rew = self.train_epoch(epoch_size=epoch_size, batch_size=batch_size)
+            rew = self.train_epoch(epoch_size=epoch_size, batch_size=batch_size, max_episode_steps=max_episode_steps)
             self.save('last')
             if rew > best_reward:
                 best_reward = rew

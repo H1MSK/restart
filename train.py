@@ -5,6 +5,12 @@ from py.train_manager import TrainManager
 
 if __name__ == '__main__':
     args = parse(argv=argv[1:])
+
+    total_train_epochs=args.total_train_epochs
+    max_episode_step=args.max_episode_step
+    min_epoch_size=args.min_epoch_size
+    batch_size=args.batch_size
+
     logging.basicConfig(level=logging.INFO)
     logging.info(f"Args={args}")
     if args.session != None:
@@ -19,4 +25,10 @@ if __name__ == '__main__':
             hidden_width=args.hidden_width,
             seed=args.seed
         )
+        tm.set_run(
+            total_train_epochs=total_train_epochs,
+            max_episode_steps=max_episode_step,
+            epoch_size=min_epoch_size,
+            batch_size=batch_size)
+    
     tm.run()
