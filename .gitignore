@@ -3,3 +3,15 @@ logs
 *.gif
 run
 models/build
+
+misc
+.*
+!.gitignore
+verilog
+vhdl
+
+*.xml
+*.dat
+*.tcl
+*.log
+

@@ -1,0 +1,307 @@
+
+
+================================================================
+== Vitis HLS Report for 'backward_1'
+================================================================
+* Date:           Mon Dec 26 02:54:38 2022
+
+* Version:        2022.1 (Build 3526262 on Mon Apr 18 15:47:01 MDT 2022)
+* Project:        hls
+* Solution:       solution1 (Vivado IP Flow Target)
+* Product family: zynq
+* Target device:  xc7z020-clg400-2
+
+
+================================================================
+== Performance Estimates
+================================================================
++ Timing: 
+    * Summary: 
+    +--------+---------+----------+------------+
+    |  Clock |  Target | Estimated| Uncertainty|
+    +--------+---------+----------+------------+
+    |ap_clk  |  5.00 ns|  3.585 ns|     1.35 ns|
+    +--------+---------+----------+------------+
+
++ Latency: 
+    * Summary: 
+    +---------+---------+-----------+-----------+------+------+---------+
+    |  Latency (cycles) |   Latency (absolute)  |   Interval  | Pipeline|
+    |   min   |   max   |    min    |    max    |  min |  max |   Type  |
+    +---------+---------+-----------+-----------+------+------+---------+
+    |     4871|     4871|  24.355 us|  24.355 us|  4871|  4871|       no|
+    +---------+---------+-----------+-----------+------+------+---------+
+
+    + Detail: 
+        * Instance: 
+        +--------------------------------------------------+---------------------------------------+---------+---------+-----------+-----------+------+------+---------+
+        |                                                  |                                       |  Latency (cycles) |   Latency (absolute)  |   Interval  | Pipeline|
+        |                     Instance                     |                 Module                |   min   |   max   |    min    |    max    |  min |  max |   Type  |
+        +--------------------------------------------------+---------------------------------------+---------+---------+-----------+-----------+------+------+---------+
+        |grp_backward_1_Pipeline_VITIS_LOOP_107_1_fu_270   |backward_1_Pipeline_VITIS_LOOP_107_1   |       10|       10|  50.000 ns|  50.000 ns|    10|    10|       no|
+        |grp_backward_1_Pipeline_VITIS_LOOP_111_2_fu_277   |backward_1_Pipeline_VITIS_LOOP_111_2   |       10|       10|  50.000 ns|  50.000 ns|    10|    10|       no|
+        |grp_backward_1_Pipeline_VITIS_LOOP_75_1_fu_284    |backward_1_Pipeline_VITIS_LOOP_75_1    |       10|       10|  50.000 ns|  50.000 ns|    10|    10|       no|
+        |grp_backward_1_Pipeline_VITIS_LOOP_78_2_fu_290    |backward_1_Pipeline_VITIS_LOOP_78_2    |      334|      334|   1.670 us|   1.670 us|   334|   334|       no|
+        |grp_backward_1_Pipeline_VITIS_LOOP_86_4_fu_307    |backward_1_Pipeline_VITIS_LOOP_86_4    |     1934|     1934|   9.670 us|   9.670 us|  1934|  1934|       no|
+        |grp_backward_1_Pipeline_VITIS_LOOP_92_6_fu_323    |backward_1_Pipeline_VITIS_LOOP_92_6    |       83|       83|   0.415 us|   0.415 us|    83|    83|       no|
+        |grp_backward_1_Pipeline_VITIS_LOOP_56_1_fu_330    |backward_1_Pipeline_VITIS_LOOP_56_1    |       17|       17|  85.000 ns|  85.000 ns|    17|    17|       no|
+        |grp_backward_1_Pipeline_VITIS_LOOP_75_111_fu_338  |backward_1_Pipeline_VITIS_LOOP_75_111  |       10|       10|  50.000 ns|  50.000 ns|    10|    10|       no|
+        |grp_backward_1_Pipeline_VITIS_LOOP_78_212_fu_344  |backward_1_Pipeline_VITIS_LOOP_78_212  |      334|      334|   1.670 us|   1.670 us|   334|   334|       no|
+        |grp_backward_1_Pipeline_VITIS_LOOP_86_413_fu_361  |backward_1_Pipeline_VITIS_LOOP_86_413  |     1934|     1934|   9.670 us|   9.670 us|  1934|  1934|       no|
+        |grp_backward_1_Pipeline_VITIS_LOOP_92_614_fu_377  |backward_1_Pipeline_VITIS_LOOP_92_614  |       83|       83|   0.415 us|   0.415 us|    83|    83|       no|
+        |grp_backward_1_Pipeline_VITIS_LOOP_50_1_fu_384    |backward_1_Pipeline_VITIS_LOOP_50_1    |       76|       76|   0.380 us|   0.380 us|    76|    76|       no|
+        +--------------------------------------------------+---------------------------------------+---------+---------+-----------+-----------+------+------+---------+
+
+        * Loop: 
+        N/A
+
+
+
+================================================================
+== Utilization Estimates
+================================================================
+* Summary: 
++-----------------+---------+-----+--------+-------+-----+
+|       Name      | BRAM_18K| DSP |   FF   |  LUT  | URAM|
++-----------------+---------+-----+--------+-------+-----+
+|DSP              |        -|    -|       -|      -|    -|
+|Expression       |        -|    -|       -|      -|    -|
+|FIFO             |        2|    -|     551|    344|    -|
+|Instance         |        -|    -|    4793|   3179|    -|
+|Memory           |        0|    -|     128|      8|    0|
+|Multiplexer      |        -|    -|       -|    885|    -|
+|Register         |        -|    -|     561|      -|    -|
++-----------------+---------+-----+--------+-------+-----+
+|Total            |        2|    0|    6033|   4416|    0|
++-----------------+---------+-----+--------+-------+-----+
+|Available        |      280|  220|  106400|  53200|    0|
++-----------------+---------+-----+--------+-------+-----+
+|Utilization (%)  |       ~0|    0|       5|      8|    0|
++-----------------+---------+-----+--------+-------+-----+
+
++ Detail: 
+    * Instance: 
+    +--------------------------------------------------+---------------------------------------+---------+----+------+-----+-----+
+    |                     Instance                     |                 Module                | BRAM_18K| DSP|  FF  | LUT | URAM|
+    +--------------------------------------------------+---------------------------------------+---------+----+------+-----+-----+
+    |grp_backward_1_Pipeline_VITIS_LOOP_107_1_fu_270   |backward_1_Pipeline_VITIS_LOOP_107_1   |        0|   0|    39|   66|    0|
+    |grp_backward_1_Pipeline_VITIS_LOOP_111_2_fu_277   |backward_1_Pipeline_VITIS_LOOP_111_2   |        0|   0|    39|   66|    0|
+    |grp_backward_1_Pipeline_VITIS_LOOP_50_1_fu_384    |backward_1_Pipeline_VITIS_LOOP_50_1    |        0|   0|   126|   78|    0|
+    |grp_backward_1_Pipeline_VITIS_LOOP_56_1_fu_330    |backward_1_Pipeline_VITIS_LOOP_56_1    |        0|   0|   117|   75|    0|
+    |grp_backward_1_Pipeline_VITIS_LOOP_75_1_fu_284    |backward_1_Pipeline_VITIS_LOOP_75_1    |        0|   0|    11|   56|    0|
+    |grp_backward_1_Pipeline_VITIS_LOOP_75_111_fu_338  |backward_1_Pipeline_VITIS_LOOP_75_111  |        0|   0|    11|   56|    0|
+    |grp_backward_1_Pipeline_VITIS_LOOP_78_2_fu_290    |backward_1_Pipeline_VITIS_LOOP_78_2    |        0|   0|  1363|  752|    0|
+    |grp_backward_1_Pipeline_VITIS_LOOP_78_212_fu_344  |backward_1_Pipeline_VITIS_LOOP_78_212  |        0|   0|  1363|  752|    0|
+    |grp_backward_1_Pipeline_VITIS_LOOP_86_4_fu_307    |backward_1_Pipeline_VITIS_LOOP_86_4    |        0|   0|   644|  444|    0|
+    |grp_backward_1_Pipeline_VITIS_LOOP_86_413_fu_361  |backward_1_Pipeline_VITIS_LOOP_86_413  |        0|   0|   644|  444|    0|
+    |grp_backward_1_Pipeline_VITIS_LOOP_92_6_fu_323    |backward_1_Pipeline_VITIS_LOOP_92_6    |        0|   0|   218|  195|    0|
+    |grp_backward_1_Pipeline_VITIS_LOOP_92_614_fu_377  |backward_1_Pipeline_VITIS_LOOP_92_614  |        0|   0|   218|  195|    0|
+    +--------------------------------------------------+---------------------------------------+---------+----+------+-----+-----+
+    |Total                                             |                                       |        0|   0|  4793| 3179|    0|
+    +--------------------------------------------------+---------------------------------------+---------+----+------+-----+-----+
+
+    * DSP: 
+    N/A
+
+    * Memory: 
+    +------------+---------------------------------+---------+----+----+-----+------+-----+------+-------------+
+    |   Memory   |              Module             | BRAM_18K| FF | LUT| URAM| Words| Bits| Banks| W*Bits*Banks|
+    +------------+---------------------------------+---------+----+----+-----+------+-----+------+-------------+
+    |grad_y_U    |backward_1_grad_y_RAM_AUTO_1R1W  |        0|  64|   4|    0|     8|   32|     1|          256|
+    |grad_y_1_U  |backward_1_grad_y_RAM_AUTO_1R1W  |        0|  64|   4|    0|     8|   32|     1|          256|
+    +------------+---------------------------------+---------+----+----+-----+------+-----+------+-------------+
+    |Total       |                                 |        0| 128|   8|    0|    16|   64|     2|          512|
+    +------------+---------------------------------+---------+----+----+-----+------+-----+------+-------------+
+
+    * FIFO: 
+    +--------------------+---------+-----+----+-----+------+-----+---------+
+    |        Name        | BRAM_18K|  FF | LUT| URAM| Depth| Bits| Size:D*B|
+    +--------------------+---------+-----+----+-----+------+-----+---------+
+    |in_grad_y1_fifo_U   |        0|   99|   0|    -|     2|   32|       64|
+    |in_grad_y2_fifo_U   |        0|   99|   0|    -|     2|   32|       64|
+    |mid_fifo_U          |        2|  155|   0|    -|    64|   32|     2048|
+    |out_grad_x1_fifo_U  |        0|   99|   0|    -|     2|   32|       64|
+    |out_grad_x2_fifo_U  |        0|   99|   0|    -|     2|   32|       64|
+    +--------------------+---------+-----+----+-----+------+-----+---------+
+    |Total               |        2|  551|   0|    0|    72|  160|     2304|
+    +--------------------+---------+-----+----+-----+------+-----+---------+
+
+    * Expression: 
+    N/A
+
+    * Multiplexer: 
+    +-----------------------------------------------------------+-----+-----------+-----+-----------+
+    |                            Name                           | LUT | Input Size| Bits| Total Bits|
+    +-----------------------------------------------------------+-----+-----------+-----+-----------+
+    |ap_NS_fsm                                                  |  169|         38|    1|         38|
+    |grad_y_1_address0                                          |   29|          7|    3|         21|
+    |grad_y_1_address1                                          |   21|          5|    3|         15|
+    |grad_y_1_ce0                                               |   17|          4|    1|          4|
+    |grad_y_1_we0                                               |    9|          2|    1|          2|
+    |grad_y_address0                                            |   29|          7|    3|         21|
+    |grad_y_address1                                            |   21|          5|    3|         15|
+    |grad_y_ce0                                                 |   17|          4|    1|          4|
+    |grad_y_we0                                                 |    9|          2|    1|          2|
+    |grp_fu_598_ce                                              |   33|          8|    1|          8|
+    |grp_fu_598_opcode                                          |   33|          8|    2|         16|
+    |grp_fu_598_p0                                              |   33|          8|   32|        256|
+    |grp_fu_598_p1                                              |   33|          8|   32|        256|
+    |grp_fu_602_ce                                              |   13|          3|    1|          3|
+    |grp_fu_602_p0                                              |   13|          3|   32|         96|
+    |grp_fu_602_p1                                              |   13|          3|   32|         96|
+    |grp_fu_606_ce                                              |   25|          6|    1|          6|
+    |grp_fu_606_p0                                              |   25|          6|   32|        192|
+    |grp_fu_606_p1                                              |   25|          6|   32|        192|
+    |grp_fu_610_ce                                              |   13|          3|    1|          3|
+    |grp_fu_610_p0                                              |   13|          3|   32|         96|
+    |grp_fu_610_p1                                              |   13|          3|   32|         96|
+    |in_grad_y1_read                                            |    9|          2|    1|          2|
+    |in_grad_y1_write                                           |    9|          2|    1|          2|
+    |in_grad_y2_read                                            |    9|          2|    1|          2|
+    |in_grad_y2_write                                           |    9|          2|    1|          2|
+    |in_grad_y_TREADY                                           |   13|          3|    1|          3|
+    |mid1_i_i_write                                             |    9|          2|    1|          2|
+    |mid_read                                                   |    9|          2|    1|          2|
+    |mid_write                                                  |    9|          2|    1|          2|
+    |net_next_next_next_next_first_node1_cache_read             |    9|          2|    1|          2|
+    |net_next_next_next_next_first_node1_grad_address0          |   13|          3|   10|         30|
+    |net_next_next_next_next_first_node1_grad_ce0               |   13|          3|    1|          3|
+    |net_next_next_next_next_first_node1_grad_ce1               |    9|          2|    1|          2|
+    |net_next_next_next_next_first_node1_grad_d0                |   13|          3|   32|         96|
+    |net_next_next_next_next_first_node1_grad_we0               |   13|          3|    1|          3|
+    |net_next_next_next_next_first_node1_grad_we1               |    9|          2|    1|          2|
+    |net_next_next_next_next_first_node2_first_cache_read       |    9|          2|    1|          2|
+    |net_next_next_next_next_first_node2_first_grad_address0    |   13|          3|   10|         30|
+    |net_next_next_next_next_first_node2_first_grad_ce0         |   13|          3|    1|          3|
+    |net_next_next_next_next_first_node2_first_grad_ce1         |    9|          2|    1|          2|
+    |net_next_next_next_next_first_node2_first_grad_d0          |   13|          3|   32|         96|
+    |net_next_next_next_next_first_node2_first_grad_we0         |   13|          3|    1|          3|
+    |net_next_next_next_next_first_node2_first_grad_we1         |    9|          2|    1|          2|
+    |net_next_next_next_next_first_node2_next_first_cache_read  |    9|          2|    1|          2|
+    |out_grad_x1_read                                           |    9|          2|    1|          2|
+    |out_grad_x1_write                                          |    9|          2|    1|          2|
+    |out_grad_x2_read                                           |    9|          2|    1|          2|
+    |out_grad_x2_write                                          |    9|          2|    1|          2|
+    +-----------------------------------------------------------+-----+-----------+-----+-----------+
+    |Total                                                      |  885|        205|  386|       1741|
+    +-----------------------------------------------------------+-----+-----------+-----+-----------+
+
+    * Register: 
+    +---------------------------------------------------------------+----+----+-----+-----------+
+    |                              Name                             | FF | LUT| Bits| Const Bits|
+    +---------------------------------------------------------------+----+----+-----+-----------+
+    |ap_CS_fsm                                                      |  37|   0|   37|          0|
+    |grad_y_1_load_1_reg_438                                        |  32|   0|   32|          0|
+    |grad_y_1_load_2_reg_454                                        |  32|   0|   32|          0|
+    |grad_y_1_load_3_reg_460                                        |  32|   0|   32|          0|
+    |grad_y_1_load_4_reg_476                                        |  32|   0|   32|          0|
+    |grad_y_1_load_5_reg_482                                        |  32|   0|   32|          0|
+    |grad_y_1_load_6_reg_498                                        |  32|   0|   32|          0|
+    |grad_y_1_load_7_reg_504                                        |  32|   0|   32|          0|
+    |grad_y_1_load_reg_432                                          |  32|   0|   32|          0|
+    |grad_y_load_1_reg_526                                          |  32|   0|   32|          0|
+    |grad_y_load_2_reg_542                                          |  32|   0|   32|          0|
+    |grad_y_load_3_reg_548                                          |  32|   0|   32|          0|
+    |grad_y_load_5_reg_564                                          |  32|   0|   32|          0|
+    |grad_y_load_6_reg_586                                          |  32|   0|   32|          0|
+    |grad_y_load_7_reg_592                                          |  32|   0|   32|          0|
+    |grad_y_load_8_reg_570                                          |  32|   0|   32|          0|
+    |grad_y_load_reg_520                                            |  32|   0|   32|          0|
+    |grp_backward_1_Pipeline_VITIS_LOOP_107_1_fu_270_ap_start_reg   |   1|   0|    1|          0|
+    |grp_backward_1_Pipeline_VITIS_LOOP_111_2_fu_277_ap_start_reg   |   1|   0|    1|          0|
+    |grp_backward_1_Pipeline_VITIS_LOOP_50_1_fu_384_ap_start_reg    |   1|   0|    1|          0|
+    |grp_backward_1_Pipeline_VITIS_LOOP_56_1_fu_330_ap_start_reg    |   1|   0|    1|          0|
+    |grp_backward_1_Pipeline_VITIS_LOOP_75_111_fu_338_ap_start_reg  |   1|   0|    1|          0|
+    |grp_backward_1_Pipeline_VITIS_LOOP_75_1_fu_284_ap_start_reg    |   1|   0|    1|          0|
+    |grp_backward_1_Pipeline_VITIS_LOOP_78_212_fu_344_ap_start_reg  |   1|   0|    1|          0|
+    |grp_backward_1_Pipeline_VITIS_LOOP_78_2_fu_290_ap_start_reg    |   1|   0|    1|          0|
+    |grp_backward_1_Pipeline_VITIS_LOOP_86_413_fu_361_ap_start_reg  |   1|   0|    1|          0|
+    |grp_backward_1_Pipeline_VITIS_LOOP_86_4_fu_307_ap_start_reg    |   1|   0|    1|          0|
+    |grp_backward_1_Pipeline_VITIS_LOOP_92_614_fu_377_ap_start_reg  |   1|   0|    1|          0|
+    |grp_backward_1_Pipeline_VITIS_LOOP_92_6_fu_323_ap_start_reg    |   1|   0|    1|          0|
+    +---------------------------------------------------------------+----+----+-----+-----------+
+    |Total                                                          | 561|   0|  561|          0|
+    +---------------------------------------------------------------+----+----+-----+-----------+
+
+
+
+================================================================
+== Interface
+================================================================
+* Summary: 
++--------------------------------------------------------------+-----+-----+---------------+------------------------------------------------------+--------------+
+|                           RTL Ports                          | Dir | Bits|    Protocol   |                     Source Object                    |    C Type    |
++--------------------------------------------------------------+-----+-----+---------------+------------------------------------------------------+--------------+
+|ap_clk                                                        |   in|    1|  ap_ctrl_chain|                                            backward.1|  return value|
+|ap_rst                                                        |   in|    1|  ap_ctrl_chain|                                            backward.1|  return value|
+|ap_start                                                      |   in|    1|  ap_ctrl_chain|                                            backward.1|  return value|
+|ap_done                                                       |  out|    1|  ap_ctrl_chain|                                            backward.1|  return value|
+|ap_idle                                                       |  out|    1|  ap_ctrl_chain|                                            backward.1|  return value|
+|ap_ready                                                      |  out|    1|  ap_ctrl_chain|                                            backward.1|  return value|
+|grp_fu_220_p_din0                                             |  out|   32|  ap_ctrl_chain|                                            backward.1|  return value|
+|grp_fu_220_p_din1                                             |  out|   32|  ap_ctrl_chain|                                            backward.1|  return value|
+|grp_fu_220_p_opcode                                           |  out|    1|  ap_ctrl_chain|                                            backward.1|  return value|
+|grp_fu_220_p_dout0                                            |   in|   32|  ap_ctrl_chain|                                            backward.1|  return value|
+|grp_fu_220_p_ce                                               |  out|    1|  ap_ctrl_chain|                                            backward.1|  return value|
+|grp_fu_224_p_din0                                             |  out|   32|  ap_ctrl_chain|                                            backward.1|  return value|
+|grp_fu_224_p_din1                                             |  out|   32|  ap_ctrl_chain|                                            backward.1|  return value|
+|grp_fu_224_p_opcode                                           |  out|    2|  ap_ctrl_chain|                                            backward.1|  return value|
+|grp_fu_224_p_dout0                                            |   in|   32|  ap_ctrl_chain|                                            backward.1|  return value|
+|grp_fu_224_p_ce                                               |  out|    1|  ap_ctrl_chain|                                            backward.1|  return value|
+|grp_fu_228_p_din0                                             |  out|   32|  ap_ctrl_chain|                                            backward.1|  return value|
+|grp_fu_228_p_din1                                             |  out|   32|  ap_ctrl_chain|                                            backward.1|  return value|
+|grp_fu_228_p_dout0                                            |   in|   32|  ap_ctrl_chain|                                            backward.1|  return value|
+|grp_fu_228_p_ce                                               |  out|    1|  ap_ctrl_chain|                                            backward.1|  return value|
+|grp_fu_232_p_din0                                             |  out|   32|  ap_ctrl_chain|                                            backward.1|  return value|
+|grp_fu_232_p_din1                                             |  out|   32|  ap_ctrl_chain|                                            backward.1|  return value|
+|grp_fu_232_p_dout0                                            |   in|   32|  ap_ctrl_chain|                                            backward.1|  return value|
+|grp_fu_232_p_ce                                               |  out|    1|  ap_ctrl_chain|                                            backward.1|  return value|
+|in_grad_y_TDATA                                               |   in|   32|           axis|                                             in_grad_y|       pointer|
+|in_grad_y_TVALID                                              |   in|    1|           axis|                                             in_grad_y|       pointer|
+|in_grad_y_TREADY                                              |  out|    1|           axis|                                             in_grad_y|       pointer|
+|mid1_i_i_din                                                  |  out|   32|        ap_fifo|                                              mid1_i_i|       pointer|
+|mid1_i_i_full_n                                               |   in|    1|        ap_fifo|                                              mid1_i_i|       pointer|
+|mid1_i_i_write                                                |  out|    1|        ap_fifo|                                              mid1_i_i|       pointer|
+|net_next_next_next_next_first_node1_param_address0            |  out|   10|      ap_memory|             net_next_next_next_next_first_node1_param|         array|
+|net_next_next_next_next_first_node1_param_ce0                 |  out|    1|      ap_memory|             net_next_next_next_next_first_node1_param|         array|
+|net_next_next_next_next_first_node1_param_q0                  |   in|   32|      ap_memory|             net_next_next_next_next_first_node1_param|         array|
+|net_next_next_next_next_first_node1_param_address1            |  out|   10|      ap_memory|             net_next_next_next_next_first_node1_param|         array|
+|net_next_next_next_next_first_node1_param_ce1                 |  out|    1|      ap_memory|             net_next_next_next_next_first_node1_param|         array|
+|net_next_next_next_next_first_node1_param_q1                  |   in|   32|      ap_memory|             net_next_next_next_next_first_node1_param|         array|
+|net_next_next_next_next_first_node1_cache_dout                |   in|   32|        ap_fifo|             net_next_next_next_next_first_node1_cache|       pointer|
+|net_next_next_next_next_first_node1_cache_empty_n             |   in|    1|        ap_fifo|             net_next_next_next_next_first_node1_cache|       pointer|
+|net_next_next_next_next_first_node1_cache_read                |  out|    1|        ap_fifo|             net_next_next_next_next_first_node1_cache|       pointer|
+|net_next_next_next_next_first_node1_grad_address0             |  out|   10|      ap_memory|              net_next_next_next_next_first_node1_grad|         array|
+|net_next_next_next_next_first_node1_grad_ce0                  |  out|    1|      ap_memory|              net_next_next_next_next_first_node1_grad|         array|
+|net_next_next_next_next_first_node1_grad_we0                  |  out|    1|      ap_memory|              net_next_next_next_next_first_node1_grad|         array|
+|net_next_next_next_next_first_node1_grad_d0                   |  out|   32|      ap_memory|              net_next_next_next_next_first_node1_grad|         array|
+|net_next_next_next_next_first_node1_grad_q0                   |   in|   32|      ap_memory|              net_next_next_next_next_first_node1_grad|         array|
+|net_next_next_next_next_first_node1_grad_address1             |  out|   10|      ap_memory|              net_next_next_next_next_first_node1_grad|         array|
+|net_next_next_next_next_first_node1_grad_ce1                  |  out|    1|      ap_memory|              net_next_next_next_next_first_node1_grad|         array|
+|net_next_next_next_next_first_node1_grad_we1                  |  out|    1|      ap_memory|              net_next_next_next_next_first_node1_grad|         array|
+|net_next_next_next_next_first_node1_grad_d1                   |  out|   32|      ap_memory|              net_next_next_next_next_first_node1_grad|         array|
+|net_next_next_next_next_first_node1_grad_q1                   |   in|   32|      ap_memory|              net_next_next_next_next_first_node1_grad|         array|
+|net_next_next_next_next_first_node2_next_first_cache_dout     |   in|   32|        ap_fifo|  net_next_next_next_next_first_node2_next_first_cache|       pointer|
+|net_next_next_next_next_first_node2_next_first_cache_empty_n  |   in|    1|        ap_fifo|  net_next_next_next_next_first_node2_next_first_cache|       pointer|
+|net_next_next_next_next_first_node2_next_first_cache_read     |  out|    1|        ap_fifo|  net_next_next_next_next_first_node2_next_first_cache|       pointer|
+|net_next_next_next_next_first_node2_first_param_address0      |  out|   10|      ap_memory|       net_next_next_next_next_first_node2_first_param|         array|
+|net_next_next_next_next_first_node2_first_param_ce0           |  out|    1|      ap_memory|       net_next_next_next_next_first_node2_first_param|         array|
+|net_next_next_next_next_first_node2_first_param_q0            |   in|   32|      ap_memory|       net_next_next_next_next_first_node2_first_param|         array|
+|net_next_next_next_next_first_node2_first_param_address1      |  out|   10|      ap_memory|       net_next_next_next_next_first_node2_first_param|         array|
+|net_next_next_next_next_first_node2_first_param_ce1           |  out|    1|      ap_memory|       net_next_next_next_next_first_node2_first_param|         array|
+|net_next_next_next_next_first_node2_first_param_q1            |   in|   32|      ap_memory|       net_next_next_next_next_first_node2_first_param|         array|
+|net_next_next_next_next_first_node2_first_cache_dout          |   in|   32|        ap_fifo|       net_next_next_next_next_first_node2_first_cache|       pointer|
+|net_next_next_next_next_first_node2_first_cache_empty_n       |   in|    1|        ap_fifo|       net_next_next_next_next_first_node2_first_cache|       pointer|
+|net_next_next_next_next_first_node2_first_cache_read          |  out|    1|        ap_fifo|       net_next_next_next_next_first_node2_first_cache|       pointer|
+|net_next_next_next_next_first_node2_first_grad_address0       |  out|   10|      ap_memory|        net_next_next_next_next_first_node2_first_grad|         array|
+|net_next_next_next_next_first_node2_first_grad_ce0            |  out|    1|      ap_memory|        net_next_next_next_next_first_node2_first_grad|         array|
+|net_next_next_next_next_first_node2_first_grad_we0            |  out|    1|      ap_memory|        net_next_next_next_next_first_node2_first_grad|         array|
+|net_next_next_next_next_first_node2_first_grad_d0             |  out|   32|      ap_memory|        net_next_next_next_next_first_node2_first_grad|         array|
+|net_next_next_next_next_first_node2_first_grad_q0             |   in|   32|      ap_memory|        net_next_next_next_next_first_node2_first_grad|         array|
+|net_next_next_next_next_first_node2_first_grad_address1       |  out|   10|      ap_memory|        net_next_next_next_next_first_node2_first_grad|         array|
+|net_next_next_next_next_first_node2_first_grad_ce1            |  out|    1|      ap_memory|        net_next_next_next_next_first_node2_first_grad|         array|
+|net_next_next_next_next_first_node2_first_grad_we1            |  out|    1|      ap_memory|        net_next_next_next_next_first_node2_first_grad|         array|
+|net_next_next_next_next_first_node2_first_grad_d1             |  out|   32|      ap_memory|        net_next_next_next_next_first_node2_first_grad|         array|
+|net_next_next_next_next_first_node2_first_grad_q1             |   in|   32|      ap_memory|        net_next_next_next_next_first_node2_first_grad|         array|
++--------------------------------------------------------------+-----+-----+---------------+------------------------------------------------------+--------------+
+
