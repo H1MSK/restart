@@ -10,6 +10,8 @@ import numpy as np
 import logging
 import core.config as config
 
+_logger = logging.getLogger("TM")
+
 class TrainManager:
     def __init__(self, /,
             session_name: Optional[str] = None,
@@ -77,7 +79,7 @@ class TrainManager:
             np.random.seed(seed)
             self.train_env.reset(seed=seed)
             self.test_env.reset(seed=seed)
-            logging.info(f"Set seed to {seed}")
+            _logger.info(f"Set seed to {seed}")
 
         act_continuous = not isinstance(self.train_env.action_space, gym.spaces.discrete.Discrete)
         obs_dim = self.train_env.observation_space.shape[0]
@@ -104,7 +106,7 @@ class TrainManager:
         if need_load:
             self.load('last')
 
-        logging.info(f"Session={session_name}, log=./run/{session_name}/logs")
+        _logger.info(f"Session={session_name}, log=./run/{session_name}/logs")
 
     def train_epoch(self, epoch_size=2048, max_episode_steps=10000, epoch=1, batch_size=64):
         # memory, scores = self.generate_epoch(epoch_size, max_episode_steps)
@@ -165,7 +167,7 @@ class TrainManager:
         self.test_count += 1
         self.writer.add_scalar(
             'Test reward', rewards[0][1], self.test_count)
-        logging.info(f"Test  #{self.test_count:8d}: reward={rewards[0][1]:8.2f} steps={len(rb)}")
+        _logger.info(f"Test  #{self.test_count:8d}: reward={rewards[0][1]:8.2f} steps={len(rb)}")
         if save_gif:
             frames = self.test_env.render()
             name = f'./run/{self.session_name}/{gif_name}.gif'
@@ -205,7 +207,7 @@ class TrainManager:
         batch_size = int(s["batch_size"])
         test_interval = int(s["test_interval"])
 
-        logging.info(f"Running with total_train_epochs={total_train_epochs}, "
+        _logger.info(f"Running with total_train_epochs={total_train_epochs}, "
                      f"epoch_size={epoch_size}, "
                      f"max_episode_steps={max_episode_steps}, "
                      f"batch_size={batch_size}, "

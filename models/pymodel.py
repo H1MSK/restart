@@ -6,6 +6,8 @@ from torch import nn
 from torch.nn import functional as F
 import numpy as np
 
+_logger = logging.getLogger("PyModel")
+
 def _orthogonal_init(layer, gain=1.0):
     nn.init.orthogonal_(layer.weight, gain=gain)
     nn.init.constant_(layer.bias, 0)
@@ -68,7 +70,7 @@ class PyActorCritic():
                  lr_critic=1e-3,
                  hidden_width=64,
                  act_continuous=True) -> None:
-        logging.info("Init PyActorCritic with "
+        _logger.info("Init PyActorCritic with "
             f"obs_dim={obs_dim} "
             f"act_dim={act_dim} "
             f"hidden_width={hidden_width} "

@@ -11,6 +11,8 @@ except ModuleNotFoundError:
 import logging
 import numpy as np
 
+_logger = logging.getLogger("Agent")
+
 class Agent():
     def __init__(
         self,
@@ -43,7 +45,7 @@ class Agent():
 
         self.obs_normalizer = ObservationNormalizer((obs_dim, ))
 
-        logging.info(
+        _logger.info(
             f"Agent initialized with obs_dim={obs_dim}, act_dim={act_dim}")
 
     @property
