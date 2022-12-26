@@ -225,4 +225,4 @@ class TrainManager:
 
     def test(self, count=10):
         for i in range(count):
-            self.test_episode()
+            self.test_episode(f"t{i}")

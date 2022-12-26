@@ -1,7 +1,7 @@
 import logging
 from sys import argv
 from train_args import parse
-from py.train_manager import TrainManager
+from core.train_manager import TrainManager
 
 if __name__ == '__main__':
     args = parse(argv=argv[1:])
