@@ -5,11 +5,13 @@ except ImportError:
 
 from models.cmodel import CActirCritic
 from models.pymodel import PyActorCritic
+from models.light_pymodel import LPyActorCritic
 from core.agent import PPOAgent
 
 model_choices = {
     'py': PyActorCritic,
-    'c': CActirCritic
+    'c': CActirCritic,
+    'lpy': LPyActorCritic
 }
 
 agent_choices = {

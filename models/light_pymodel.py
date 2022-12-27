@@ -6,7 +6,7 @@ from torch import nn
 from torch.nn import functional as F
 import numpy as np
 
-_logger = logging.getLogger("PyModel")
+_logger = logging.getLogger("LPyModel")
 
 def _orthogonal_init(layer, gain=1.0):
     nn.init.orthogonal_(layer.weight, gain=gain)
@@ -16,15 +16,18 @@ def _default_init(layer, gain=1.0):
     layer.weight.data.mul_(gain)
     layer.bias.data.mul_(0)
 
-class PyModel(nn.Module):
+class LPyModel(nn.Module):
     def __init__(self, obs_dim, act_dim, hidden_width, act_continuous, use_orthogonal_init=False) -> None:
         super().__init__()
         self.act_continuous = act_continuous
+        
+        self.feat_net = nn.Sequential(
+            nn.Linear(obs_dim, hidden_width),
+            nn.Tanh(),
+        )
 
         if act_continuous:
             self.act_feat_net = nn.Sequential(
-                nn.Linear(obs_dim, hidden_width),
-                nn.Tanh(),
                 nn.Linear(hidden_width, hidden_width),
                 nn.Tanh()
             )
@@ -32,14 +35,13 @@ class PyModel(nn.Module):
             self.rho_net = nn.Linear(hidden_width, act_dim)
 
             self.actor_params = chain(
-                self.act_feat_net.parameters(),
+                self.feat_net.parameters(),
                 self.mu_net.parameters(),
                 self.rho_net.parameters()
             )
 
             if use_orthogonal_init:
                 _orthogonal_init(self.act_feat_net[0])
-                _orthogonal_init(self.act_feat_net[2])
                 _orthogonal_init(self.mu_net, gain=0.01)
                 _orthogonal_init(self.rho_net, gain=0.01)
             else:
@@ -48,8 +50,6 @@ class PyModel(nn.Module):
             raise NotImplementedError("Discrete net is not implemented yet")
 
         self.critic_net = nn.Sequential(
-            nn.Linear(obs_dim, hidden_width),
-            nn.Tanh(),
             nn.Linear(hidden_width, hidden_width),
             nn.Tanh(),
             nn.Linear(hidden_width, 1)
@@ -58,14 +58,14 @@ class PyModel(nn.Module):
         self.critic_params = self.critic_net.parameters()
 
         if use_orthogonal_init:
+            _orthogonal_init(self.feat_net[0])
             _orthogonal_init(self.critic_net[0])
-            _orthogonal_init(self.critic_net[2])
-            _orthogonal_init(self.critic_net[4], gain=0.01)
+            _orthogonal_init(self.critic_net[2], gain=0.01)
         else:
-            _default_init(self.critic_net[4], gain=0.1)
+            _default_init(self.critic_net[2], gain=0.1)
             
 
-class PyActorCritic():
+class LPyActorCritic():
     def __init__(self,
                  obs_dim,
                  act_dim,
@@ -73,65 +73,67 @@ class PyActorCritic():
                  lr_actor=1e-4,
                  lr_critic=1e-3,
                  hidden_width=64,
-                 act_continuous=True) -> None:
-        _logger.info("Init PyActorCritic with "
+                 act_continuous=True,
+                 use_orthogonal_init=False) -> None:
+        assert(lr_actor == lr_critic)
+        _logger.info("Init LPyActorCritic with "
             f"obs_dim={obs_dim} "
             f"act_dim={act_dim} "
             f"hidden_width={hidden_width} "
             f"act_continuous={act_continuous}")
-        self.model = PyModel(
+        self.model = LPyModel(
             obs_dim=obs_dim,
             act_dim=act_dim,
             hidden_width=hidden_width,
-            act_continuous=act_continuous)
+            act_continuous=act_continuous,
+            use_orthogonal_init=use_orthogonal_init)
         self.act_continuous = act_continuous
 
-        if act_continuous:
-            self.optim_actor = torch.optim.Adam(
-                self.model.actor_params,
-                lr=lr_actor,
-                eps=1e-5)
-        else:
-            raise NotImplementedError("Discrete net is not implemented yet")
-
-
-        self.optim_critic = torch.optim.Adam(
-            self.model.critic_params,
+        self.optim = torch.optim.Adam(
+            self.model.parameters(),
             lr=lr_critic,
             weight_decay=1e-3,
             eps=1e-5)
 
+        self._critic_zeroed = False
+        self._actor_zeroed = False
+        self._critic_steped = False
+        self._actor_steped = False
+
     @property
     def lr_critic(self):
-        return self.optim_critic.param_groups[0]['lr']
+        return self.optim.param_groups[0]['lr']
     
     @lr_critic.setter
     def lr_critic(self, value):
-        for p in self.optim_critic.param_groups:
+        for p in self.optim.param_groups:
             p['lr'] = value
 
     @property
     def lr_actor(self):
-        return self.optim_actor.param_groups[0]['lr']
+        return self.optim.param_groups[0]['lr']
     
     @lr_actor.setter
     def lr_actor(self, value):
-        for p in self.optim_actor.param_groups:
+        for p in self.optim.param_groups:
             p['lr'] = value
 
     def act(self, obs: torch.Tensor, requires_grad=False) -> Tuple[torch.Tensor, torch.Tensor]:
-        act_feat = self.model.act_feat_net(obs)
+        feat = self.model.feat_net(obs)
+        act_feat = self.model.act_feat_net(feat)
         mu = self.model.mu_net(act_feat)
         rho = self.model.rho_net(act_feat)
         sigma = torch.exp(rho)
         return mu, sigma
 
     def critic(self, obs: torch.Tensor, requires_grad=False) -> torch.Tensor:
-        return self.model.critic_net(obs)
+        feat = self.model.feat_net(obs)
+        return self.model.critic_net(feat)
 
     def forward(self, obs: torch.Tensor)-> Tuple[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
-        value = self.model.critic_net(obs)
-        act_feat = self.model.act_feat_net(obs)
+        feat = self.model.feat_net(obs)
+        value = self.model.critic_net(feat)
+        act_feat = self.model.act_feat_net(feat)
         mu = self.model.mu_net(act_feat)
         rho = self.model.rho_net(act_feat)
         return (value, (mu, rho))
@@ -143,32 +145,47 @@ class PyActorCritic():
         assert(False)
 
     def critic_zero_grad(self):
-        self.optim_critic.zero_grad()
+        self._critic_zeroed = True
+        if self._actor_zeroed:
+            self._actor_zeroed = False
+            self._critic_zeroed = False
+        else:
+            self.optim.zero_grad()
 
     def critic_step(self):
-        self.optim_critic.step()
+        self._critic_steped = True
+        if self._actor_steped:
+            self._actor_steped = False
+            self._critic_steped = False
+            self.optim.step()
 
     def actor_zero_grad(self):
-        self.optim_actor.zero_grad()
+        self._actor_zeroed = True
+        if self._critic_zeroed:
+            self._actor_zeroed = False
+            self._critic_zeroed = False
+        else:
+            self.optim.zero_grad()
 
     def actor_step(self):
-        self.optim_actor.step()
+        self._actor_steped = True
+        if self._critic_steped:
+            self._actor_steped = False
+            self._critic_steped = False
+            self.optim.step()
 
     def optim_zero_grad(self):
-        self.optim_critic.zero_grad()
-        self.optim_actor.zero_grad()
+        self.optim.zero_grad()
 
     def optim_step(self):
-        self.optim_critic.step()
-        self.optim_actor.step()
+        self.optim.step()
 
     def save(self, filename):
         sd = {
             'model':self.model.state_dict(),
             'act_continuous':self.act_continuous,
             'optims':[
-                self.optim_critic.state_dict(),
-                self.optim_actor.state_dict()
+                self.optim.state_dict()
             ]
         }
         torch.save(sd, filename)
@@ -178,5 +195,4 @@ class PyActorCritic():
 
         self.model.load_state_dict(sd['model'])
         assert(self.act_continuous == sd['act_continuous'])
-        self.optim_critic.load_state_dict(sd['optims'][0])
-        self.optim_actor.load_state_dict(sd['optims'][1])
+        self.optim.load_state_dict(sd['optims'][0])

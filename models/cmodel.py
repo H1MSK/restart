@@ -30,7 +30,8 @@ class CActirCritic():
                  lr_actor=1e-4,
                  lr_critic=1e-3,
                  hidden_width=64,
-                 act_continuous=True) -> None:
+                 act_continuous=True,
+                 use_orthogonal_init=False) -> None:
         _logger.info("Init CActorCritic with "
             f"obs_dim={obs_dim} "
             f"act_dim={act_dim} "
@@ -46,7 +47,7 @@ class CActirCritic():
         self._check_and_init_hyperparams(
             obs_dim, act_dim, hidden_width, act_continuous)
 
-        self._init_net_parameters(lr_critic, lr_actor)
+        self._init_net_parameters(lr_critic, lr_actor, use_orthogonal_init)
 
     def _init_functions(self):
         self.get_net_parameters = self.model.get_net_parameters
@@ -132,12 +133,13 @@ class CActirCritic():
             weight_decay=1e-3,
             eps=1e-5)
 
-    def _init_net_parameters(self, lr_critic, lr_actor):
+    def _init_net_parameters(self, lr_critic, lr_actor, use_orthogonal_init):
         pymodel = PyModel(
             self.obs_dim,
             self.act_dim,
             self.hidden_width,
-            self.act_continuous)
+            self.act_continuous,
+            use_orthogonal_init)
 
         cparams = torch.concat([x.reshape((-1, )) for x in pymodel.critic_params])
         aparams = torch.concat([x.reshape((-1, )) for x in pymodel.actor_params])

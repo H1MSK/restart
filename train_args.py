@@ -16,6 +16,8 @@ def parse(argv):
     parser.add_argument('--min_epoch_size', type=int, default=2048, help='Minimum steps in each epoch')
     parser.add_argument('--batch_size', type=int, default=64, help='Batch size')
 
+    parser.add_argument('--orthogonal_init', action='store_true', help='Use orthogonal initialization for linear layers')
+
     default_model=None
     for i in model_choices.keys():
         default_model=i

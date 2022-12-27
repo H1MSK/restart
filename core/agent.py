@@ -23,7 +23,8 @@ class Agent():
         lr_actor=1e-4,
         lr_critic=1e-3,
         hidden_width=64,
-        act_continuous=True
+        act_continuous=True,
+        use_orthogonal_init=False
     ) -> None:
         self.act_continuous = act_continuous
         self.distribution = (
@@ -37,7 +38,8 @@ class Agent():
             lr_actor=lr_actor,
             lr_critic=lr_critic,
             hidden_width=hidden_width,
-            act_continuous=act_continuous
+            act_continuous=act_continuous,
+            use_orthogonal_init=use_orthogonal_init
         )
 
         self._obs_dim = obs_dim
@@ -163,10 +165,11 @@ class PPOAgent(Agent):
         lr_critic=1e-3,
         hidden_width=64,
         act_continuous=True,
+        use_orthogonal_init=False,
         epsilon=0.2
     ) -> None:
         super().__init__(model_class, obs_dim, act_dim, lr_actor,
-                         lr_critic, hidden_width, act_continuous)
+                         lr_critic, hidden_width, act_continuous, use_orthogonal_init)
         self.epsilon = epsilon
 
     def train_batch(self, b_states, b_advants, b_actions, b_returns, old_prob):

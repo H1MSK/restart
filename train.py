@@ -23,7 +23,8 @@ if __name__ == '__main__':
             lr_actor=args.lr_actor,
             lr_critic=args.lr_critic,
             hidden_width=args.hidden_width,
-            seed=args.seed
+            seed=args.seed,
+            use_orthogonal_init=args.orthogonal_init
         )
         tm.set_run(
             total_train_epochs=total_train_epochs,

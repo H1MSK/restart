@@ -21,7 +21,8 @@ class TrainManager:
             lr_actor=1e-4,
             lr_critic=1e-3,
             hidden_width=64,
-            seed=0) -> None:
+            seed=0,
+            use_orthogonal_init=False) -> None:
 
         if not os.path.exists('./run'):
             os.mkdir('./run')
@@ -96,6 +97,7 @@ class TrainManager:
             lr_critic=lr_critic,
             hidden_width=hidden_width,
             act_continuous=act_continuous,
+            use_orthogonal_init=use_orthogonal_init,
             epsilon=0.2)
         self.writer = SummaryWriter(f'./run/{session_name}/logs')
         self.train_count = 0
