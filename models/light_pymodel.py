@@ -136,7 +136,8 @@ class LPyActorCritic():
         act_feat = self.model.act_feat_net(feat)
         mu = self.model.mu_net(act_feat)
         rho = self.model.rho_net(act_feat)
-        return (value, (mu, rho))
+        sigma = torch.exp(rho)
+        return (value, mu, sigma)
 
     def critic_backward(self, value_grad: torch.Tensor):
         assert(False)

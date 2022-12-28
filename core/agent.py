@@ -82,6 +82,14 @@ class Agent():
         a = a.detach()
         return a.numpy(), logprob.sum(dim=1, keepdim=True).detach()
 
+    def forward(self, obs) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        v, mu, sigma = self.ac.forward(obs)
+        pi = self.distribution(mu, sigma)
+        a = pi.sample()
+        logprob = pi.log_prob(a).detach()
+        a = a.detach()
+        return v.detach().numpy(), a.detach().numpy(), logprob.detach().numpy()
+
     def get_logprob(self, obs, act):
         mu, std = self.ac.act(obs, requires_grad=False)
         pi = self.distribution(mu, std)
@@ -123,16 +131,17 @@ class Agent():
                 print(f"{steps}", end='\r')
                 steps += 1
                 # 选择行为
-                a, p = self.choose_action(torch.from_numpy(
+                v, a, p = self.forward(torch.from_numpy(
                     np.array(s).astype(np.float32)).unsqueeze(0))
                 a = a[0]
                 p = p[0]
+                v = v[0]
 
                 s_, r, done, _, info = env.step(a)
                 s_ = self.obs_normalizer(s_)
 
                 mask = (1-done)*1
-                memory.append([s, a, r, mask, p])
+                memory.append([s, a, r, mask, p, v])
 
                 # print(f"Sync state2:{s_}")
 
@@ -148,7 +157,7 @@ class Agent():
         rewards = torch.tensor(list(memory[:, 2]), dtype=torch.float32)
         masks = torch.tensor(list(memory[:, 3]), dtype=torch.float32)
 
-        values = self.ac.critic(states).detach()
+        values = torch.tensor(list(memory[:, 5]), dtype=torch.float32)
 
         returns, advants = gae(len(memory), rewards, masks, values, 0.98, 0.98)
         return returns, advants

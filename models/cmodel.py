@@ -224,6 +224,9 @@ class CActirCritic():
 
         return values.requires_grad_(requires_grad)
 
+    def forward(self, obs: torch.Tensor, requires_grad=False):
+        return *self.act(obs, requires_grad), self.critic(obs, requires_grad)
+
     def critic_backward(self, value_grad):
         for g in value_grad:
             self.critic_arr_top(
