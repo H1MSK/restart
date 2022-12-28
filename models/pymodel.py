@@ -73,7 +73,8 @@ class PyActorCritic():
                  lr_actor=1e-4,
                  lr_critic=1e-3,
                  hidden_width=64,
-                 act_continuous=True) -> None:
+                 act_continuous=True,
+                 use_orthogonal_init=False) -> None:
         _logger.info("Init PyActorCritic with "
             f"obs_dim={obs_dim} "
             f"act_dim={act_dim} "
@@ -83,7 +84,8 @@ class PyActorCritic():
             obs_dim=obs_dim,
             act_dim=act_dim,
             hidden_width=hidden_width,
-            act_continuous=act_continuous)
+            act_continuous=act_continuous,
+            use_orthogonal_init=use_orthogonal_init)
         self.act_continuous = act_continuous
 
         if act_continuous:
