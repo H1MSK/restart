@@ -53,6 +53,8 @@ struct Sequence<FirstType, OtherTypes...> {
     constexpr static int param_size = FirstType::param_size + SeqNext::param_size;
     constexpr static int cache_size = FirstType::cache_size + SeqNext::cache_size;
 
+    static_assert(FirstType::out_size == SeqNext::in_size);
+
     void loadParam(hls::stream<cm_float>& in_param) {
 #pragma HLS INLINE
         first.loadParam(in_param);
@@ -76,7 +78,7 @@ struct Sequence<FirstType, OtherTypes...> {
 #pragma HLS INTERFACE mode = ap_none port = enable_grad
 #pragma HLS STABLE variable = enable_grad
 //#pragma HLS DATAFLOW
-        hls::stream<cm_float, HIDDEN_WIDTH> mid;
+        hls::stream<cm_float, FirstType::out_size> mid;
         first.forward(in_x, mid, enable_grad);
         next.forward(mid, out_y, enable_grad);
     }
@@ -88,7 +90,7 @@ struct Sequence<FirstType, OtherTypes...> {
 #pragma HLS INTERFACE mode = ap_fifo port = in_grad_y
 #pragma HLS INTERFACE mode = ap_fifo port = out_grad_x
 //#pragma HLS DATAFLOW
-        hls::stream<cm_float, HIDDEN_WIDTH> mid;
+        hls::stream<cm_float, FirstType::out_size> mid;
         next.backward(in_grad_y, mid);
         first.backward(mid, out_grad_x);
     }
@@ -96,7 +98,7 @@ struct Sequence<FirstType, OtherTypes...> {
 #pragma HLS INTERFACE mode = ap_ctrl_chain port = return
 #pragma HLS INTERFACE mode = ap_fifo port = in_grad_y
 //#pragma HLS DATAFLOW
-        hls::stream<cm_float, HIDDEN_WIDTH> mid;
+        hls::stream<cm_float, FirstType::out_size> mid;
         next.backward(in_grad_y, mid);
         first.backward(mid);
     }

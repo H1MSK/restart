@@ -1,13 +1,8 @@
 <AutoPilot:ProjectResources xmlns:AutoPilot="com.autoesl.autopilot.ui.directiveView">
     <sourceFile name="">
-        <directive functionName="actor_top" label="" functionLabel="">
+        <directive functionName="unitop" label="" functionLabel="">
             <pragma name="TOP">
-                <option name="name" value="actor_top"/>
-            </pragma>
-        </directive>
-        <directive functionName="actor_top" label="" functionLabel="">
-            <pragma name="TOP">
-                <option name="name" value="actor_top"/>
+                <option name="name" value="unitop"/>
             </pragma>
         </directive>
     </sourceFile>
