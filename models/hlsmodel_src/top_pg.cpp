@@ -19,5 +19,8 @@ void top(hls::stream<cm_float>& in_x, hls::stream<cm_float>& out_y,
 #pragma HLS INTERFACE mode=ap_memory port=grad storage_type=ram_t2p
 #pragma HLS INTERFACE mode=ap_fifo port=cache_out
 #pragma HLS INTERFACE mode=ap_fifo port=cache_in
+#pragma HLS DATAFLOW
     static NodeType node;
+    node.forward(param, in_x, out_y, cache_out);
+    node.backward(param, grad, cache_in, in_grad_y, out_grad_x);
 }

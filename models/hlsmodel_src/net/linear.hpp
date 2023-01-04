@@ -39,6 +39,7 @@ struct Linear {
 #if CM_WITH_BACKWARD
     void backward(cm_float param[param_size],
                   cm_float grad[param_size],
+                  hls::stream<cm_float>& cache,
                   hls::stream<cm_float>& in_grad_y,
                   hls::stream<cm_float>& out_grad_x) {
 #pragma HLS INTERFACE mode = ap_ctrl_chain port = return
