@@ -2,7 +2,7 @@ __pycache__
 logs
 *.gif
 run
-models/build
+build
 
 misc
 .*
@@ -14,6 +14,11 @@ vhdl
 
 *.xml
 *.dat
-*.tcl
 *.log
+*.zip
 
+# vivado
+*.cache
+*.gen
+*.ip_user_files
+*.runs
