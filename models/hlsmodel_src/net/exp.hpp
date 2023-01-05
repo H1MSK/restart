@@ -10,63 +10,34 @@ struct Exp {
     constexpr static int param_size = 0;
     constexpr static int cache_size = vec_size;
 
-#ifndef __SYNTHESIS__
-    std::string cache_name;
-    Exp() : cache_name("ce"+std::to_string(vec_size)), cache(cache_name.c_str()) {}
-#else
-#endif
-
-    void loadParam(hls::stream<cm_float>& in_param) {
-#pragma HLS INLINE
-        CM_UNUSED(in_param);
-    }
-
-#if CM_WITH_BACKWARD
-    void dumpGradAndZero(hls::stream<cm_float>& out_grad) {
-#pragma HLS INLINE
-        CM_UNUSED(out_grad);
-    }
-#endif
-
-    void forward(hls::stream<cm_float>& in_x,
-                 hls::stream<cm_float>& out_y,
-                 bool enable_grad) {
-#pragma HLS INTERFACE mode = ap_ctrl_chain port = return
+    static void forward(hls::stream<cm_float>& in_x,
+                        hls::stream<cm_float>& out_y,
+                        hls::stream<cm_float>& cache) {
+#pragma HLS INTERFACE mode = ap_ctrl_none port = return
 #pragma HLS INTERFACE mode = ap_fifo port = in_x
 #pragma HLS INTERFACE mode = ap_fifo port = out_y
-#pragma HLS INTERFACE mode = ap_none port = enable_grad
-#pragma HLS STABLE variable = enable_grad
+#pragma HLS INTERFACE mode = ap_fifo port = cache
+#pragma HLS INLINE
         for (int i = 0; i < in_size; ++i) {
             cm_float x = in_x.read();
             cm_float ex = hls::exp(x);
             out_y << ex;
-#if CM_WITH_BACKWARD
-            if (enable_grad) cache << ex;
-#endif
+            cache << ex;
         }
-        if(enable_grad) CM_PRINT("F:Exp%d:%d\n", vec_size, (int)cache.size());
     }
 
-#if CM_WITH_BACKWARD
-    void backward(hls::stream<cm_float>& in_grad_y,
-                  hls::stream<cm_float>& out_grad_x) {
+    static void backward(hls::stream<cm_float>& cache,
+                         hls::stream<cm_float>& in_grad_y,
+                         hls::stream<cm_float>& out_grad_x) {
 #pragma HLS INTERFACE mode = ap_ctrl_chain port = return
+#pragma HLS INTERFACE mode = ap_fifo port = cache
 #pragma HLS INTERFACE mode = ap_fifo port = in_grad_y
 #pragma HLS INTERFACE mode = ap_fifo port = out_grad_x
+#pragma HLS INLINE
         for (int i = 0; i < in_size; ++i) {
             cm_float grad_y_i = in_grad_y.read();
             cm_float cache_y_i = cache.read();
             out_grad_x << grad_y_i * cache_y_i;
         }
-        CM_PRINT("B:Exp%d:%d\n", vec_size, (int)cache.size());
     }
-    void backward(hls::stream<cm_float>& in_grad_y) {
-#pragma HLS INLINE
-        CM_PRINT("B:Exp%d:%d\n", vec_size, (int)cache.size());
-        CM_UNUSED(in_grad_y);
-    }
-#endif
-#if CM_WITH_BACKWARD
-    hls::stream<cm_float> cache;
-#endif
 };
