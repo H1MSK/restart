@@ -8,6 +8,8 @@ misc
 .*
 !.vscode
 !.gitignore
+
+# HLS Projects
 syn
 impl
 verilog
@@ -23,3 +25,6 @@ vhdl
 *.gen
 *.ip_user_files
 *.runs
+
+# Generated
+generated*
