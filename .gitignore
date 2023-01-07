@@ -2,10 +2,11 @@ __pycache__
 logs
 *.gif
 run
-build
+build*
 
 misc
 .*
+!.vscode
 !.gitignore
 syn
 impl
