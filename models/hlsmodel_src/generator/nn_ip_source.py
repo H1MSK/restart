@@ -11,9 +11,13 @@ class NodeIO:
         self.bi = bw_istream_name
         self.bo = bw_ostream_name
 
+    def __repr__(self) -> str:
+        return f"NodeIo(fi={self.fi}, fo={self.fo}, bi={self.bi}, bo={self.bo})"
+
 node_io: List[NodeIO] = []
 param_suffix: List[str] = []
 cache_name: List[str] = []
+path_param_count: List[int] = []
 
 fw_param_signature = []
 bw_param_signature = []
@@ -38,14 +42,16 @@ def _gen_cache_name():
 
     cache_name = [None if info is None else f"cache{k}_{info.size}" for k, info in enumerate(Info.cache_info)]
 
-def _gen_fw_stream_names():
+def _fw_scan():
     global node_io
+    global path_param_count
 
     current_input_name = "in_x"
 
     forkpath_names: List[List[str]] = []
 
     for kth, info in enumerate(nn_structures):
+        path_param_count.append(0 if kth == 0 else path_param_count[kth - 1])
         if info[0] == "Fork":
             node_io[kth].fi = current_input_name
             node_io[kth].fo = tuple(f"fork{kth}_f{i}" for i in range(len(Info.fork_info[kth].fork_nodes) - 1)) # ignore ForkEnd
@@ -53,7 +59,8 @@ def _gen_fw_stream_names():
             forkpath_names.append([])
         elif info[0] == "ForkAgain":
             # No need to generate node
-            node_io[kth] = None
+            node_io[kth].fi = node_io[kth].fo = None
+            path_param_count[kth] = (0 if kth == 0 else path_param_count[Info.path_info[kth].fork_start])
             forkpath_names[-1].append(current_input_name)
             current_input_name = node_io[Info.path_info[kth].fork_start].fo[Info.path_info[kth].kth]
         elif info[0] == "ForkEnd":
@@ -64,12 +71,15 @@ def _gen_fw_stream_names():
             node_io[kth].fo = out_name
             current_input_name = out_name
         else:
+            path_param_count[kth] += (1 if Info.param_size[kth] != None else 0)
             node_io[kth].fi = current_input_name
             out_name = f"{info[0].lower()}{kth}_fo"
             node_io[kth].fo = out_name
             current_input_name = out_name
 
-def _gen_bw_stream_names():
+    node_io[-1].fo = 'out_y'
+
+def _bw_scan():
     global node_io
 
     current_input_name = "in_grad_y"
@@ -77,18 +87,28 @@ def _gen_bw_stream_names():
 
     for kth, info in enumerate(reversed(nn_structures)):
         kth = len(nn_structures) - 1 - kth
+        if path_param_count[kth] == 0:
+            if node_io[kth] != None:
+                node_io[kth].bi = None
+                node_io[kth].bo = None
+            if info[0] == "ForkAgain":
+                forkend_pos = Info.fork_info[Info.path_info[kth].fork_start].fork_nodes[-1]
+                current_input_name = node_io[forkend_pos].bo[Info.path_info[kth].kth - 1]
+            continue
         if info[0] == "ForkEnd":
             node_io[kth].bi = current_input_name
             node_io[kth].bo = tuple(f"fork{kth}_b{i}" for i in range(len(Info.fork_info[kth].fork_nodes) - 1))
-            current_input_name = node_io[kth].bo[0]
+            current_input_name = node_io[kth].bo[-1]
             forkpath_names.append([])
         elif info[0] == "ForkAgain":
             # No need to generate node
-            node_io[kth] = None
+            node_io[kth].bi = node_io[kth].bo = None
             forkend_pos = Info.fork_info[Info.path_info[kth].fork_start].fork_nodes[-1]
             forkpath_names[-1].append(current_input_name)
-            current_input_name = node_io[forkend_pos].fo[Info.path_info[kth].kth]
+            print(kth, Info.path_info[kth])
+            current_input_name = node_io[forkend_pos].bo[Info.path_info[kth].kth - 1]
         elif info[0] == "Fork":
+            forkpath_names[-1].append(current_input_name)
             node_io[kth].bi = forkpath_names[-1]
             forkpath_names.pop()
             out_name = f"forkend{kth}_bo"
@@ -96,15 +116,20 @@ def _gen_bw_stream_names():
             current_input_name = out_name
         else:
             node_io[kth].bi = current_input_name
-            out_name = f"{info[0].lower()}{kth}_bo"
-            node_io[kth].bo = out_name
-            current_input_name = out_name
+            if path_param_count[kth] > 1 or (path_param_count[kth] == 1 and Info.param_size[kth] == None):
+                out_name = f"{info[0].lower()}{kth}_bo"
+                node_io[kth].bo = out_name
+                current_input_name = out_name
+            else:
+                node_io[kth].bo = None
+                current_input_name = None
 
 def _gen_stream_names():
     global node_io
     node_io = [NodeIO("", "", "", "") for info in nn_structures]
-    _gen_fw_stream_names()
-    _gen_bw_stream_names()
+    _fw_scan()
+    _bw_scan()
+    print("\n".join(f"{k}: {repr(x)}" for k, x in enumerate(zip(nn_structures, path_param_count, node_io))))
 
 def _gen_param_info():
     # Params = Static input + static output + generated params + generated cache
@@ -129,22 +154,20 @@ def _gen_param_info():
     for k, size in enumerate(Info.param_size):
         if size != None:
             fw_param_signature.append(f"cm_float param{param_suffix[k]}[{size}]")
-            fw_param_hls_pragmas.append(f"INTERFACE mode=bram storage_type=rom_1p port=param latency=1")
+            fw_param_hls_pragmas.append(f"INTERFACE mode=bram storage_type=rom_1p port=param{param_suffix[k]} latency=1")
 
             bw_param_signature.append(f"cm_float param{param_suffix[k]}[{size}]")
-            bw_param_hls_pragmas.append(f"INTERFACE mode=bram storage_type=rom_1p port=param latency=1")
+            bw_param_hls_pragmas.append(f"INTERFACE mode=bram storage_type=rom_1p port=param{param_suffix[k]} latency=1")
 
             bw_param_signature.append(f"cm_float grad{param_suffix[k]}[{size}]")
-            bw_param_hls_pragmas.append(f"INTERFACE mode=bram storage_type=ram_s2p port=grad latency=1")
+            bw_param_hls_pragmas.append(f"INTERFACE mode=bram storage_type=ram_s2p port=grad{param_suffix[k]} latency=1")
 
     for k, info in enumerate(Info.cache_info):
         if info != None:
             fw_param_signature.append(f"hls::stream<{info.element_name}>& {cache_name[k]}_o")
-            fw_param_hls_pragmas.append(f"INTERFACE mode=fifo port=cache{k}_{info.size}_out latency=1 depth={nn_out_size}")
+            fw_param_hls_pragmas.append(f"INTERFACE mode=ap_fifo port=cache{k}_{info.size}_o depth={nn_out_size}")
             bw_param_signature.append(f"hls::stream<{info.element_name}>& {cache_name[k]}_i")
-            bw_param_hls_pragmas.append(f"INTERFACE mode=fifo port=cache{k}_{info.size}_in latency=1 depth={nn_out_size}")
-
-    print(fw_param_signature)
+            bw_param_hls_pragmas.append(f"INTERFACE mode=ap_fifo port=cache{k}_{info.size}_i depth={nn_out_size}")
 
 def _gen_ip_info():
     _gen_param_name_suffix()
@@ -160,13 +183,13 @@ def _gen_ostream_defination(kth, names):
 def _gen_fw_content():
     contents = []
     for k, info in enumerate(nn_structures):
+        contents.append(f"// {k}: {info}")
         if info[0] == "Fork":
-            d = _gen_ostream_defination(k, node_io[k].fo)
-            for t in d:
-                contents.append(t[0])
-                contents.append(t[1])
-                contents.append("")
-            contents.append(f"// {k}: {info}")
+            if k + 1 != len(nn_structures):
+                d = _gen_ostream_defination(k, node_io[k].fo)
+                for t in d:
+                    contents.append(t[0])
+                    contents.append(t[1])
             contents.append(f"StreamSplitter{len(node_io[k].fo)}<{Info.node_out_size[k]}>::forward(")
             contents.append(f"    {node_io[k].fi},")
             contents.append("    {});".format(',\n        '.join(node_io[k].fo)))
@@ -176,10 +199,10 @@ def _gen_fw_content():
             pass
 
         elif info[0] == "ForkEnd":
-            d = _gen_ostream_defination(k, [node_io[k].fo])
-            contents.append(d[0][0])
-            contents.append(d[0][1])
-            contents.append("")
+            if k + 1 != len(nn_structures):
+                d = _gen_ostream_defination(k, [node_io[k].fo])
+                contents.append(d[0][0])
+                contents.append(d[0][1])
             merged_nodes = [x - 1 for x in Info.fork_info[k].fork_nodes[1:]]
             lens = [str(Info.node_out_size[x]) for x in merged_nodes]
             contents.append(f"StreamCat{len(node_io[k].fi)}<{', '.join(lens)}>::forward(")
@@ -188,10 +211,10 @@ def _gen_fw_content():
             contents.append(f"    {node_io[k].fo});")
 
         elif info[0] in ("Linear", "Tanh", "Exp"):
-            d = _gen_ostream_defination(k, [node_io[k].fo])
-            contents.append(d[0][0])
-            contents.append(d[0][1])
-            contents.append("")
+            if k + 1 != len(nn_structures):
+                d = _gen_ostream_defination(k, [node_io[k].fo])
+                contents.append(d[0][0])
+                contents.append(d[0][1])
             contents.append(f"{info[0]}<{', '.join(str(x) for x in info[1:])}>::forward(")
             if param_suffix[k] != None:
                 contents.append(f"    param{param_suffix[k]},")
@@ -208,7 +231,7 @@ def _gen_fw_content():
 def _gen_fw_function():
     t = '\n'.join('#pragma HLS ' + p for p in fw_param_hls_pragmas)
     return "\n".join((
-        f"void forward({', '.join(fw_param_signature)}) {{",
+        f"void top_forward({', '.join(fw_param_signature)}) {{",
         '\n'.join('    #pragma HLS ' + p for p in fw_param_hls_pragmas),
         "",
         _gen_fw_content(),
@@ -220,15 +243,17 @@ def _gen_bw_content():
     contents = []
     for k, info in enumerate(reversed(nn_structures)):
         k = len(nn_structures) - 1 - k
+        contents.append(f"// {k}: {info}")
+        if node_io[k] == None or node_io[k].bi == None:
+            continue
         if info[0] == "ForkEnd":
             d = _gen_ostream_defination(k, node_io[k].bo)
             for t in d:
                 contents.append(t[0])
                 contents.append(t[1])
-                contents.append("")
-            contents.append(f"StreamSplitter{len(node_io[k].bo)}<{Info.node_out_size[k]}>::forward(")
+            contents.append(f"StreamSplitter{len(node_io[k].bo)}<{Info.node_out_size[k]}>::backward(")
             contents.append(f"    {node_io[k].bi},")
-            t = ',\n    '.join(node_io[k].bo)
+            t = ',\n        '.join(node_io[k].bo)
             contents.append(f"    {t});")
             contents.append("")
         
@@ -239,32 +264,33 @@ def _gen_bw_content():
             d = _gen_ostream_defination(k, [node_io[k].bo])
             contents.append(d[0][0])
             contents.append(d[0][1])
-            contents.append("")
-            merged_nodes = [x - 1 for x in Info.fork_info[k].fork_nodes[1:]]
-            lens = [Info.node_out_size[x] for x in merged_nodes]
-            contents.append(f"StreamAdder2{len(node_io[k].bi)}<{', '.join(str(x) for x in lens)}>(")
-            t = ',\n    '.join(node_io[k].bi)
+            merged_nodes = [x - 1 for x in Info.fork_info[k].fork_nodes[:-1]]
+            contents.append(f"StreamAdder{len(node_io[k].bi)}<{Info.node_in_size[k]}>::backward(")
+            t = ',\n        '.join(node_io[k].bi)
             contents.append(f"    {t},")
             contents.append(f"    {node_io[k].bo});")
 
         elif info[0] in ("Linear", "Tanh", "Exp"):
-            d = _gen_ostream_defination(k, [node_io[k].bo])
-            contents.append(d[0][0])
-            contents.append(d[0][1])
-            contents.append("")
+            if node_io[k].bo:
+                d = _gen_ostream_defination(k, [node_io[k].bo])
+                contents.append(d[0][0])
+                contents.append(d[0][1])
             contents.append(f"{info[0]}<{', '.join(str(x) for x in info[1:])}>::backward(")
             if param_suffix[k] != None:
                 contents.append(f"    param{param_suffix[k]},")
                 contents.append(f"    grad{param_suffix[k]},")
             contents.append(f"    {cache_name[k]}_i,")
-            contents.append(f"    {node_io[k].bi},")
-            contents.append(f"    {node_io[k].bo});")
+            if node_io[k].bo != None:
+                contents.append(f"    {node_io[k].bi},")
+                contents.append(f"    {node_io[k].bo});")
+            else:
+                contents.append(f"    {node_io[k].bi});")
             contents.append("")
     return "\n".join("    " + x for x in contents)
 
 def _gen_bw_function():
     return "\n".join((
-        f"void backward({', '.join(bw_param_signature)}) {{",
+        f"void top_backward({', '.join(bw_param_signature)}) {{",
         '\n'.join('    #pragma HLS ' + p for p in bw_param_hls_pragmas),
         "",
         _gen_bw_content(),
