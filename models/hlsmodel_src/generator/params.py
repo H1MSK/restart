@@ -8,23 +8,28 @@ act_size = 17
 act_continuous = True
 
 
+nn_in_size = obs_size
+nn_out_size = act_size * 2 + 1
+element_name = 'cm_float'
+element_bitwidth = 32
+
 nn_structures = (
-    ("Fork", ),
+    ("Fork", obs_size),
         ("Linear", obs_size, hidden_size),
         ("Tanh", hidden_size),
         ("Linear", hidden_size, hidden_size),
         ("Tanh", hidden_size),
         ("Linear", hidden_size, 1),
-    ("ForkAgain", ),
+    ("ForkAgain", obs_size),
         ("Linear", obs_size, hidden_size),
         ("Tanh", hidden_size),
         ("Linear", hidden_size, hidden_size),
         ("Tanh", hidden_size),
-        ("Fork", ),
+        ("Fork", hidden_size),
             ("Linear", hidden_size, act_size),
-        ("ForkAgain", ),
+        ("ForkAgain", hidden_size),
             ("Linear", hidden_size, act_size),
             ("Exp", act_size),
-        ("ForkEnd", ),
-    ("ForkEnd", )
+        ("ForkEnd", act_size * 2),
+    ("ForkEnd", act_size * 2 + 1)
 )
