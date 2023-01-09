@@ -32,43 +32,49 @@ def _extract_ii_from_log(log_file):
     return fw_ii, bw_ii
 
 def _gen_target_ii(ip_tcl_name):
-    if not os.path.exists('vitis_hls.log'):
-        print("Systhesis once to get II information")
-        ret = os.system(f"vitis_hls -l vitis_hls.log {ip_tcl_name}")
-        assert(ret == 0)
+    fw_ii = -1
+    bw_ii = -1
+    if os.path.exists('vitis_hls.log'):
+        fw_ii, bw_ii = _extract_ii_from_log('vitis_hls.without_directives.log')
+        if fw_ii != -1 and bw_ii != -1:
+            return
 
-    fw_ii, bw_ii = _extract_ii_from_log('vitis_hls.log')
+    if os.path.exists('vitis_hls.without_directives.log'):
+        fw_ii, bw_ii = _extract_ii_from_log('vitis_hls.without_directives.log')
+        if fw_ii != -1 and bw_ii != -1:
+            return
+
+    print("Systhesis once to get II information")
+    ret = os.system(f"vitis_hls -l vitis_hls.without_directives.log {ip_tcl_name}")
+    assert(ret == 0)
+
+    fw_ii, bw_ii = _extract_ii_from_log('vitis_hls.without_directives.log')
     
     if fw_ii == -1 or bw_ii == -1:
-        print("Failed extracting II information from log, try resynthesising...")
-        ret = os.system(f"vitis_hls -l vitis_hls.log {ip_tcl_name}")
-        assert(ret == 0)
-
-    fw_ii, bw_ii = _extract_ii_from_log('vitis_hls.log')
-    
-    assert(fw_ii != -1 and bw_ii != -1)
+        print("Failed extracting II information from log.")
+        exit(1)
 
     return [
-        f"set_directive_pipeline -II {fw_ii} ef",
-        f"set_directive_pipeline -II {fw_ii} ssf",
-        f"set_directive_pipeline -II {fw_ii} scf1",
-        f"set_directive_pipeline -II {fw_ii} scf2",
-        f"set_directive_pipeline -II {fw_ii} saf",
-        f"set_directive_pipeline -II {fw_ii} lfi",
-        f"set_directive_pipeline -II {fw_ii} lfc",
-        f"set_directive_pipeline -II {fw_ii} tf",
+        f'set_directive_pipeline -II {fw_ii} "forward/ef"',
+        f'set_directive_pipeline -II {fw_ii} "forward/ssf"',
+        f'set_directive_pipeline -II {fw_ii} "forward/scf1"',
+        f'set_directive_pipeline -II {fw_ii} "forward/scf2"',
+        f'set_directive_pipeline -II {fw_ii} "forward/saf"',
+        f'set_directive_pipeline -II {fw_ii} "forward/lfi"',
+        f'set_directive_pipeline -II {fw_ii} "forward/lfc"',
+        f'set_directive_pipeline -II {fw_ii} "forward/tf"',
 
-        f"set_directive_pipeline -II {bw_ii} eb",
-        f"set_directive_pipeline -II {bw_ii} ssb",
-        f"set_directive_pipeline -II {bw_ii} scb1",
-        f"set_directive_pipeline -II {bw_ii} scb2",
-        f"set_directive_pipeline -II {bw_ii} sab",
-        f"set_directive_pipeline -II {bw_ii} lbwi",
-        f"set_directive_pipeline -II {bw_ii} lbwo",
-        f"set_directive_pipeline -II {bw_ii} lbw",
-        f"set_directive_pipeline -II {bw_ii} lbi",
-        f"set_directive_pipeline -II {bw_ii} lb",
-        f"set_directive_pipeline -II {bw_ii} tb"
+        f'set_directive_pipeline -II {bw_ii} "backward/eb"',
+        f'set_directive_pipeline -II {bw_ii} "backward/ssb"',
+        f'set_directive_pipeline -II {bw_ii} "backward/scb1"',
+        f'set_directive_pipeline -II {bw_ii} "backward/scb2"',
+        f'set_directive_pipeline -II {bw_ii} "backward/sab"',
+        f'set_directive_pipeline -II {bw_ii} "backward/lbwi"',
+        f'set_directive_pipeline -II {bw_ii} "backward/lbwo"',
+        f'set_directive_pipeline -II {bw_ii} "backward/lbw"',
+        f'set_directive_pipeline -II {bw_ii} "backward/lbi"',
+        f'set_directive_pipeline -II {bw_ii} "backward/lb"',
+        f'set_directive_pipeline -II {bw_ii} "backward/tb"'
     ]
 
 def gen_nn_ip_directives(filename, ip_tcl_name):
