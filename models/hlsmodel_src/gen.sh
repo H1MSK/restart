@@ -1,5 +1,5 @@
 echo -e "\033[32mGenerating top function, tcl and directives...\033[0m"
-python generator generated.top.cpp generated.top_build.tcl generated.top_directives.tcl
+python generator generated.top.cpp generated.top_build.tcl generated.fw_directives.tcl generated.bw_directives.tcl
 
 echo -e "\033[32mSynthesis IP to be used in system...\033[0m"
 echo -e "\033[32mThis will take some time...\033[0m"
