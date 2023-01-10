@@ -36,7 +36,7 @@ struct Linear {
         const cm_float* const w = param;
         const cm_float* const b = param + in_size * out_size;
 
-        cm_float x[in_size] = {0};
+        cm_float x[in_size];
 #pragma HLS BIND_STORAGE variable=x type=ram_s2p
 
         Fifo2Ram1p<in_size>::run(in_x, x);
