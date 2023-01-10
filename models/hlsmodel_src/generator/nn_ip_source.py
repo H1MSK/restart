@@ -275,7 +275,9 @@ def _gen_bw_content():
                 d = _gen_ostream_defination(k, [node_io[k].bo])
                 contents.append(d[0][0])
                 contents.append(d[0][1])
-            contents.append(f"{info[0]}<{', '.join(str(x) for x in info[1:])}>::backward(")
+                contents.append(f"{info[0]}<{', '.join(str(x) for x in info[1:])}>::backward(")
+            else:
+                contents.append(f"{info[0]}<{', '.join(str(x) for x in info[1:])}>::backward_no(")
             if param_suffix[k] != None:
                 contents.append(f"    param{param_suffix[k]},")
                 contents.append(f"    grad{param_suffix[k]},")

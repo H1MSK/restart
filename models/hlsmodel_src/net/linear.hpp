@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../global.hpp"
+#include "functors.hpp"
 
 template <int In, int Out>
 struct Linear {
@@ -9,36 +10,129 @@ struct Linear {
     constexpr static int param_size = in_size * out_size + out_size;
     constexpr static int cache_size = in_size;
 
-    static void forward(cm_float param[param_size], hls::stream<cm_float>& in_x,
-                        hls::stream<cm_float>& out_y,
-                        hls::stream<cm_float>& cache) {
+    static void forward_input(hls::stream<cm_float>& in_x,
+                              hls::stream<cm_float>& cache,
+                              cm_float x[in_size]) {
 #pragma HLS INTERFACE mode = ap_ctrl_chain port = return
 #pragma HLS INTERFACE mode = bram port = x storage_type = ram_1p
 #pragma HLS INTERFACE mode = ap_fifo port = in_x
-#pragma HLS INTERFACE mode = ap_fifo port = out_y
 #pragma HLS INTERFACE mode = ap_fifo port = cache
-        cm_float x[in_size];
-        const cm_float* const w = param;
-        const cm_float* const b = param + in_size * out_size;
-        lfi: for (int j = 0; j < in_size; ++j) {
+    lfi:
+        for (int j = 0; j < in_size; ++j) {
             cm_float t;
             in_x >> t;
             x[j] = t;
             cache << t;
         }
-        lfc: for (int i = 0; i < out_size; ++i) {
+    }
+
+    static void forward_core(cm_float param[param_size],
+                             hls::stream<cm_float>& in_x,
+                             hls::stream<cm_float>& out_y) {
+#pragma HLS INTERFACE mode = ap_ctrl_chain port = return
+#pragma HLS INTERFACE mode = bram port = param storage_type = rom_1p
+#pragma HLS INTERFACE mode = ap_fifo port = in_x
+#pragma HLS INTERFACE mode = ap_fifo port = out_y
+        const cm_float* const w = param;
+        const cm_float* const b = param + in_size * out_size;
+
+        cm_float x[in_size] = {0};
+#pragma HLS BIND_STORAGE variable=x type=ram_s2p
+
+        Fifo2Ram1p<in_size>::run(in_x, x);
+
+        lfc_cal: for (int i = 0; i < out_size; ++i) {
             cm_float y_i = b[i];
-            for (int j = 0; j < in_size; ++j) {
+            lfc_cal_i: for (int j = 0; j < in_size; ++j) {
                 y_i += w[i * in_size + j] * x[j];
             }
             out_y << y_i;
         }
-        //        for (int j = 0; j < in_size; ++j) {
-        //            cache << x[j];
-        //        }
+
+//        cm_float y[out_size] = {0};
+//#pragma HLS BIND_STORAGE variable=y type=ram_s2p
+//    lfc_cal:
+//        for (int j = 0; j < in_size; ++j) {
+//            cm_float x_j = in_x.read();
+//            for (int i = 0; i < out_size; ++i) {
+//                y[i] += w[i * in_size + j] * x_j;
+//            }
+//        }
+//
+//    lfc_o:
+//        for (int i = 0; i < out_size; ++i) {
+//            out_y << y[i] + b[i];
+//        }
     }
 
-    static void backward(cm_float param[param_size], cm_float grad[param_size],
+    static void forward(cm_float param[param_size],
+                        hls::stream<cm_float>& in_x,
+                        hls::stream<cm_float>& out_y,
+                        hls::stream<cm_float>& cache) {
+#pragma HLS INTERFACE mode = ap_ctrl_chain port = return
+#pragma HLS INTERFACE mode = bram port = param storage_type = rom_1p
+#pragma HLS INTERFACE mode = ap_fifo port = in_x
+#pragma HLS INTERFACE mode = ap_fifo port = out_y
+#pragma HLS INTERFACE mode = ap_fifo port = cache
+#pragma HLS DATAFLOW
+        hls::stream<cm_float, in_size> forward_x;
+        StreamSplitter2<in_size>::run(in_x, cache, forward_x);
+        forward_core(param, forward_x, out_y);
+    }
+
+    static void backward_output(cm_float param[param_size],
+                                hls::stream<cm_float>& in_grad_y,
+                                hls::stream<cm_float>& out_grad_x) {
+#pragma HLS INTERFACE mode = ap_ctrl_chain port = return
+#pragma HLS INTERFACE mode = bram port = param storage_type = rom_1p
+#pragma HLS INTERFACE mode = ap_fifo port = in_grad_y
+#pragma HLS INTERFACE mode = ap_fifo port = out_grad_x
+        const cm_float* const w = param;
+        cm_float grad_x_cache[in_size] = {0};
+#pragma HLS BIND_STORAGE variable=grad_x_cache type=ram_s2p
+    lbo_cal:
+        for (int i = 0; i < out_size; ++i) {
+            cm_float grad_y_i = in_grad_y.read();
+        lbo_cal_i:
+            for (int j = 0; j < in_size; ++j) {
+                grad_x_cache[j] += w[i * in_size + j] * grad_y_i;
+            }
+        }
+    lbo_o:
+        for (int j = 0; j < in_size; ++j) {
+            out_grad_x << grad_x_cache[j];
+        }
+    }
+
+    static void backward_param_calc(hls::stream<cm_float>& cache,
+                                    hls::stream<cm_float>& in_grad_y,
+                                    cm_float grad[param_size]) {
+#pragma HLS INTERFACE mode = ap_ctrl_chain port = return
+#pragma HLS INTERFACE mode = ap_fifo port = cache
+#pragma HLS INTERFACE mode = ap_fifo port = in_grad_y
+#pragma HLS INTERFACE mode = bram port = grad storage_type = ram_s2p
+
+        cm_float* const grad_w = grad;
+        cm_float* const grad_b = grad + in_size * out_size;
+
+        cm_float cache_x[in_size];
+#pragma HLS BIND_STORAGE variable=cache_x type=ram_s2p
+        Fifo2Ram1p<in_size>::run(cache, cache_x);
+
+    lbw:
+        for (int i = 0; i < out_size; ++i) {
+            cm_float grad_y_i = in_grad_y.read();
+        lbw_i:
+            for (int j = 0; j < in_size; ++j) {
+#pragma HLS DEPENDENCE variable=grad dependent=false
+                grad_w[i * in_size + j] += grad_y_i * cache_x[j];
+            }
+            grad_b[i] += grad_y_i;
+        }
+    }
+
+    static void backward(cm_float param[param_size],
+                         cm_float grad[param_size],
                          hls::stream<cm_float>& cache,
                          hls::stream<cm_float>& in_grad_y,
                          hls::stream<cm_float>& out_grad_x) {
@@ -48,56 +142,29 @@ struct Linear {
 #pragma HLS INTERFACE mode = ap_fifo port = cache
 #pragma HLS INTERFACE mode = ap_fifo port = in_grad_y
 #pragma HLS INTERFACE mode = ap_fifo port = out_grad_x
-        cm_float grad_y1[out_size];
-        cm_float grad_y2[out_size];
-        const cm_float* const w = param;
-        cm_float* const grad_w = grad;
-        cm_float* const grad_b = grad + in_size * out_size;
-        lbwi: for (int i = 0; i < out_size; ++i) {
-            cm_float gy = in_grad_y.read();
-            grad_y1[i] = gy;
-            grad_y2[i] = gy;
-            grad_b[i] += gy;
-        }
-        lbwo: for (int j = 0; j < in_size; ++j) {
-            cm_float grad_x_j = 0;
-            for (int i = 0; i < out_size; ++i) {
-                grad_x_j += w[i * in_size + j] * grad_y1[i];
-            }
-            out_grad_x << grad_x_j;
-        }
+#pragma HLS DATAFLOW
 
-        lbw: for (int j = 0; j < in_size; ++j) {
-            cm_float cache_x_j = cache.read();
-            for (int i = 0; i < out_size; ++i) {
-                grad_w[i * in_size + j] += grad_y2[i] * cache_x_j;
-            }
-        }
+        hls::stream<cm_float, out_size> grad_y1;
+        hls::stream<cm_float, out_size> grad_y2;
+
+        StreamSplitter2<out_size>::run(in_grad_y, grad_y1, grad_y2);
+
+        backward_output(param, grad_y1, out_grad_x);
+
+        backward_param_calc(cache, grad_y2, grad);
     }
 
-    static void backward(cm_float param[param_size], cm_float grad[param_size],
-                         hls::stream<cm_float>& cache,
-                         hls::stream<cm_float>& in_grad_y) {
+    static void backward_no(cm_float param[param_size],
+                            cm_float grad[param_size],
+                            hls::stream<cm_float>& cache,
+                            hls::stream<cm_float>& in_grad_y) {
 #pragma HLS INTERFACE mode = ap_ctrl_chain port = return
 #pragma HLS INTERFACE mode = bram port = param storage_type = rom_1p
 #pragma HLS INTERFACE mode = bram port = grad storage_type = ram_s2p
 #pragma HLS INTERFACE mode = ap_fifo port = cache
 #pragma HLS INTERFACE mode = ap_fifo port = in_grad_y
-        cm_float grad_y[out_size];
-        const cm_float* const w = param;
-        cm_float* const grad_w = grad;
-        cm_float* const grad_b = grad + in_size * out_size;
-        lbi: for (int i = 0; i < out_size; ++i) {
-            cm_float gy = in_grad_y.read();
-            grad_y[i] = gy;
-            grad_b[i] += gy;
-        }
+#pragma HLS DATAFLOW
 
-        lb: for (int j = 0; j < in_size; ++j) {
-            cm_float cache_x_j = cache.read();
-            for (int i = 0; i < out_size; ++i) {
-                grad_w[i * in_size + j] += grad_y[i] * cache_x_j;
-            }
-        }
+        backward_param_calc(cache, in_grad_y, grad);
     }
 };

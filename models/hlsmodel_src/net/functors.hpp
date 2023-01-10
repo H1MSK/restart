@@ -56,3 +56,16 @@ struct StreamAdder2 {
         }
     }
 };
+
+template <int len>
+struct Fifo2Ram1p {
+    static void run(hls::stream<cm_float>& in, cm_float out[len]) {
+#pragma HLS INTERFACE mode=ap_ctrl_chain port=return
+#pragma HLS INTERFACE mode=ap_fifo port=in
+#pragma HLS INTERFACE mode=bram storage_type=ram_1p port=out
+    sa: for (int i = 0; i < len; ++i) {
+            cm_float x = in.read();
+            out[i] = x;
+        }
+    }
+};
