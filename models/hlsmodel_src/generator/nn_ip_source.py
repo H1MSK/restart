@@ -190,7 +190,7 @@ def _gen_fw_content():
                 for t in d:
                     contents.append(t[0])
                     contents.append(t[1])
-            contents.append(f"StreamSplitter{len(node_io[k].fo)}<{Info.node_out_size[k]}>::forward(")
+            contents.append(f"StreamSplitter{len(node_io[k].fo)}<{Info.node_out_size[k]}>::run(")
             contents.append(f"    {node_io[k].fi},")
             contents.append("    {});".format(',\n        '.join(node_io[k].fo)))
             contents.append("")
@@ -205,7 +205,7 @@ def _gen_fw_content():
                 contents.append(d[0][1])
             merged_nodes = [x - 1 for x in Info.fork_info[k].fork_nodes[1:]]
             lens = [str(Info.node_out_size[x]) for x in merged_nodes]
-            contents.append(f"StreamCat{len(node_io[k].fi)}<{', '.join(lens)}>::forward(")
+            contents.append(f"StreamCat{len(node_io[k].fi)}<{', '.join(lens)}>::run(")
             for p in node_io[k].fi:
                 contents.append(f"    {p},")
             contents.append(f"    {node_io[k].fo});")
@@ -251,7 +251,7 @@ def _gen_bw_content():
             for t in d:
                 contents.append(t[0])
                 contents.append(t[1])
-            contents.append(f"StreamSplitter{len(node_io[k].bo)}<{Info.node_out_size[k]}>::backward(")
+            contents.append(f"StreamSplitter{len(node_io[k].bo)}<{Info.node_out_size[k]}>::run(")
             contents.append(f"    {node_io[k].bi},")
             t = ',\n        '.join(node_io[k].bo)
             contents.append(f"    {t});")
@@ -265,7 +265,7 @@ def _gen_bw_content():
             contents.append(d[0][0])
             contents.append(d[0][1])
             merged_nodes = [x - 1 for x in Info.fork_info[k].fork_nodes[:-1]]
-            contents.append(f"StreamAdder{len(node_io[k].bi)}<{Info.node_in_size[k]}>::backward(")
+            contents.append(f"StreamAdder{len(node_io[k].bi)}<{Info.node_in_size[k]}>::run(")
             t = ',\n        '.join(node_io[k].bi)
             contents.append(f"    {t},")
             contents.append(f"    {node_io[k].bo});")
