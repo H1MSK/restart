@@ -22,10 +22,10 @@ struct Tanh {
             cm_float tanhx;
             cm_float ex = hls::exp(x);
             cm_float enx = hls::exp(-x);
-            if (ex > 1e5f) tanhx = 1;
-            else if (ex < 1e-5f) tanhx = -1;
+            if (ex > cm_float(1e5f)) tanhx = 1;
+            else if (ex < cm_float(1e-5f)) tanhx = -1;
             else tanhx = (ex - enx) / (ex + enx);
-//             cm_float tanhx = std::tanh(x);
+//            cm_float tanhx = hls::tanh(x);
             out_y << tanhx;
             cache << tanhx;
         }
@@ -41,7 +41,7 @@ struct Tanh {
         tb: for (int i = 0; i < vec_size; ++i) {
             cm_float grad_y_i = in_grad_y.read();
             cm_float cache_y_i = cache.read();
-            out_grad_x << grad_y_i * (1 - hls::pown(cache_y_i, 2));
+            out_grad_x << grad_y_i * (1 - cache_y_i * cache_y_i);
         }
     }
 };

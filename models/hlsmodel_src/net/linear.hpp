@@ -95,6 +95,7 @@ struct Linear {
             cm_float grad_y_i = in_grad_y.read();
         lbo_cal_i:
             for (int j = 0; j < in_size; ++j) {
+#pragma HLS DEPENDENCE variable=grad_x_cache dependent=false
                 grad_x_cache[j] += w[i * in_size + j] * grad_y_i;
             }
         }
@@ -117,10 +118,12 @@ struct Linear {
 
         cm_float cache_x[in_size];
 #pragma HLS BIND_STORAGE variable=cache_x type=ram_s2p
+//#pragma HLS ARRAY_PARTITION variable=cache_x type=complete
         Fifo2Ram1p<in_size>::run(cache, cache_x);
 
     lbw:
         for (int i = 0; i < out_size; ++i) {
+#pragma HLS DEPENDENCE variable=grad dependent=false
             cm_float grad_y_i = in_grad_y.read();
         lbw_i:
             for (int j = 0; j < in_size; ++j) {
