@@ -8,6 +8,7 @@ misc
 .*
 !.vscode
 !.gitignore
+!.clang-format
 
 # HLS Projects
 syn
