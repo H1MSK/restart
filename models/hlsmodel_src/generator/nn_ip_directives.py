@@ -24,7 +24,7 @@ def _gen_target_ii():
         'set_directive_pipeline -II 256 "backward/eb"',
         'set_directive_pipeline -II 1 "backward_output/lbo_cal_i"',
         'set_directive_pipeline -II 256 "backward_output/lbo_o"',
-        'set_directive_pipeline -II 256 "backward_param_calc/lbw_i"',
+        'set_directive_pipeline -II 1 "backward_param_calc/lbw_i"',
         'set_directive_pipeline -II 256 "backward/tb"'
     ]
     return fw_directives, bw_directives
