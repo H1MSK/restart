@@ -19,7 +19,13 @@ struct Tanh {
 #pragma HLS INTERFACE mode = ap_fifo port = cache
         tf: for (int i = 0; i < vec_size; ++i) {
             cm_float x = in_x.read();
-            cm_float tanhx = hls::tanh(x);
+            cm_float tanhx;
+            cm_float ex = hls::exp(x);
+            cm_float enx = hls::exp(-x);
+            if (ex > 1e5f) tanhx = 1;
+            else if (ex < 1e-5f) tanhx = -1;
+            else tanhx = (ex - enx) / (ex + enx);
+//             cm_float tanhx = std::tanh(x);
             out_y << tanhx;
             cache << tanhx;
         }
