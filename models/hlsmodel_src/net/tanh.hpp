@@ -17,7 +17,6 @@ struct Tanh {
 #pragma HLS INTERFACE mode = ap_fifo port = in_x
 #pragma HLS INTERFACE mode = ap_fifo port = out_y
 #pragma HLS INTERFACE mode = ap_fifo port = cache
-#pragma HLS INLINE
         tf: for (int i = 0; i < vec_size; ++i) {
             cm_float x = in_x.read();
             cm_float tanhx = hls::tanh(x);
@@ -33,7 +32,6 @@ struct Tanh {
 #pragma HLS INTERFACE mode = ap_fifo port = cache
 #pragma HLS INTERFACE mode = ap_fifo port = in_grad_y
 #pragma HLS INTERFACE mode = ap_fifo port = out_grad_x
-#pragma HLS INLINE
         tb: for (int i = 0; i < vec_size; ++i) {
             cm_float grad_y_i = in_grad_y.read();
             cm_float cache_y_i = cache.read();

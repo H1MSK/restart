@@ -17,7 +17,6 @@ struct Exp {
 #pragma HLS INTERFACE mode = ap_fifo port = in_x
 #pragma HLS INTERFACE mode = ap_fifo port = out_y
 #pragma HLS INTERFACE mode = ap_fifo port = cache
-#pragma HLS INLINE
         ef: for (int i = 0; i < in_size; ++i) {
             cm_float x = in_x.read();
             cm_float ex = hls::exp(x);
@@ -33,7 +32,6 @@ struct Exp {
 #pragma HLS INTERFACE mode = ap_fifo port = cache
 #pragma HLS INTERFACE mode = ap_fifo port = in_grad_y
 #pragma HLS INTERFACE mode = ap_fifo port = out_grad_x
-#pragma HLS INLINE
         eb: for (int i = 0; i < in_size; ++i) {
             cm_float grad_y_i = in_grad_y.read();
             cm_float cache_y_i = cache.read();

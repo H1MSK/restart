@@ -13,11 +13,10 @@ struct Linear {
                         hls::stream<cm_float>& out_y,
                         hls::stream<cm_float>& cache) {
 #pragma HLS INTERFACE mode = ap_ctrl_chain port = return
-#pragma HLS INTERFACE mode = ap_memory port = param storage_type = rom_1p
+#pragma HLS INTERFACE mode = bram port = x storage_type = ram_1p
 #pragma HLS INTERFACE mode = ap_fifo port = in_x
 #pragma HLS INTERFACE mode = ap_fifo port = out_y
 #pragma HLS INTERFACE mode = ap_fifo port = cache
-#pragma HLS INLINE
         cm_float x[in_size];
         const cm_float* const w = param;
         const cm_float* const b = param + in_size * out_size;
@@ -29,7 +28,6 @@ struct Linear {
         }
         lfc: for (int i = 0; i < out_size; ++i) {
             cm_float y_i = b[i];
-#pragma HLS BIND_OP variable = y_i op = fadd impl = fabric
             for (int j = 0; j < in_size; ++j) {
                 y_i += w[i * in_size + j] * x[j];
             }
@@ -45,12 +43,11 @@ struct Linear {
                          hls::stream<cm_float>& in_grad_y,
                          hls::stream<cm_float>& out_grad_x) {
 #pragma HLS INTERFACE mode = ap_ctrl_chain port = return
-#pragma HLS INTERFACE mode = ap_memory port = param storage_type = rom_1p
-#pragma HLS INTERFACE mode = ap_memory port = grad storage_type = ram_s2p
+#pragma HLS INTERFACE mode = bram port = param storage_type = rom_1p
+#pragma HLS INTERFACE mode = bram port = grad storage_type = ram_s2p
 #pragma HLS INTERFACE mode = ap_fifo port = cache
 #pragma HLS INTERFACE mode = ap_fifo port = in_grad_y
 #pragma HLS INTERFACE mode = ap_fifo port = out_grad_x
-#pragma HLS INLINE
         cm_float grad_y1[out_size];
         cm_float grad_y2[out_size];
         const cm_float* const w = param;
@@ -82,11 +79,10 @@ struct Linear {
                          hls::stream<cm_float>& cache,
                          hls::stream<cm_float>& in_grad_y) {
 #pragma HLS INTERFACE mode = ap_ctrl_chain port = return
-#pragma HLS INTERFACE mode = ap_memory port = param storage_type = rom_1p
-#pragma HLS INTERFACE mode = ap_memory port = grad storage_type = ram_s2p
+#pragma HLS INTERFACE mode = bram port = param storage_type = rom_1p
+#pragma HLS INTERFACE mode = bram port = grad storage_type = ram_s2p
 #pragma HLS INTERFACE mode = ap_fifo port = cache
 #pragma HLS INTERFACE mode = ap_fifo port = in_grad_y
-#pragma HLS INLINE
         cm_float grad_y[out_size];
         const cm_float* const w = param;
         cm_float* const grad_w = grad;
