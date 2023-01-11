@@ -36,33 +36,59 @@ struct Linear {
         const cm_float* const w = param;
         const cm_float* const b = param + in_size * out_size;
 
-        cm_float x[in_size];
-#pragma HLS BIND_STORAGE variable=x type=ram_s2p
+        // This method will cause memory dependency violation on y_i in lfc_cal_i,
+        //   which will stop ii from decrease
+        // cm_float x[in_size];
+        // #pragma HLS BIND_STORAGE variable=x type=ram_s2p
+        //
+        // Fifo2Ram1p<in_size>::run(in_x, x);
+        //
+        // lfc_cal: for (int i = 0; i < out_size; ++i) {
+        //     cm_float y_i = b[i];
+        //     lfc_cal_i: for (int j = 0; j < in_size; ++j) {
+        //         y_i += w[i * in_size + j] * x[j];
+        //     }
+        //     out_y << y_i;
+        // }
 
-        Fifo2Ram1p<in_size>::run(in_x, x);
-
-        lfc_cal: for (int i = 0; i < out_size; ++i) {
-            cm_float y_i = b[i];
-            lfc_cal_i: for (int j = 0; j < in_size; ++j) {
-                y_i += w[i * in_size + j] * x[j];
+        // This method will introduce 1-cycle latency on y because of its implementation
+        //   need use bram as storage
+        cm_float y[out_size] = {0};
+        #pragma HLS BIND_STORAGE variable=y type=ram_s2p
+        lfc_cal: for (int j = 0; j < in_size; ++j) {
+            cm_float x_j = in_x.read();
+            lfc_cal_i: for (int i = 0; i < out_size; ++i) {
+                #pragma HLS PIPELINE II=1
+                y[i] += w[i * in_size + j] * x_j;
             }
-            out_y << y_i;
         }
 
-//        cm_float y[out_size] = {0};
-//#pragma HLS BIND_STORAGE variable=y type=ram_s2p
-//    lfc_cal:
-//        for (int j = 0; j < in_size; ++j) {
-//            cm_float x_j = in_x.read();
-//            for (int i = 0; i < out_size; ++i) {
-//                y[i] += w[i * in_size + j] * x_j;
-//            }
-//        }
-//
-//    lfc_o:
-//        for (int i = 0; i < out_size; ++i) {
-//            out_y << y[i] + b[i];
-//        }
+        lfc_o: for (int i = 0; i < out_size; ++i) {
+            out_y << y[i] + b[i];
+        }
+        
+        // This method is ideal for me but the dependence will become true
+        //   if clock speed is too fast, and all items will be read out before
+        //   new items are written into the fifo
+        // And, The dependence pragma seems to be ignored by vitis.
+        // hls::stream<cm_float, out_size> loop_y;
+        // #pragma HLS BIND_STORAGE variable=loop_y type=fifo impl=srl
+        // lfc_i: for (int i = 0; i < out_size; ++i) {
+        //     loop_y.write(b[i]);
+        // }
+        // lfc_cal2: for (int j = 0; j < in_size; ++j) {
+        //     cm_float x_j = in_x.read();
+        //     lfc_cal2_i: for (int i = 0; i < out_size; ++i) {
+        //     #pragma HLS PIPELINE
+        //     #pragma HLS DEPENDENCE variable=loop_y dependent=false
+        //         cm_float y_i = loop_y.read();
+        //         y_i += w[i * in_size + j] * x_j;
+        //         loop_y.write(y_i);
+        //     }
+        // }
+        // lfc2_o: for (int i = 0; i < out_size; ++i) {
+        //     out_y << loop_y.read();
+        // }
     }
 
     static void forward(cm_float param[param_size],
