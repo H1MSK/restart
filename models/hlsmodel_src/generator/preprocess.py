@@ -15,6 +15,27 @@ class Info:
     node_in_size = []
     node_out_size = []
     cache_info: List[Optional[CacheInfo]] = []
+    param_name: List[str] = []
+    grad_name: List[str] = []
+    cache_out_name: List[str] = []
+    cache_in_name: List[str] = []
+
+def _gen_param_grad_name():
+    param_suffix_mapper = {
+        "Linear": lambda kth, info: f"{kth}_{Info.param_size[kth]}o{info[2]}w{element_bitwidth}"
+    }
+    def _cal_param_suffix(kth, layer_info):
+        try:
+            return param_suffix_mapper[layer_info[0]](kth, layer_info)
+        except KeyError:
+            return None
+    suffix = list(_cal_param_suffix(k, x) for k, x in enumerate(nn_structures))
+    Info.param_name = list(("param" + s) if s != None else None for s in suffix)
+    Info.grad_name = list(("grad" + s) if s != None else None for s in suffix)
+
+def _gen_cache_name():
+    Info.cache_out_name = [(None if info is None else f"cache{k}_{info.size}_o") for k, info in enumerate(Info.cache_info)]
+    Info.cache_in_name = [(None if info is None else f"cache{k}_{info.size}_i") for k, info in enumerate(Info.cache_info)]
 
 def _gen_fork_info():
 
@@ -98,5 +119,7 @@ def _gen_cache_info():
 def extract_info_from_structure():
     _gen_fork_info()
     _gen_param_size()
+    _gen_param_grad_name()
     _gen_node_size()
     _gen_cache_info()
+    _gen_cache_name()

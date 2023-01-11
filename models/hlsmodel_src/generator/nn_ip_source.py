@@ -15,32 +15,12 @@ class NodeIO:
         return f"NodeIo(fi={self.fi}, fo={self.fo}, bi={self.bi}, bo={self.bo})"
 
 node_io: List[NodeIO] = []
-param_suffix: List[str] = []
-cache_name: List[str] = []
 path_param_count: List[int] = []
 
 fw_param_signature = []
 bw_param_signature = []
 fw_param_hls_pragmas = []
 bw_param_hls_pragmas = []
-
-def _gen_param_name_suffix():
-    global param_suffix
-
-    param_suffix_mapper = {
-        "Linear": lambda kth, info: f"{kth}_{Info.param_size[kth]}o{info[2]}"
-    }
-    def _cal_param_suffix(kth, layer_info):
-        try:
-            return param_suffix_mapper[layer_info[0]](kth, layer_info)
-        except KeyError:
-            return None
-    param_suffix = list(_cal_param_suffix(k, x) for k, x in enumerate(nn_structures))
-
-def _gen_cache_name():
-    global cache_name
-
-    cache_name = [None if info is None else f"cache{k}_{info.size}" for k, info in enumerate(Info.cache_info)]
 
 def _fw_scan():
     global node_io
@@ -105,7 +85,6 @@ def _bw_scan():
             node_io[kth].bi = node_io[kth].bo = None
             forkend_pos = Info.fork_info[Info.path_info[kth].fork_start].fork_nodes[-1]
             forkpath_names[-1].append(current_input_name)
-            print(kth, Info.path_info[kth])
             current_input_name = node_io[forkend_pos].bo[Info.path_info[kth].kth - 1]
         elif info[0] == "Fork":
             forkpath_names[-1].append(current_input_name)
@@ -151,27 +130,27 @@ def _gen_param_info():
     bw_param_hls_pragmas.append(f"INTERFACE mode=axis port=in_grad_y register_mode=reverse depth={nn_out_size}")
 
     # params.append(f"hls::stream<{element_name}, {out_size}>& out_grad_x")
-    for k, size in enumerate(Info.param_size):
+    for k, z in enumerate(zip(Info.param_name, Info.grad_name, Info.param_size)):
+        param, grad, size = z
         if size != None:
-            fw_param_signature.append(f"cm_float param{param_suffix[k]}[{size}]")
-            fw_param_hls_pragmas.append(f"INTERFACE mode=bram storage_type=rom_1p port=param{param_suffix[k]} latency=1")
+            fw_param_signature.append(f"cm_float {param}[{size}]")
+            fw_param_hls_pragmas.append(f"INTERFACE mode=bram storage_type=rom_1p port={param} latency=1")
 
-            bw_param_signature.append(f"cm_float param{param_suffix[k]}[{size}]")
-            bw_param_hls_pragmas.append(f"INTERFACE mode=bram storage_type=rom_1p port=param{param_suffix[k]} latency=1")
+            bw_param_signature.append(f"cm_float {param}[{size}]")
+            bw_param_hls_pragmas.append(f"INTERFACE mode=bram storage_type=rom_1p port={param} latency=1")
 
-            bw_param_signature.append(f"cm_float grad{param_suffix[k]}[{size}]")
-            bw_param_hls_pragmas.append(f"INTERFACE mode=bram storage_type=ram_s2p port=grad{param_suffix[k]} latency=1")
+            bw_param_signature.append(f"cm_float {grad}[{size}]")
+            bw_param_hls_pragmas.append(f"INTERFACE mode=bram storage_type=ram_s2p port={grad} latency=1")
 
-    for k, info in enumerate(Info.cache_info):
+    for k, z in enumerate(zip(Info.cache_out_name, Info.cache_in_name, Info.cache_info)):
+        oname, iname, info = z
         if info != None:
-            fw_param_signature.append(f"hls::stream<{info.element_name}>& {cache_name[k]}_o")
-            fw_param_hls_pragmas.append(f"INTERFACE mode=ap_fifo port=cache{k}_{info.size}_o depth={nn_out_size}")
-            bw_param_signature.append(f"hls::stream<{info.element_name}>& {cache_name[k]}_i")
-            bw_param_hls_pragmas.append(f"INTERFACE mode=ap_fifo port=cache{k}_{info.size}_i depth={nn_out_size}")
+            fw_param_signature.append(f"hls::stream<{info.element_name}>& {oname}")
+            fw_param_hls_pragmas.append(f"INTERFACE mode=ap_fifo port={oname} depth={nn_out_size}")
+            bw_param_signature.append(f"hls::stream<{info.element_name}>& {iname}")
+            bw_param_hls_pragmas.append(f"INTERFACE mode=ap_fifo port={iname} depth={nn_out_size}")
 
 def _gen_ip_info():
-    _gen_param_name_suffix()
-    _gen_cache_name()
     _gen_stream_names()
     _gen_param_info()
 
@@ -216,11 +195,14 @@ def _gen_fw_content():
                 contents.append(d[0][0])
                 contents.append(d[0][1])
             contents.append(f"{info[0]}<{', '.join(str(x) for x in info[1:])}>::forward(")
-            if param_suffix[k] != None:
-                contents.append(f"    param{param_suffix[k]},")
+            if (name := Info.param_name[k]) != None:
+                contents.append(f"    {name},")
             contents.append(f"    {node_io[k].fi},")
-            contents.append(f"    {node_io[k].fo},")
-            contents.append(f"    {cache_name[k]}_o);")
+            if node_io[k].bi:
+                contents.append(f"    {node_io[k].fo},")
+                contents.append(f"    {Info.cache_out_name[k]});")
+            else:
+                contents.append(f"    {node_io[k].fo});")
             contents.append("")
         
         else:
@@ -278,10 +260,10 @@ def _gen_bw_content():
                 contents.append(f"{info[0]}<{', '.join(str(x) for x in info[1:])}>::backward(")
             else:
                 contents.append(f"{info[0]}<{', '.join(str(x) for x in info[1:])}>::backward_no(")
-            if param_suffix[k] != None:
-                contents.append(f"    param{param_suffix[k]},")
-                contents.append(f"    grad{param_suffix[k]},")
-            contents.append(f"    {cache_name[k]}_i,")
+            if Info.param_name[k] != None:
+                contents.append(f"    {Info.param_name[k]},")
+                contents.append(f"    {Info.grad_name[k]},")
+            contents.append(f"    {Info.cache_in_name[k]},")
             if node_io[k].bo != None:
                 contents.append(f"    {node_io[k].bi},")
                 contents.append(f"    {node_io[k].bo});")
