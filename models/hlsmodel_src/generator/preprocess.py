@@ -34,7 +34,7 @@ def _gen_fork_info():
             fork_count[-1] += 1
             forkpath_pos[-1].append(kth)
             current_path_info[-1] = PathInfo(current_path_info[-1].fork_start, fork_count[-1])
-        elif info[0] == "ForkEnd":
+        elif info[0] == "Cat":
             forkpath_pos[-1].append(kth)
             
             Info.fork_info[-1] = Info.fork_info[fork_pos[-1]] = ForkInfo(forkpath_pos[-1])
@@ -44,7 +44,7 @@ def _gen_fork_info():
             forkpath_pos.pop()
             current_path_info.pop()
 
-        Info.path_info.append(None if info[0] == "ForkEnd" else current_path_info[-1])
+        Info.path_info.append(None if info[0] == "Cat" else current_path_info[-1])
 
     assert(len(fork_pos) == 0)
     assert(len(fork_count) == 0)
@@ -68,7 +68,7 @@ def _gen_node_size():
         "Tanh": (lambda info: info[1], lambda info: info[1]),
         "Exp": (lambda info: info[1], lambda info: info[1]),
         "Fork": (lambda info: info[1], lambda info: info[1]),
-        "ForkEnd": (lambda info: 0, lambda info: info[1]),
+        "Cat": (lambda info: 0, lambda info: info[1]),
     }
 
     def _cal_node_size(info, ith_lambda):

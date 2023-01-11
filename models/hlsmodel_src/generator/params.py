@@ -30,6 +30,6 @@ nn_structures = (
         ("ForkAgain", hidden_size),
             ("Linear", hidden_size, act_size),
             ("Exp", act_size),
-        ("ForkEnd", act_size * 2),
-    ("ForkEnd", act_size * 2 + 1)
+        ("Cat", act_size * 2),
+    ("Cat", act_size * 2 + 1)
 )

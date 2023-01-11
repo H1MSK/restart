@@ -63,7 +63,7 @@ def _fw_scan():
             path_param_count[kth] = (0 if kth == 0 else path_param_count[Info.path_info[kth].fork_start])
             forkpath_names[-1].append(current_input_name)
             current_input_name = node_io[Info.path_info[kth].fork_start].fo[Info.path_info[kth].kth]
-        elif info[0] == "ForkEnd":
+        elif info[0] == "Cat":
             forkpath_names[-1].append(current_input_name)
             node_io[kth].fi = forkpath_names[-1]
             forkpath_names.pop()
@@ -95,7 +95,7 @@ def _bw_scan():
                 forkend_pos = Info.fork_info[Info.path_info[kth].fork_start].fork_nodes[-1]
                 current_input_name = node_io[forkend_pos].bo[Info.path_info[kth].kth - 1]
             continue
-        if info[0] == "ForkEnd":
+        if info[0] == "Cat":
             node_io[kth].bi = current_input_name
             node_io[kth].bo = tuple(f"fork{kth}_b{i}" for i in range(len(Info.fork_info[kth].fork_nodes) - 1))
             current_input_name = node_io[kth].bo[-1]
@@ -198,7 +198,7 @@ def _gen_fw_content():
         elif info[0] == "ForkAgain":
             pass
 
-        elif info[0] == "ForkEnd":
+        elif info[0] == "Cat":
             if k + 1 != len(nn_structures):
                 d = _gen_ostream_defination(k, [node_io[k].fo])
                 contents.append(d[0][0])
@@ -246,7 +246,7 @@ def _gen_bw_content():
         contents.append(f"// {k}: {info}")
         if node_io[k] == None or node_io[k].bi == None:
             continue
-        if info[0] == "ForkEnd":
+        if info[0] == "Cat":
             d = _gen_ostream_defination(k, node_io[k].bo)
             for t in d:
                 contents.append(t[0])
