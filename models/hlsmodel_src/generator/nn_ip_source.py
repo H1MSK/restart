@@ -146,9 +146,9 @@ def _gen_param_info():
         oname, iname, info = z
         if info != None:
             fw_param_signature.append(f"hls::stream<{info.element_name}>& {oname}")
-            fw_param_hls_pragmas.append(f"INTERFACE mode=ap_fifo port={oname} depth={nn_out_size}")
+            fw_param_hls_pragmas.append(f"INTERFACE mode=ap_fifo port={oname} depth={Info.cache_info[k].size * batch_size}")
             bw_param_signature.append(f"hls::stream<{info.element_name}>& {iname}")
-            bw_param_hls_pragmas.append(f"INTERFACE mode=ap_fifo port={iname} depth={nn_out_size}")
+            bw_param_hls_pragmas.append(f"INTERFACE mode=ap_fifo port={iname} depth={Info.cache_info[k].size * batch_size}")
 
 def _gen_ip_info():
     _gen_stream_names()
