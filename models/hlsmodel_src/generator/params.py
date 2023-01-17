@@ -1,6 +1,7 @@
 part_name = "xc7z020-clg400-2"
-clock_period = "500MHz"
+clock_period = "200MHz"
 
+batch_size = 64
 
 obs_size = 376
 hidden_size = 64
