@@ -13,7 +13,7 @@ module fifo_switch#(
 
     input                   fifo_en
 );
-    assign fifo_o_din = fifo_en ? fifo_i_din : 0;
-    assign fifo_i_full_n = fifo_en ? fifo_o_full_n : 1;
-    assign fifo_o_write = fifo_en ? fifo_i_write : 0;
+    assign fifo_o_din = fifo_i_din;
+    assign fifo_i_full_n = fifo_o_full_n;
+    assign fifo_o_write = fifo_en & fifo_i_write;
 endmodule
