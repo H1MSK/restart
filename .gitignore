@@ -19,6 +19,7 @@ vhdl
 *.xml
 *.dat
 *.log
+*.jou
 *.zip
 
 # vivado
