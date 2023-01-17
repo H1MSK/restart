@@ -27,6 +27,7 @@ def _gen_signatures_pragmas_and_content(filtered_list: List[Tuple[str, int]], st
 def gen_data_io_source(filename):
     with open(os.path.join(
         os.path.dirname(__file__),
+        "templates",
         "data_io_source_template.cpp"
     ), "r") as f:
         template = f.read()
