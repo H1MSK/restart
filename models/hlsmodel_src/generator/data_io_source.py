@@ -1,4 +1,5 @@
 from typing import List, Tuple
+from template_loader import load_template
 from preprocess import Info
 import os
 import string
@@ -25,14 +26,7 @@ def _gen_signatures_pragmas_and_content(filtered_list: List[Tuple[str, int]], st
     
 
 def gen_data_io_source(filename):
-    with open(os.path.join(
-        os.path.dirname(__file__),
-        "templates",
-        "data_io_source.cpp"
-    ), "r") as f:
-        template = f.read()
-
-    template = string.Template(template)
+    template = load_template('data_io_source.cpp')
 
     filtered_params = list(filter(lambda x: isinstance(x[0], str), zip(Info.param_name, Info.param_size)))
 

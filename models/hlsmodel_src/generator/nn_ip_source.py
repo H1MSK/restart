@@ -3,6 +3,7 @@ from typing import List
 from params import *
 import inspect
 from preprocess import Info, CacheInfo
+from template_loader import load_template
 
 class NodeIO:
     def __init__(self, fw_istream_name, fw_ostream_name, bw_istream_name, bw_ostream_name) -> None:
@@ -216,15 +217,12 @@ def _gen_fw_content():
     return "\n".join("    " + x for x in contents)
 
 def _gen_fw_function():
-    t = '\n'.join('#pragma HLS ' + p for p in fw_param_hls_pragmas)
-    return "\n".join((
-        f"void top_forward({', '.join(fw_param_signature)}) {{",
-        '\n'.join('    #pragma HLS ' + p for p in fw_param_hls_pragmas),
-        "",
-        _gen_fw_content(),
-        f"}}"
-    ))
-
+    return load_template("nn_ip", "function.cpp").substitute(
+        function_name='top_forward',
+        param_signatures=', '.join(fw_param_signature),
+        param_hls_pragmas='\n'.join('    #pragma HLS ' + p for p in fw_param_hls_pragmas),
+        content=_gen_fw_content()
+    )
 
 def _gen_bw_content():
     contents = []
@@ -278,22 +276,18 @@ def _gen_bw_content():
     return "\n".join("    " + x for x in contents)
 
 def _gen_bw_function():
-    return "\n".join((
-        f"void top_backward({', '.join(bw_param_signature)}) {{",
-        '\n'.join('    #pragma HLS ' + p for p in bw_param_hls_pragmas),
-        "",
-        _gen_bw_content(),
-        f"}}"
-    ))
+    return load_template("nn_ip", "function.cpp").substitute(
+        function_name='top_backward',
+        param_signatures=', '.join(bw_param_signature),
+        param_hls_pragmas='\n'.join('    #pragma HLS ' + p for p in bw_param_hls_pragmas),
+        content=_gen_bw_content()
+    )
 
 def gen_nn_ip_source(filename):
     _gen_ip_info()
+
     with open(filename, "w") as f:
-        f.write("\n".join((
-            '#include "global.hpp"',
-            '#include "net/net.hpp"',
-            '',
-            _gen_fw_function(),
-            '',
-            _gen_bw_function()
-            )))
+        f.write(load_template("nn_ip", "source.cpp").substitute(
+            fw_function = _gen_fw_function(),
+            bw_function = _gen_bw_function()
+        ))
