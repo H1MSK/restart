@@ -12,16 +12,19 @@ struct Exp {
 
     static void forward(hls::stream<cm_float>& in_x,
                         hls::stream<cm_float>& out_y,
-                        hls::stream<cm_float>& cache) {
+                        hls::stream<cm_float>& cache,
+                        bool cache_en) {
 #pragma HLS INTERFACE mode = ap_ctrl_none port = return
 #pragma HLS INTERFACE mode = ap_fifo port = in_x
 #pragma HLS INTERFACE mode = ap_fifo port = out_y
 #pragma HLS INTERFACE mode = ap_fifo port = cache
+#pragma HLS INTERFACE mode = ap_none port = cache_en
+#pragma HLS STABLE variable = cache_en
         ef: for (int i = 0; i < in_size; ++i) {
             cm_float x = in_x.read();
             cm_float ex = hls::exp(x);
             out_y << ex;
-            cache << ex;
+            if (cache_en) cache << ex;
         }
     }
 

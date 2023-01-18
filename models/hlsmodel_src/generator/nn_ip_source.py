@@ -142,6 +142,10 @@ def _gen_param_info():
             bw_param_signature.append(f"cm_float {grad}[{size}]")
             bw_param_hls_pragmas.append(f"INTERFACE mode=bram storage_type=ram_s2p port={grad} latency=1")
 
+    fw_param_signature.append(f"bool cache_en")
+    fw_param_hls_pragmas.append(f"INTERFACE mode=ap_none port=cache_en")
+    fw_param_hls_pragmas.append(f"STABLE variable=cache_en")
+
     for k, z in enumerate(zip(Info.cache_out_name, Info.cache_in_name, Info.cache_info)):
         oname, iname, info = z
         if info != None:
@@ -200,7 +204,8 @@ def _gen_fw_content():
             contents.append(f"    {node_io[k].fi},")
             if node_io[k].bi:
                 contents.append(f"    {node_io[k].fo},")
-                contents.append(f"    {Info.cache_out_name[k]});")
+                contents.append(f"    {Info.cache_out_name[k]},")
+                contents.append(f"    cache_en);")
             else:
                 contents.append(f"    {node_io[k].fo});")
             contents.append("")

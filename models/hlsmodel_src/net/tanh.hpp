@@ -12,11 +12,14 @@ struct Tanh {
 
     static void forward(hls::stream<cm_float>& in_x,
                         hls::stream<cm_float>& out_y,
-                        hls::stream<cm_float>& cache) {
+                        hls::stream<cm_float>& cache,
+                        bool cache_en) {
 #pragma HLS INTERFACE mode = ap_ctrl_none port = return
 #pragma HLS INTERFACE mode = ap_fifo port = in_x
 #pragma HLS INTERFACE mode = ap_fifo port = out_y
 #pragma HLS INTERFACE mode = ap_fifo port = cache
+#pragma HLS INTERFACE mode = ap_none port = cache_en
+#pragma HLS STABLE variable = cache_en
         tf: for (int i = 0; i < vec_size; ++i) {
             cm_float x = in_x.read();
             cm_float tanhx;
@@ -27,7 +30,7 @@ struct Tanh {
             else tanhx = (ex - enx) / (ex + enx);
 //            cm_float tanhx = hls::tanh(x);
             out_y << tanhx;
-            cache << tanhx;
+            if (cache_en) cache <<tanhx;
         }
     }
 

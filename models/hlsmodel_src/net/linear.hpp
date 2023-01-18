@@ -10,29 +10,18 @@ struct Linear {
     constexpr static int param_size = in_size * out_size + out_size;
     constexpr static int cache_size = in_size;
 
-    static void forward_input(hls::stream<cm_float>& in_x,
-                              hls::stream<cm_float>& cache,
-                              cm_float x[in_size]) {
-#pragma HLS INTERFACE mode = ap_ctrl_chain port = return
-#pragma HLS INTERFACE mode = bram port = x storage_type = ram_1p
-#pragma HLS INTERFACE mode = ap_fifo port = in_x
-#pragma HLS INTERFACE mode = ap_fifo port = cache
-    lfi:
-        for (int j = 0; j < in_size; ++j) {
-            cm_float t;
-            in_x >> t;
-            x[j] = t;
-            cache << t;
-        }
-    }
-
-    static void forward_core(cm_float param[param_size],
-                             hls::stream<cm_float>& in_x,
-                             hls::stream<cm_float>& out_y) {
+    static void forward(cm_float param[param_size],
+                        hls::stream<cm_float>& in_x,
+                        hls::stream<cm_float>& out_y,
+                        hls::stream<cm_float>& cache,
+                        bool cache_en) {
 #pragma HLS INTERFACE mode = ap_ctrl_chain port = return
 #pragma HLS INTERFACE mode = bram port = param storage_type = rom_1p
 #pragma HLS INTERFACE mode = ap_fifo port = in_x
 #pragma HLS INTERFACE mode = ap_fifo port = out_y
+#pragma HLS INTERFACE mode = ap_fifo port = cache
+#pragma HLS INTERFACE mode = ap_none port = cache_en
+#pragma HLS STABLE variable = cache_en
         const cm_float* const w = param;
         const cm_float* const b = param + in_size * out_size;
 
@@ -57,6 +46,7 @@ struct Linear {
         #pragma HLS BIND_STORAGE variable=y type=ram_s2p
         lfc_cal: for (int j = 0; j < in_size; ++j) {
             cm_float x_j = in_x.read();
+            if (cache_en) cache << x_j;
             lfc_cal_i: for (int i = 0; i < out_size; ++i) {
                 #pragma HLS PIPELINE II=1
                 y[i] += w[i * in_size + j] * x_j;
@@ -89,21 +79,6 @@ struct Linear {
         // lfc2_o: for (int i = 0; i < out_size; ++i) {
         //     out_y << loop_y.read();
         // }
-    }
-
-    static void forward(cm_float param[param_size],
-                        hls::stream<cm_float>& in_x,
-                        hls::stream<cm_float>& out_y,
-                        hls::stream<cm_float>& cache) {
-#pragma HLS INTERFACE mode = ap_ctrl_chain port = return
-#pragma HLS INTERFACE mode = bram port = param storage_type = rom_1p
-#pragma HLS INTERFACE mode = ap_fifo port = in_x
-#pragma HLS INTERFACE mode = ap_fifo port = out_y
-#pragma HLS INTERFACE mode = ap_fifo port = cache
-#pragma HLS DATAFLOW
-        hls::stream<cm_float, in_size> forward_x;
-        StreamSplitter2<in_size>::run(in_x, cache, forward_x);
-        forward_core(param, forward_x, out_y);
     }
 
     static void backward_output(cm_float param[param_size],
