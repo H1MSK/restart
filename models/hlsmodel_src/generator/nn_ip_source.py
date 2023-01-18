@@ -125,8 +125,8 @@ def _gen_param_info():
     fw_general_hls_pragma.append("INTERFACE mode=ap_ctrl_chain port=return")
     bw_general_hls_pragma.append("INTERFACE mode=ap_ctrl_chain port=return")
 
-    fw_general_hls_pragma.append("DATAFLOW")
-    bw_general_hls_pragma.append("DATAFLOW")
+    fw_general_hls_pragma.append("INLINE")
+    bw_general_hls_pragma.append("INLINE")
 
     fw_general_port_signature.append(f"hls::stream<{element_name}>& in_x")
     fw_general_hls_pragma.append(f"INTERFACE mode=axis port=in_x register_mode=reverse depth={nn_in_size}")
@@ -286,11 +286,30 @@ def _gen_bw_function():
         content=_gen_bw_content()
     )
 
+def _gen_top_function():
+    return load_template("nn_ip", "top.cpp").substitute(
+        param_signatures = ', '.join(param_port_signature),
+        grad_signatures=', '.join(grad_port_signature),
+        param_hls_pragmas='\n'.join(f'    #pragma HLS INTERFACE mode=bram storage_type=rom_2p port={p} latency=1' for p in filter(None, Info.param_name)),
+        grad_hls_pragmas='\n'.join('    #pragma HLS ' + p for p in grad_port_hls_pragma),
+        cache_definitions='\n'.join(
+            (f"    hls::stream<cm_float, {i.size}> {n};" '\n'
+             f"    #pragma HLS BIND_STORAGE variable={n} type=fifo")
+            for n, i in zip(Info.cache_in_name, Info.cache_info) if n != None
+        ),
+        forward_func='top_forward',
+        backward_func='top_backward',
+        params=',\n        '.join(filter(None, Info.param_name)),
+        grads=',\n        '.join(filter(None, Info.grad_name)),
+        caches=',\n        '.join(filter(None, Info.cache_in_name))
+    )
+
 def gen_nn_ip_source(filename):
     _gen_ip_info()
 
     with open(filename, "w") as f:
         f.write(load_template("nn_ip", "source.cpp").substitute(
             fw_function = _gen_fw_function(),
-            bw_function = _gen_bw_function()
+            bw_function = _gen_bw_function(),
+            top_function = _gen_top_function()
         ))
