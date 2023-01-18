@@ -18,10 +18,19 @@ class NodeIO:
 node_io: List[NodeIO] = []
 path_param_count: List[int] = []
 
-fw_param_signature = []
-bw_param_signature = []
-fw_param_hls_pragmas = []
-bw_param_hls_pragmas = []
+fw_general_port_signature = []
+bw_general_port_signature = []
+param_port_signature = []
+grad_port_signature = []
+fw_cache_port_signature = []
+bw_cache_port_signature = []
+
+fw_general_hls_pragma = []
+bw_general_hls_pragma = []
+param_port_hls_pragma = []
+grad_port_hls_pragma = []
+fw_cache_port_hls_pragma = []
+bw_cache_port_hls_pragma = []
 
 def _fw_scan():
     global node_io
@@ -113,47 +122,41 @@ def _gen_stream_names():
 
 def _gen_param_info():
     # Params = Static input + static output + generated params + generated cache
-    global fw_param_signature
+    fw_general_hls_pragma.append("INTERFACE mode=ap_ctrl_chain port=return")
+    bw_general_hls_pragma.append("INTERFACE mode=ap_ctrl_chain port=return")
 
-    fw_param_hls_pragmas.append("INTERFACE mode=ap_ctrl_chain port=return")
-    bw_param_hls_pragmas.append("INTERFACE mode=ap_ctrl_chain port=return")
+    fw_general_hls_pragma.append("DATAFLOW")
+    bw_general_hls_pragma.append("DATAFLOW")
 
-    fw_param_hls_pragmas.append("DATAFLOW")
-    bw_param_hls_pragmas.append("DATAFLOW")
+    fw_general_port_signature.append(f"hls::stream<{element_name}>& in_x")
+    fw_general_hls_pragma.append(f"INTERFACE mode=axis port=in_x register_mode=reverse depth={nn_in_size}")
 
-    fw_param_signature.append(f"hls::stream<{element_name}>& in_x")
-    fw_param_hls_pragmas.append(f"INTERFACE mode=axis port=in_x register_mode=reverse depth={nn_in_size}")
+    fw_general_port_signature.append(f"hls::stream<{element_name}, {nn_out_size}>& out_y")
+    fw_general_hls_pragma.append(f"INTERFACE mode=axis port=out_y register_mode=forward depth={nn_out_size}")
 
-    fw_param_signature.append(f"hls::stream<{element_name}, {nn_out_size}>& out_y")
-    fw_param_hls_pragmas.append(f"INTERFACE mode=axis port=out_y register_mode=forward depth={nn_out_size}")
+    fw_general_port_signature.append(f"bool cache_en")
+    fw_general_hls_pragma.append(f"INTERFACE mode=ap_none port=cache_en")
+    fw_general_hls_pragma.append(f"STABLE variable=cache_en")
 
-    bw_param_signature.append(f"hls::stream<{element_name}, {nn_out_size}>& in_grad_y")
-    bw_param_hls_pragmas.append(f"INTERFACE mode=axis port=in_grad_y register_mode=reverse depth={nn_out_size}")
+    bw_general_port_signature.append(f"hls::stream<{element_name}, {nn_out_size}>& in_grad_y")
+    bw_general_hls_pragma.append(f"INTERFACE mode=axis port=in_grad_y register_mode=reverse depth={nn_out_size}")
 
-    # params.append(f"hls::stream<{element_name}, {out_size}>& out_grad_x")
     for k, z in enumerate(zip(Info.param_name, Info.grad_name, Info.param_size)):
         param, grad, size = z
         if size != None:
-            fw_param_signature.append(f"cm_float {param}[{size}]")
-            fw_param_hls_pragmas.append(f"INTERFACE mode=bram storage_type=rom_1p port={param} latency=1")
+            param_port_signature.append(f"cm_float {param}[{size}]")
+            param_port_hls_pragma.append(f"INTERFACE mode=bram storage_type=rom_1p port={param} latency=1")
 
-            bw_param_signature.append(f"cm_float {param}[{size}]")
-            bw_param_hls_pragmas.append(f"INTERFACE mode=bram storage_type=rom_1p port={param} latency=1")
-
-            bw_param_signature.append(f"cm_float {grad}[{size}]")
-            bw_param_hls_pragmas.append(f"INTERFACE mode=bram storage_type=ram_s2p port={grad} latency=1")
-
-    fw_param_signature.append(f"bool cache_en")
-    fw_param_hls_pragmas.append(f"INTERFACE mode=ap_none port=cache_en")
-    fw_param_hls_pragmas.append(f"STABLE variable=cache_en")
+            grad_port_signature.append(f"cm_float {grad}[{size}]")
+            grad_port_hls_pragma.append(f"INTERFACE mode=bram storage_type=ram_s2p port={grad} latency=1")
 
     for k, z in enumerate(zip(Info.cache_out_name, Info.cache_in_name, Info.cache_info)):
         oname, iname, info = z
         if info != None:
-            fw_param_signature.append(f"hls::stream<{info.element_name}>& {oname}")
-            fw_param_hls_pragmas.append(f"INTERFACE mode=ap_fifo port={oname} depth={Info.cache_info[k].size * batch_size}")
-            bw_param_signature.append(f"hls::stream<{info.element_name}>& {iname}")
-            bw_param_hls_pragmas.append(f"INTERFACE mode=ap_fifo port={iname} depth={Info.cache_info[k].size * batch_size}")
+            fw_cache_port_signature.append(f"hls::stream<{info.element_name}>& {oname}")
+            fw_cache_port_hls_pragma.append(f"INTERFACE mode=ap_fifo port={oname} depth={Info.cache_info[k].size * batch_size}")
+            bw_cache_port_signature.append(f"hls::stream<{info.element_name}>& {iname}")
+            bw_cache_port_hls_pragma.append(f"INTERFACE mode=ap_fifo port={iname} depth={Info.cache_info[k].size * batch_size}")
 
 def _gen_ip_info():
     _gen_stream_names()
@@ -219,8 +222,8 @@ def _gen_fw_content():
 def _gen_fw_function():
     return load_template("nn_ip", "function.cpp").substitute(
         function_name='top_forward',
-        param_signatures=', '.join(fw_param_signature),
-        param_hls_pragmas='\n'.join('    #pragma HLS ' + p for p in fw_param_hls_pragmas),
+        param_signatures=', '.join(fw_general_port_signature + param_port_signature + fw_cache_port_signature),
+        param_hls_pragmas='\n'.join('    #pragma HLS ' + p for p in (fw_general_hls_pragma + param_port_hls_pragma + fw_cache_port_hls_pragma)),
         content=_gen_fw_content()
     )
 
@@ -278,8 +281,8 @@ def _gen_bw_content():
 def _gen_bw_function():
     return load_template("nn_ip", "function.cpp").substitute(
         function_name='top_backward',
-        param_signatures=', '.join(bw_param_signature),
-        param_hls_pragmas='\n'.join('    #pragma HLS ' + p for p in bw_param_hls_pragmas),
+        param_signatures=', '.join(bw_general_port_signature + param_port_signature + grad_port_signature + bw_cache_port_signature),
+        param_hls_pragmas='\n'.join('    #pragma HLS ' + p for p in bw_general_hls_pragma + param_port_hls_pragma + grad_port_hls_pragma + bw_cache_port_hls_pragma),
         content=_gen_bw_content()
     )
 
