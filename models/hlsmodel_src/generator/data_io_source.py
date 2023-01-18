@@ -28,7 +28,7 @@ def gen_data_io_source(filename):
     with open(os.path.join(
         os.path.dirname(__file__),
         "templates",
-        "data_io_source_template.cpp"
+        "data_io_source.cpp"
     ), "r") as f:
         template = f.read()
 
