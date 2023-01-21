@@ -109,12 +109,12 @@ def _gen_cache_info():
         "Tanh": lambda info: CacheInfo(element_name, info[1]),
         "Exp": lambda info: CacheInfo(element_name, info[1]),
     }
-    def _cal_param_size(kth, layer_info):
+    def _cal_info(kth, layer_info):
         try:
             return param_size_mapper[layer_info[0]](layer_info)
         except KeyError:
             return None
-    Info.cache_info = list(_cal_param_size(k, x) for k, x in enumerate(nn_structures))
+    Info.cache_info = list(_cal_info(k, x) for k, x in enumerate(nn_structures))
 
 def extract_info_from_structure():
     _gen_fork_info()
