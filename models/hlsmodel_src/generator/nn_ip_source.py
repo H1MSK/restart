@@ -150,13 +150,13 @@ def _gen_param_info():
             grad_port_signature.append(f"cm_float {grad}[{size}]")
             grad_port_hls_pragma.append(f"INTERFACE mode=bram storage_type=ram_s2p port={grad} latency=1")
 
-    for k, z in enumerate(zip(Info.cache_out_name, Info.cache_in_name, Info.cache_info)):
-        oname, iname, info = z
+    for k, z in enumerate(zip(Info.cache_name, Info.cache_info)):
+        name, info = z
         if info != None:
-            fw_cache_port_signature.append(f"hls::stream<{info.element_name}>& {oname}")
-            fw_cache_port_hls_pragma.append(f"INTERFACE mode=ap_fifo port={oname} depth={Info.cache_info[k].size * batch_size}")
-            bw_cache_port_signature.append(f"hls::stream<{info.element_name}>& {iname}")
-            bw_cache_port_hls_pragma.append(f"INTERFACE mode=ap_fifo port={iname} depth={Info.cache_info[k].size * batch_size}")
+            fw_cache_port_signature.append(f"hls::stream<{info.element_name}>& {name}_o")
+            fw_cache_port_hls_pragma.append(f"INTERFACE mode=ap_fifo port={name}_o depth={Info.cache_info[k].size * batch_size}")
+            bw_cache_port_signature.append(f"hls::stream<{info.element_name}>& {name}_i")
+            bw_cache_port_hls_pragma.append(f"INTERFACE mode=ap_fifo port={name}_i depth={Info.cache_info[k].size * batch_size}")
 
 def _gen_ip_info():
     _gen_stream_names()
@@ -208,7 +208,7 @@ def _gen_fw_content():
             contents.append(f"    {node_io[k].fi},")
             if node_io[k].bi:
                 contents.append(f"    {node_io[k].fo},")
-                contents.append(f"    {Info.cache_out_name[k]},")
+                contents.append(f"    {Info.cache_name[k]}_o,")
                 contents.append(f"    cache_en);")
             else:
                 contents.append(f"    {node_io[k].fo});")
@@ -269,7 +269,7 @@ def _gen_bw_content():
             if Info.param_name[k] != None:
                 contents.append(f"    {Info.param_name[k]},")
                 contents.append(f"    {Info.grad_name[k]},")
-            contents.append(f"    {Info.cache_in_name[k]},")
+            contents.append(f"    {Info.cache_name[k]}_i,")
             if node_io[k].bo != None:
                 contents.append(f"    {node_io[k].bi},")
                 contents.append(f"    {node_io[k].bo});")
@@ -295,13 +295,13 @@ def _gen_top_function():
         cache_definitions='\n'.join(
             (f"    hls::stream<cm_float, {i.size}> {n};" '\n'
              f"    #pragma HLS BIND_STORAGE variable={n} type=fifo")
-            for n, i in zip(Info.cache_in_name, Info.cache_info) if n != None
+            for n, i in zip(Info.cache_name, Info.cache_info) if n != None
         ),
         forward_func='top_forward',
         backward_func='top_backward',
         params=',\n        '.join(filter(None, Info.param_name)),
         grads=',\n        '.join(filter(None, Info.grad_name)),
-        caches=',\n        '.join(filter(None, Info.cache_in_name))
+        caches=',\n        '.join(filter(None, Info.cache_name))
     )
 
 def gen_nn_ip_source(filename):

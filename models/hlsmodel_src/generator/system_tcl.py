@@ -1,6 +1,8 @@
 from itertools import chain
+import math
 from preprocess import Info
 from template_loader import load_template
+from params import *
 
 def _gen_memory_scripts():
     scripts=[]
@@ -49,6 +51,18 @@ def _gen_grad_rst_busy_connections():
         for i, name in enumerate(filter(None, Info.grad_name))
     )
 
+def _gen_cache_scripts():
+    scripts=[]
+    template = load_template("system", "cache.tcl")
+    for n, i in zip(Info.cache_name, Info.cache_info):
+        if n == None:
+            continue
+        scripts.append(template.substitute(
+            cache_name=n,
+            cache_size_upscale=str(2 ** math.ceil(math.log2(i.size * batch_size)))
+        ))
+    return '\n'.join(scripts)
+
 def gen_system_tcl(filename):
     with open(filename, "w") as f:
         f.write(load_template("system.tcl").substitute(
@@ -56,5 +70,6 @@ def gen_system_tcl(filename):
             grad_rst_connections=_gen_grad_rst_connections(),
             bram_mux_sel_connections=_gen_bram_mux_sel_connections(),
             param_count=len(list(filter(None, Info.param_name))),
+            cache_scripts=_gen_cache_scripts(),
             grad_rst_busy_connections=_gen_grad_rst_busy_connections()
         ))
