@@ -122,11 +122,14 @@ def _gen_stream_names():
 
 def _gen_param_info():
     # Params = Static input + static output + generated params + generated cache
-    fw_general_hls_pragma.append("INTERFACE mode=ap_ctrl_chain port=return")
-    bw_general_hls_pragma.append("INTERFACE mode=ap_ctrl_chain port=return")
 
-    fw_general_hls_pragma.append("INLINE")
-    bw_general_hls_pragma.append("INLINE")
+    # Forward has axis output out_y. The T_READY in the interface can be used to drive ap_continue
+    # Backward doesn't have other output than fifo and bram, so it can use hs
+    fw_general_hls_pragma.append("INTERFACE mode=ap_ctrl_chain port=return")
+    bw_general_hls_pragma.append("INTERFACE mode=ap_ctrl_hs port=return")
+
+    fw_general_hls_pragma.append("DATAFLOW")
+    bw_general_hls_pragma.append("DATAFLOW")
 
     fw_general_port_signature.append(f"hls::stream<{element_name}>& in_x")
     fw_general_hls_pragma.append(f"INTERFACE mode=axis port=in_x register_mode=reverse depth={nn_in_size}")
