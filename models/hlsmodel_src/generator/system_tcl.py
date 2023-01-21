@@ -67,9 +67,9 @@ def gen_system_tcl(filename):
     with open(filename, "w") as f:
         f.write(load_template("system.tcl").substitute(
             memory_scripts=_gen_memory_scripts(),
-            grad_rst_connections=_gen_grad_rst_connections(),
-            bram_mux_sel_connections=_gen_bram_mux_sel_connections(),
-            param_count=len(list(filter(None, Info.param_name))),
+            # grad_rst_connections=_gen_grad_rst_connections(),
+            # bram_mux_sel_connections=_gen_bram_mux_sel_connections(),
+            # param_count=len(list(filter(None, Info.param_name))),
             cache_scripts=_gen_cache_scripts(),
-            grad_rst_busy_connections=_gen_grad_rst_busy_connections()
+            # grad_rst_busy_connections=_gen_grad_rst_busy_connections()
         ))
