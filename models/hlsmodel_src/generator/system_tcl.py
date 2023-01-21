@@ -3,10 +3,10 @@ from preprocess import Info
 from template_loader import load_template
 
 def _gen_memory_scripts():
-    template = load_template("system", "memory.tcl")
     scripts=[]
 
     for g in filter(None, Info.param_name):
+        template = load_template("system", "param_memory.tcl")
         scripts.append(
             template.substitute(
                 mem_name=f"mem_{g}",
@@ -18,6 +18,7 @@ def _gen_memory_scripts():
         )
 
     for g in filter(None, Info.grad_name):
+        template = load_template("system", "grad_memory.tcl")
         scripts.append(
             template.substitute(
                 mem_name=f"mem_{g}",
@@ -49,7 +50,6 @@ def _gen_grad_rst_busy_connections():
     )
 
 def gen_system_tcl(filename):
-    template = load_template("system.tcl")
     with open(filename, "w") as f:
         f.write(load_template("system.tcl").substitute(
             memory_scripts=_gen_memory_scripts(),
