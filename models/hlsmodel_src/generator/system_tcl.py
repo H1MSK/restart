@@ -33,21 +33,33 @@ def _gen_memory_scripts():
 
     return "\n".join(scripts)
 
-def _gen_grad_rst_connections():
+def _gen_bram_rst_connections():
+    grads = (
+        f"connect_bd_net [get_bd_pins gpio_connection/grad_reset] [get_bd_pins mem_{n}/rsta]"
+        for n in filter(None, Info.grad_name))
+    params = (
+        f"connect_bd_net [get_bd_pins gpio_connection/param_reset] [get_bd_pins mem_{n}/rsta]"
+        for n in filter(None, Info.param_name)
+    )
     return '\n'.join(
-        f"connect_bd_net [get_bd_pins gpio_out_0/Dout] [get_bd_pins mem_{n}/rsta]"
-        for n in filter(None, Info.grad_name)
+        chain(grads, params)
     )
 
 def _gen_bram_mux_sel_connections():
     return '\n'.join(
-        f"connect_bd_net [get_bd_pins gpio_out_1/Dout] [get_bd_pins mux_{n}/sel]"
+        f"connect_bd_net [get_bd_pins gpio_connection/bram_sel] [get_bd_pins mux_{n}/sel]"
         for n in filter(None, chain(Info.param_name, Info.grad_name))
     )
 
-def _gen_grad_rst_busy_connections():
+def _gen_param_rsta_busy_out_scripts():
     return '\n'.join(
-        f"connect_bd_net [get_bd_pins mem_grad_rst_busy_concat/In{i}] [get_bd_pins mem_{name}/rsta_busy]"
+        f"connect_bd_net [get_bd_pins concat_param_reset/In{i}] [get_bd_pins mem_{name}/rsta_busy]"
+        for i, name in enumerate(filter(None, Info.param_name))
+    )
+
+def _gen_grad_rsta_busy_out_scripts():
+    return '\n'.join(
+        f"connect_bd_net [get_bd_pins concat_grad_reset/In{i}] [get_bd_pins mem_{name}/rsta_busy]"
         for i, name in enumerate(filter(None, Info.grad_name))
     )
 
@@ -67,9 +79,10 @@ def gen_system_tcl(filename):
     with open(filename, "w") as f:
         f.write(load_template("system.tcl").substitute(
             memory_scripts=_gen_memory_scripts(),
-            # grad_rst_connections=_gen_grad_rst_connections(),
-            # bram_mux_sel_connections=_gen_bram_mux_sel_connections(),
-            # param_count=len(list(filter(None, Info.param_name))),
+            bram_rst_connections=_gen_bram_rst_connections(),
+            bram_mux_sel_connections=_gen_bram_mux_sel_connections(),
+            param_count=len(list(filter(None, Info.param_name))),
             cache_scripts=_gen_cache_scripts(),
-            # grad_rst_busy_connections=_gen_grad_rst_busy_connections()
+            param_rsta_busy_out_scripts=_gen_param_rsta_busy_out_scripts(),
+            grad_rsta_busy_out_scripts=_gen_grad_rsta_busy_out_scripts(),
         ))

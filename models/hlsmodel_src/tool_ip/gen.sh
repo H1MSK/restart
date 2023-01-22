@@ -4,3 +4,4 @@ vivado -mode tcl -source gen_fifo_switch.tcl -nojournal -log ../build_fifo_switc
 vivado -mode tcl -source gen_ap_fifo_r.tcl -nojournal -log ../build_ap_fifo_r.log
 vivado -mode tcl -source gen_ap_fifo_w.tcl -nojournal -log ../build_ap_fifo_w.log
 vivado -mode tcl -source gen_ap_controller.tcl -nojournal -log ../build_ap_controller.log
+vivado -mode tcl -source gen_gpio_connection.tcl -nojournal -log ../build_gpio_connection.log

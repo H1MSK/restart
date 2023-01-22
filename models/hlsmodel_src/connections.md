@@ -26,3 +26,5 @@
 | 0x11  |    In     |   param bram reset busy    |   down    |
 | 0x14  |    Out    |    1 to reset grad bram    |    --     |
 | 0x15  |    In     |    grad bram reset busy    |   down    |
+| 0x18  |    Out    |          cache_en          |    --     |
+| 0x19  |    Out    |          bram_sel          |    --     |

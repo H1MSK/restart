@@ -22,7 +22,7 @@ endgroup
 # ZYNQ system
 startgroup
 create_bd_cell -type ip -vlnv xilinx.com:ip:processing_system7:5.5 processing_system7_0
-set_property -dict [list CONFIG.PCW_FPGA0_PERIPHERAL_FREQMHZ {200} CONFIG.PCW_USE_S_AXI_HP0 {1} CONFIG.PCW_USE_S_AXI_HP1 {1} CONFIG.PCW_USE_S_AXI_HP2 {1} CONFIG.PCW_USE_FABRIC_INTERRUPT {1} CONFIG.PCW_S_AXI_HP0_DATA_WIDTH {32} CONFIG.PCW_S_AXI_HP1_DATA_WIDTH {32} CONFIG.PCW_S_AXI_HP2_DATA_WIDTH {32} CONFIG.PCW_IRQ_F2P_INTR {1} CONFIG.PCW_UIPARAM_DDR_PARTNO {MT41J256M16 RE-125} CONFIG.PCW_GPIO_EMIO_GPIO_ENABLE {1}] [get_bd_cells processing_system7_0]
+set_property -dict [list CONFIG.PCW_FPGA0_PERIPHERAL_FREQMHZ {200} CONFIG.PCW_USE_S_AXI_HP0 {1} CONFIG.PCW_USE_S_AXI_HP1 {1} CONFIG.PCW_USE_S_AXI_HP2 {1} CONFIG.PCW_USE_FABRIC_INTERRUPT {1} CONFIG.PCW_S_AXI_HP0_DATA_WIDTH {32} CONFIG.PCW_S_AXI_HP1_DATA_WIDTH {32} CONFIG.PCW_S_AXI_HP2_DATA_WIDTH {32} CONFIG.PCW_IRQ_F2P_INTR {1} CONFIG.PCW_UIPARAM_DDR_PARTNO {MT41J256M16 RE-125} CONFIG.PCW_GPIO_EMIO_GPIO_ENABLE {1} CONFIG.PCW_GPIO_EMIO_GPIO_IO {32}] [get_bd_cells processing_system7_0]
 endgroup
 
 
@@ -57,10 +57,54 @@ endgroup
 
 
 
+# Control IP
+startgroup
+create_bd_cell -type ip -vlnv h1msk.cc:fpga_nn.hls:ap_controller:1.0 apcon_fw
+connect_bd_intf_net [get_bd_intf_pins apcon_fw/ap_ctrl] [get_bd_intf_pins forward/ap_ctrl]
+connect_bd_net [get_bd_pins apcon_fw/ap_clk] [get_bd_pins processing_system7_0/FCLK_CLK0]
+connect_bd_net [get_bd_pins apcon_fw/ap_rst_n] [get_bd_pins proc_sys_reset_0/peripheral_aresetn]
+create_bd_cell -type ip -vlnv h1msk.cc:fpga_nn.hls:ap_controller:1.0 apcon_bw
+connect_bd_intf_net [get_bd_intf_pins apcon_bw/ap_ctrl] [get_bd_intf_pins backward/ap_ctrl]
+connect_bd_net [get_bd_pins apcon_bw/ap_clk] [get_bd_pins processing_system7_0/FCLK_CLK0]
+connect_bd_net [get_bd_pins apcon_bw/ap_rst_n] [get_bd_pins proc_sys_reset_0/peripheral_aresetn]
+create_bd_cell -type ip -vlnv h1msk.cc:fpga_nn.hls:ap_controller:1.0 apcon_param
+connect_bd_intf_net [get_bd_intf_pins apcon_param/ap_ctrl] [get_bd_intf_pins param_loader/ap_ctrl]
+connect_bd_net [get_bd_pins apcon_param/ap_clk] [get_bd_pins processing_system7_0/FCLK_CLK0]
+connect_bd_net [get_bd_pins apcon_param/ap_rst_n] [get_bd_pins proc_sys_reset_0/peripheral_aresetn]
+create_bd_cell -type ip -vlnv h1msk.cc:fpga_nn.hls:ap_controller:1.0 apcon_grad
+connect_bd_intf_net [get_bd_intf_pins apcon_grad/ap_ctrl] [get_bd_intf_pins grad_extractor/ap_ctrl]
+connect_bd_net [get_bd_pins apcon_grad/ap_clk] [get_bd_pins processing_system7_0/FCLK_CLK0]
+connect_bd_net [get_bd_pins apcon_grad/ap_rst_n] [get_bd_pins proc_sys_reset_0/peripheral_aresetn]
+endgroup
+
+
+
+
 
 # Create memories and their connections
 startgroup
 $memory_scripts
+endgroup
+
+
+
+
+
+# Memory reset signals
+startgroup
+create_bd_cell -type ip -vlnv xilinx.com:ip:xlconcat:2.1 concat_param_reset
+set_property -dict [list CONFIG.NUM_PORTS {$param_count}] [get_bd_cells concat_param_reset]
+$param_rsta_busy_out_scripts
+create_bd_cell -type ip -vlnv xilinx.com:ip:util_reduced_logic:2.0 reduce_param_reset
+set_property -dict [list CONFIG.C_SIZE {$param_count} CONFIG.C_OPERATION {or} CONFIG.LOGO_FILE {data/sym_orgate.png}] [get_bd_cells reduce_param_reset]
+connect_bd_net [get_bd_pins reduce_param_reset/Op1] [get_bd_pins concat_param_reset/dout]
+
+create_bd_cell -type ip -vlnv xilinx.com:ip:xlconcat:2.1 concat_grad_reset
+set_property -dict [list CONFIG.NUM_PORTS {$param_count}] [get_bd_cells concat_grad_reset]
+$grad_rsta_busy_out_scripts
+create_bd_cell -type ip -vlnv xilinx.com:ip:util_reduced_logic:2.0 reduce_grad_reset
+set_property -dict [list CONFIG.C_SIZE {$param_count} CONFIG.C_OPERATION {or} CONFIG.LOGO_FILE {data/sym_orgate.png}] [get_bd_cells reduce_grad_reset]
+connect_bd_net [get_bd_pins reduce_grad_reset/Op1] [get_bd_pins concat_grad_reset/dout]
 endgroup
 
 
@@ -151,7 +195,7 @@ connect_bd_intf_net [get_bd_intf_pins axi_dma_pg/M_AXI_S2MM] -boundary_type uppe
 connect_bd_net [get_bd_pins axi_mem_intercon_pg/S01_ACLK] [get_bd_pins processing_system7_0/FCLK_CLK0]
 connect_bd_net [get_bd_pins axi_mem_intercon_pg/S01_ARESETN] [get_bd_pins proc_sys_reset_0/peripheral_aresetn]
 connect_bd_net [get_bd_pins axi_dma_pg/m_axi_s2mm_aclk] [get_bd_pins processing_system7_0/FCLK_CLK0]
-assign_bd_address -target_address_space /axi_dma_pg/Data_S2MM [get_bd_addr_segs processing_system7_0/S_AXI_HP2/HP0_DDR_LOWOCM] -force
+assign_bd_address -target_address_space /axi_dma_pg/Data_S2MM [get_bd_addr_segs processing_system7_0/S_AXI_HP2/HP2_DDR_LOWOCM] -force
 endgroup
 
 
@@ -167,6 +211,44 @@ apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config { Clk_master {Auto} Cl
 
 
 
+# GPIO Connection
+startgroup
+create_bd_cell -type ip -vlnv h1msk.cc:fpga_nn.hls:gpio_connection:1.0 gpio_connection
+connect_bd_intf_net [get_bd_intf_pins processing_system7_0/GPIO_0] [get_bd_intf_pins gpio_connection/GPIO]
+connect_bd_net [get_bd_pins gpio_connection/fw_start] [get_bd_pins apcon_fw/start_trig]
+connect_bd_net [get_bd_pins gpio_connection/fw_idle] [get_bd_pins apcon_fw/idle]
+connect_bd_net [get_bd_pins gpio_connection/fw_done] [get_bd_pins apcon_fw/finish]
+
+connect_bd_net [get_bd_pins gpio_connection/bw_start] [get_bd_pins apcon_bw/start_trig]
+connect_bd_net [get_bd_pins gpio_connection/bw_idle] [get_bd_pins apcon_bw/idle]
+connect_bd_net [get_bd_pins gpio_connection/bw_done] [get_bd_pins apcon_bw/finish]
+
+connect_bd_net [get_bd_pins gpio_connection/param_start] [get_bd_pins apcon_param/start_trig]
+connect_bd_net [get_bd_pins gpio_connection/param_idle] [get_bd_pins apcon_param/idle]
+connect_bd_net [get_bd_pins gpio_connection/param_done] [get_bd_pins apcon_param/finish]
+
+connect_bd_net [get_bd_pins gpio_connection/grad_start] [get_bd_pins apcon_grad/start_trig]
+connect_bd_net [get_bd_pins gpio_connection/grad_idle] [get_bd_pins apcon_grad/idle]
+connect_bd_net [get_bd_pins gpio_connection/grad_done] [get_bd_pins apcon_grad/finish]
+
+connect_bd_net [get_bd_pins forward/cache_en] [get_bd_pins gpio_connection/cache_en]
+connect_bd_net [get_bd_pins gpio_connection/param_reset_busy] [get_bd_pins reduce_param_reset/Res]
+connect_bd_net [get_bd_pins gpio_connection/grad_reset_busy] [get_bd_pins reduce_grad_reset/Res]
+$bram_mux_sel_connections
+
+$bram_rst_connections
+endgroup
+
+
+
+
+
+# Interrupts
+
+
+
+
+
 regenerate_bd_layout
 
 # Todo: Connect other ports
@@ -176,6 +258,10 @@ save_bd_design
 generate_target all [get_files  ./build_system/system.srcs/sources_1/bd/system/system.bd]
 make_wrapper -files [get_files ./build_system/system.srcs/sources_1/bd/system/system.bd] -top
 add_files -norecurse ./build_system/system.gen/sources_1/bd/system/hdl/system_wrapper.v
+
+reset_run synth_1
+launch_runs synth_1
+wait_on_runs synth_1
 
 # Todo: synthesis, implement, export
 
