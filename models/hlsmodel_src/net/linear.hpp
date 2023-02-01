@@ -193,6 +193,8 @@ struct Linear {
 #pragma HLS INTERFACE mode = ap_fifo port = in_grad_y
 #pragma HLS DATAFLOW
 
+        UNUSED(param);
+
         backward_param_calc(cache, in_grad_y, grad);
     }
 };

@@ -27,6 +27,8 @@ using cm_float = float;
 
 #include <hls_math.h>
 
+#define UNUSED(x)       ((void)(x))
+
 #ifndef __SYNTHESIS__
 #   if defined(WIN32)
 #       define MODEL_API extern "C" __declspec(dllexport)
