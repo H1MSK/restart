@@ -28,7 +28,7 @@ if __name__ == '__main__':
     with open("generated.param_usage.txt", "w") as f:
         f.write(dag.net.report_param_usage())
 
-    gen_nn_ip_source(ip_src)
+    gen_nn_ip_source(ip_src, ip_sim_src)
     gen_nn_ip_directives(fw_directive, bw_directive)
     gen_nn_ip_tcl(ip_tcl, ip_src, [fw_directive, bw_directive], export_design=True)
     gen_data_io_source(data_io_src)

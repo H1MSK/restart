@@ -1,4 +1,3 @@
-from enum import Enum
 from typing import List
 from params import *
 import logging
@@ -6,60 +5,6 @@ from template_loader import load_template
 from dag import net, NodeType
 
 _logger = logging.getLogger("nn_ip_source")
-
-fw_general_port_signature = []
-bw_general_port_signature = []
-param_port_signature = []
-grad_port_signature = []
-fw_cache_port_signature = []
-bw_cache_port_signature = []
-
-fw_general_hls_pragma = []
-bw_general_hls_pragma = []
-param_port_hls_pragma = []
-grad_port_hls_pragma = []
-fw_cache_port_hls_pragma = []
-bw_cache_port_hls_pragma = []
-
-def _gen_param_info():
-    # Params = Static input + static output + generated params + generated cache
-
-    # Forward has axis output out_y. The T_READY in the interface can be used to drive ap_continue
-    # Backward doesn't have other output than fifo and bram, so it can use hs
-    fw_general_hls_pragma.append("INTERFACE mode=ap_ctrl_chain port=return")
-    bw_general_hls_pragma.append("INTERFACE mode=ap_ctrl_hs port=return")
-
-    fw_general_hls_pragma.append("DATAFLOW")
-    bw_general_hls_pragma.append("DATAFLOW")
-
-    fw_general_port_signature.append(f"hls::stream<{element_name}, {nn_in_size}>& in_x")
-    fw_general_hls_pragma.append(f"INTERFACE mode=axis port=in_x register_mode=reverse depth={nn_in_size}")
-
-    fw_general_port_signature.append(f"hls::stream<{element_name}, {nn_out_size}>& out_y")
-    fw_general_hls_pragma.append(f"INTERFACE mode=axis port=out_y register_mode=forward depth={nn_out_size}")
-
-    fw_general_port_signature.append(f"bool cache_en")
-    fw_general_hls_pragma.append(f"INTERFACE mode=ap_none port=cache_en")
-    fw_general_hls_pragma.append(f"STABLE variable=cache_en")
-
-    bw_general_port_signature.append(f"hls::stream<{element_name}, {nn_out_size}>& in_grad_y")
-    bw_general_hls_pragma.append(f"INTERFACE mode=axis port=in_grad_y register_mode=reverse depth={nn_out_size}")
-
-    for p in net.all_params():
-        param_name = 'param' + p.name
-        grad_name = 'grad' + p.name
-        param_port_signature.append(f"cm_float {param_name}[{p.count}]")
-        param_port_hls_pragma.append(f"INTERFACE mode=bram storage_type=rom_1p port={param_name} latency=1")
-        grad_port_signature.append(f"cm_float {grad_name}[{p.count}]")
-        grad_port_hls_pragma.append(f"INTERFACE mode=bram storage_type=ram_s2p port={grad_name} latency=1")
-
-    for cache in net.all_caches():
-        cache_element = cache.element_type
-        size = cache.count
-        fw_cache_port_signature.append(f"hls::stream<{cache_element}>& {cache.name}")
-        fw_cache_port_hls_pragma.append(f"INTERFACE mode=ap_fifo port={cache.name} depth={size * batch_size}")
-        bw_cache_port_signature.append(f"hls::stream<{cache_element}>& {cache.name}")
-        bw_cache_port_hls_pragma.append(f"INTERFACE mode=ap_fifo port={cache.name} depth={size * batch_size}")
 
 def _gen_fw_content():
     _logger.info("Generating forward content...")
@@ -108,14 +53,6 @@ def _gen_fw_content():
 
     _logger.info("Done.")
     return "\n".join("    " + x for x in contents)
-
-def _gen_fw_function():
-    return load_template("nn_ip", "function.cpp").substitute(
-        function_name='top_forward',
-        param_signatures=', '.join(fw_general_port_signature + param_port_signature + fw_cache_port_signature),
-        param_hls_pragmas='\n'.join('    #pragma HLS ' + p for p in (fw_general_hls_pragma + param_port_hls_pragma + fw_cache_port_hls_pragma)),
-        content=_gen_fw_content()
-    )
 
 def _find_bw_passes():
     _logger.info("Marking trimmable backward pathes...")
@@ -213,40 +150,64 @@ def _gen_bw_content():
     _logger.info("Done.")
     return "\n".join("    " + x for x in contents)
 
-def _gen_bw_function():
-    return load_template("nn_ip", "function.cpp").substitute(
-        function_name='top_backward',
-        param_signatures=', '.join(bw_general_port_signature + param_port_signature + grad_port_signature + bw_cache_port_signature),
-        param_hls_pragmas='\n'.join('    #pragma HLS ' + p for p in bw_general_hls_pragma + param_port_hls_pragma + grad_port_hls_pragma + bw_cache_port_hls_pragma),
-        content=_gen_bw_content()
-    )
 
-def _gen_top_function():
-    return load_template("nn_ip", "top.cpp").substitute(
-        nn_in_size=nn_in_size,
-        nn_out_size=nn_out_size,
-        param_signatures = ', '.join(param_port_signature),
-        grad_signatures=', '.join(grad_port_signature),
-        param_hls_pragmas='\n'.join(f'    #pragma HLS INTERFACE mode=bram storage_type=rom_2p port=param{param.name} latency=1' for param in net.all_params()),
-        grad_hls_pragmas='\n'.join('    #pragma HLS ' + p for p in grad_port_hls_pragma),
-        cache_definitions='\n'.join(
-            (f"    hls::stream<{cache.element_type}, {cache.count}> {cache.name};\n"
-             f"    #pragma HLS BIND_STORAGE variable={cache.name} type=fifo")
-            for cache in net.all_caches()
+def gen_nn_ip_source(source, simulation):
+    template_strings = {
+        "param_static_definitions": ";\n".join(
+            f"static {element_name} param{p.name}[{p.count}]" for p in net.all_params()
         ),
-        forward_func='top_forward',
-        backward_func='top_backward',
-        params=',\n        '.join("param" + param.name for param in net.all_params()),
-        grads=',\n        '.join("grad" + param.name for param in net.all_params()),
-        caches=',\n        '.join(cache.name for cache in net.all_caches())
-    )
+        "param_signatures": ", ".join(
+            f"{element_name} param{p.name}[{p.count}]" for p in net.all_params()
+        ),
+        "param_variables": ", ".join(f"param{p.name}" for p in net.all_params()),
+        "grad_static_definitions": ";\n".join(
+            f"static {element_name} grad{p.name}[{p.count}]" for p in net.all_params()
+        ),
+        "grad_signatures": ", ".join(
+            f"{element_name} grad{p.name}[{p.count}]" for p in net.all_params()
+        ),
+        "grad_variables": ", ".join(f"grad{p.name}" for p in net.all_params()),
+        "cache_static_definitions": ";\n".join(
+            f"static hls::stream<{c.element_type}, {c.count * batch_size}> {c.name}" for c in net.all_caches()
+        ),
+        "cache_signatures": ", ".join(
+            f"hls::stream<{c.element_type}, {c.count * batch_size}>& {c.name}" for c in net.all_caches()
+        ),
+        "cache_variables": ", ".join(
+            c.name for c in net.all_caches()
+        ),
 
-def gen_nn_ip_source(filename):
-    _gen_param_info()
+        "nn_in_size": nn_in_size,
+        "nn_out_size": nn_out_size,
+        "all_param_count": sum(p.count for p in net.all_params()),
 
-    with open(filename, "w") as f:
-        f.write(load_template("nn_ip", "source.cpp").substitute(
-            fw_function = _gen_fw_function(),
-            bw_function = _gen_bw_function(),
-            top_function = _gen_top_function()
-        ))
+        "zero_grads": ";\n    ".join(
+            f"memset(grad{p.name}, 0, sizeof(grad{p.name}" for p in net.all_params()
+        ),
+
+        "param_rom1p_pragmas": "\n    ".join(
+            f"#pragma HLS INTERFACE mode=bram storage_type=rom_1p port=param{p.name} latency=1"
+            for p in net.all_params()
+        ),
+        "param_rom2p_pragmas": "\n    ".join(
+            f"#pragma HLS INTERFACE mode=bram storage_type=rom_2p port=param{p.name} latency=1"
+            for p in net.all_params()
+        ),
+        "grad_rams2p_pragmas": "\n    ".join(
+            f"#pragma HLS INTERFACE mode=bram storage_type=ram_s2p port=grad{p.name} latency=1"
+            for p in net.all_params()
+        ),
+        "cache_fifo_interface_pragmas": "\n    ".join(
+            f"#pragma HLS INTERFACE mode=ap_fifo port={c.name} depth={c.count * batch_size}"
+            for c in net.all_caches()
+        ),
+        "cache_fifo_storage_pragmas": "\n    ".join(
+            f"#pragma HLS BIND_STORAGE variable={c.name} type=fifo"
+            for c in net.all_caches()
+        ),
+        "fw_content": _gen_fw_content(),
+        "bw_content": _gen_bw_content()
+    }
+
+    with open(source, "w") as f:
+        f.write(load_template("nn_ip_source.cpp").substitute(template_strings))
