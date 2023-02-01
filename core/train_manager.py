@@ -218,7 +218,7 @@ class TrainManager:
 
         best_reward = -math.inf
         while self.train_count < total_train_epochs:
-            if self.train_count // test_interval != (self.train_count-1) // test_interval:
+            if test_interval != 0 and self.train_count // test_interval != (self.train_count-1) // test_interval:
                 self.test_episode(str(self.train_count // test_interval))
                 self.save(str(self.train_count // test_interval))
             rew = self.train_epoch(epoch_size=epoch_size, batch_size=batch_size, max_episode_steps=max_episode_steps)

@@ -10,6 +10,7 @@ if __name__ == '__main__':
     max_episode_step=args.max_episode_step
     min_epoch_size=args.min_epoch_size
     batch_size=args.batch_size
+    test_interval=args.test_interval
 
     logging.basicConfig(level=logging.INFO)
     logging.info(f"Args={args}")
@@ -30,6 +31,7 @@ if __name__ == '__main__':
             total_train_epochs=total_train_epochs,
             max_episode_steps=max_episode_step,
             epoch_size=min_epoch_size,
-            batch_size=batch_size)
+            batch_size=batch_size,
+            test_interval=test_interval)
     
     tm.run()

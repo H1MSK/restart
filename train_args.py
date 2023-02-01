@@ -15,6 +15,7 @@ def parse(argv):
     parser.add_argument('--max_episode_step', type=int, default=10000, help='Max steps in each episode')
     parser.add_argument('--min_epoch_size', type=int, default=2048, help='Minimum steps in each epoch')
     parser.add_argument('--batch_size', type=int, default=64, help='Batch size')
+    parser.add_argument('--test_interval', type=int, default=4096, help='Test once after trainning this many episodes')
 
     parser.add_argument('--orthogonal_init', action='store_true', help='Use orthogonal initialization for linear layers')
 
