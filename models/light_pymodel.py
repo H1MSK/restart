@@ -4,6 +4,8 @@ from typing import Tuple
 import torch
 from torch import nn
 
+from models.interfaces import AbstractActorCritic
+
 _logger = logging.getLogger("LPyModel")
 
 def _orthogonal_init(layer, gain=1.0):
@@ -63,7 +65,7 @@ class LPyModel(nn.Module):
             _default_init(self.critic_net[2], gain=0.1)
             
 
-class LPyActorCritic():
+class LPyActorCritic(AbstractActorCritic):
     def __init__(self,
                  obs_dim,
                  act_dim,

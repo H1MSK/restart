@@ -2,7 +2,7 @@ from ctypes import CDLL, c_float, POINTER, c_int, pointer
 import logging
 from typing import Tuple
 import torch
-
+from models.interfaces import AbstractActorCritic
 from models.pymodel import PyModel
 
 
@@ -21,7 +21,7 @@ NN_OP_Backward          = 0x40
 
 _logger = logging.getLogger("CActirCritic")
 
-class CActirCritic():
+class CActirCritic(AbstractActorCritic):
     def __init__(self,
                  obs_dim,
                  act_dim,
@@ -224,7 +224,7 @@ class CActirCritic():
         return values.requires_grad_(requires_grad)
 
     def forward(self, obs: torch.Tensor, requires_grad=False):
-        return *self.act(obs, requires_grad), self.critic(obs, requires_grad)
+        return self.critic(obs, requires_grad), *self.act(obs, requires_grad)
 
     def critic_backward(self, value_grad):
         for g in value_grad:
