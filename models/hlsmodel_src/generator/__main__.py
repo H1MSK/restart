@@ -1,6 +1,7 @@
 import logging
 from typing import Set, Tuple
 from preprocess import extract_info_from_structure
+import dag
 from nn_ip_source import gen_nn_ip_source
 from nn_ip_tcl import gen_nn_ip_tcl
 from nn_ip_directives import gen_nn_ip_directives
@@ -18,6 +19,14 @@ if __name__ == '__main__':
     data_io_src = argv[5]
     data_io_tcl = argv[6]
     system_tcl = argv[7]
+
+    dag.build()
+
+    dag.net.output_dag("generated.dag.png")
+    with open("generated.cache_usage.txt", "w") as f:
+        f.write(dag.net.report_cache_usage())
+    with open("generated.param_usage.txt", "w") as f:
+        f.write(dag.net.report_param_usage())
 
     extract_info_from_structure()
     logging.info("Generating top functions...")
