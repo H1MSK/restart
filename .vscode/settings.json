@@ -13,5 +13,6 @@
         "utility": "cpp",
         "algorithm": "cpp",
         "unordered_map": "cpp"
-    }
+    },
+    "cmake.configureOnOpen": false
 }

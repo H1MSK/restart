@@ -1,12 +1,26 @@
 {
     "configurations": [
         {
-            "name": "Linux",
+            "name": "Linux CModel",
             "includePath": [
                 "${workspaceFolder}/models/cmodel_src",
                 "${workspaceFolder}/models/cmodel_src/hls_headers"
             ],
             "defines": [],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "gnu11",
+            "cppStandard": "gnu++17",
+            "intelliSenseMode": "linux-gcc-x64"
+        },
+        {
+            "name": "Linux HLSModel",
+            "includePath": [
+                "${workspaceFolder}/models/hlsmodel_src",
+                "${workspaceFolder}/models/hlsmodel_src/hls_headers"
+            ],
+            "defines": [
+                "INTELLISENSE"
+            ],
             "compilerPath": "/usr/bin/gcc",
             "cStandard": "gnu11",
             "cppStandard": "gnu++17",
