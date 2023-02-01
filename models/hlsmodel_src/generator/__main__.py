@@ -6,17 +6,19 @@ from nn_ip_directives import gen_nn_ip_directives
 from data_io_source import gen_data_io_source
 from data_io_tcl import gen_data_io_tcl
 from system_tcl import gen_system_tcl
-from sys import argv
 
 if __name__ == '__main__':
-    print(f"argc={len(argv)}, argv={argv}")
-    ip_src = argv[1]
-    ip_tcl = argv[2]
-    fw_directive = argv[3]
-    bw_directive = argv[4]
-    data_io_src = argv[5]
-    data_io_tcl = argv[6]
-    system_tcl = argv[7]
+    logging.basicConfig(level=logging.INFO)
+    
+    ip_src = "generated.nn.cpp"
+    ip_tcl = "generated.nn.tcl"
+    fw_directive = "generated.fw_directives.tcl"
+    bw_directive = "generated.bw_directives.tcl"
+    data_io_src = "generated.data_io.cpp"
+    data_io_tcl = "generated.data_io.tcl"
+    system_tcl = "generated.system.tcl"
+    ip_sim_src = "generated.nn.sim.cpp"
+    ip_sim_cpl = "generated.nn.sim.sh"
 
     dag.build()
 
