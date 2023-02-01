@@ -125,7 +125,7 @@ class TrainManager:
         states = torch.tensor(np.vstack(memory[:,0]),dtype=torch.float32)
 
         actions = torch.tensor(np.vstack(memory[:,1]),dtype=torch.float32)
-        returns, advants = self.agent.calculate_gae(memory, states)
+        returns, advants = self.agent.calculate_gae(memory)
 
         # old_f = self.agent.ac.model.act_feat_net(states)
         # old_mu = self.agent.ac.model.mu_net(old_f)

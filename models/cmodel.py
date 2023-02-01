@@ -7,11 +7,10 @@ from models.pymodel import PyModel
 
 
 c_int_p = POINTER(c_int)
-c_float_p = POINTER(c_float)
 
 cm_float = c_float
 torch_cm_float = torch.float32
-cm_float_p = c_float_p
+cm_float_p = POINTER(cm_float)
 
 NN_OP_None              = 0x00
 NN_OP_LoadParam         = 0x01
@@ -56,11 +55,11 @@ class CActirCritic():
 
         self.actor_arr_top = self.model.actor_arr_top
         self.actor_arr_top.argtypes = (
-            c_int, c_float_p, c_float_p, c_float_p, c_float_p, c_float_p)
+            c_int, cm_float_p, cm_float_p, cm_float_p, cm_float_p, cm_float_p)
 
         self.critic_arr_top = self.model.critic_arr_top
         self.critic_arr_top.argtypes = (
-            c_int, c_float_p, c_float_p, c_float_p, c_float_p, c_float_p)
+            c_int, cm_float_p, cm_float_p, cm_float_p, cm_float_p, cm_float_p)
 
     def _check_and_init_hyperparams(
             self, obs_dim, act_dim, hidden_width, act_continuous):
@@ -153,19 +152,19 @@ class CActirCritic():
     def _apply_critic_params(self):
         self.critic_arr_top(NN_OP_LoadParam,
             self.cparams.detach().numpy().ctypes.data_as(cm_float_p),  # in_param
-            c_float_p(),                                    # out_grad
-            c_float_p(),                                    # in_x
-            c_float_p(),                                    # in_grad_y
-            c_float_p(),                                    # out_y
+            cm_float_p(),                                    # out_grad
+            cm_float_p(),                                    # in_x
+            cm_float_p(),                                    # in_grad_y
+            cm_float_p(),                                    # out_y
         )
 
     def _apply_actor_params(self):
         self.actor_arr_top(NN_OP_LoadParam,
             self.aparams.detach().numpy().ctypes.data_as(cm_float_p),  # in_param
-            c_float_p(),                                    # out_grad
-            c_float_p(),                                    # in_x
-            c_float_p(),                                    # in_grad_y
-            c_float_p(),                                    # out_y
+            cm_float_p(),                                    # out_grad
+            cm_float_p(),                                    # in_x
+            cm_float_p(),                                    # in_grad_y
+            cm_float_p(),                                    # out_y
         )
 
     @property
@@ -195,10 +194,10 @@ class CActirCritic():
 
             self.actor_arr_top(
                 NN_OP_ForwardWithCache if requires_grad else NN_OP_Forward,
-                c_float_p(),                                        # in_param
-                c_float_p(),                                        # out_grad
+                cm_float_p(),                                        # in_param
+                cm_float_p(),                                        # out_grad
                 o.numpy().ctypes.data_as(cm_float_p),               # in_x
-                c_float_p(),                                        # in_grad_y
+                cm_float_p(),                                        # in_grad_y
                 mu_and_sigma.numpy().ctypes.data_as(cm_float_p),    # out_y
             )
 
@@ -214,10 +213,10 @@ class CActirCritic():
             v = torch.zeros((1, ), dtype=torch_cm_float)
             self.critic_arr_top(
                 NN_OP_ForwardWithCache if requires_grad else NN_OP_Forward,
-                c_float_p(),                                        # in_param
-                c_float_p(),                                        # out_grad
+                cm_float_p(),                                        # in_param
+                cm_float_p(),                                        # out_grad
                 o.numpy().ctypes.data_as(cm_float_p),               # in_x
-                c_float_p(),                                        # in_grad_y
+                cm_float_p(),                                        # in_grad_y
                 v.numpy().ctypes.data_as(cm_float_p),               # out_y
             )
             values[i, :] = v
@@ -231,11 +230,11 @@ class CActirCritic():
         for g in value_grad:
             self.critic_arr_top(
                 NN_OP_Backward,
-                c_float_p(),                                    # in_param
-                c_float_p(),                                    # out_grad
-                c_float_p(),                                    # in_x
+                cm_float_p(),                                    # in_param
+                cm_float_p(),                                    # out_grad
+                cm_float_p(),                                    # in_x
                 g.numpy().ctypes.data_as(cm_float_p),           # in_grad_y
-                c_float_p(),                                    # out_y
+                cm_float_p(),                                    # out_y
             )
 
     def actor_backward(self, mu_grad, std_grad):
@@ -243,11 +242,11 @@ class CActirCritic():
         for g in grads:
             self.actor_arr_top(
                 NN_OP_Backward,
-                c_float_p(),                                    # in_param
-                c_float_p(),                                    # out_grad
-                c_float_p(),                                    # in_x
+                cm_float_p(),                                    # in_param
+                cm_float_p(),                                    # out_grad
+                cm_float_p(),                                    # in_x
                 g.numpy().ctypes.data_as(cm_float_p),           # in_grad_y
-                c_float_p(),                                    # out_y
+                cm_float_p(),                                    # out_y
             )
 
     def actor_zero_grad(self):
@@ -255,11 +254,11 @@ class CActirCritic():
         dummy = torch.zeros_like(self.aparams)
         self.actor_arr_top(
             NN_OP_DumpGradAndZero,
-            c_float_p(),                                        # in_param
+            cm_float_p(),                                        # in_param
             dummy.numpy().ctypes.data_as(cm_float_p),           # out_grad
-            c_float_p(),                                        # in_x
-            c_float_p(),                                        # in_grad_y
-            c_float_p(),                                        # out_y
+            cm_float_p(),                                        # in_x
+            cm_float_p(),                                        # in_grad_y
+            cm_float_p(),                                        # out_y
         )
 
     def critic_zero_grad(self):
@@ -267,22 +266,22 @@ class CActirCritic():
         dummy = torch.zeros_like(self.cparams)
         self.critic_arr_top(
             NN_OP_DumpGradAndZero,
-            c_float_p(),                                        # in_param
+            cm_float_p(),                                        # in_param
             dummy.numpy().ctypes.data_as(cm_float_p),           # out_grad
-            c_float_p(),                                        # in_x
-            c_float_p(),                                        # in_grad_y
-            c_float_p(),                                        # out_y
+            cm_float_p(),                                        # in_x
+            cm_float_p(),                                        # in_grad_y
+            cm_float_p(),                                        # out_y
         )
 
     def actor_step(self):
         grads = torch.zeros_like(self.aparams)
         self.actor_arr_top(
             NN_OP_DumpGradAndZero,
-            c_float_p(),                                    # in_param
+            cm_float_p(),                                    # in_param
             grads.numpy().ctypes.data_as(cm_float_p),       # out_grad
-            c_float_p(),                                    # in_x
-            c_float_p(),                                    # in_grad_y
-            c_float_p(),                                    # out_y
+            cm_float_p(),                                    # in_x
+            cm_float_p(),                                    # in_grad_y
+            cm_float_p(),                                    # out_y
         )
         self.aparams.grad=grads
         self.optim_actor.step()
@@ -292,11 +291,11 @@ class CActirCritic():
         grads = torch.zeros_like(self.cparams)
         self.critic_arr_top(
             NN_OP_DumpGradAndZero,
-            c_float_p(),                                    # in_param
+            cm_float_p(),                                    # in_param
             grads.numpy().ctypes.data_as(cm_float_p),       # out_grad
-            c_float_p(),                                    # in_x
-            c_float_p(),                                    # in_grad_y
-            c_float_p(),                                    # out_y
+            cm_float_p(),                                    # in_x
+            cm_float_p(),                                    # in_grad_y
+            cm_float_p(),                                    # out_y
         )
         self.cparams.grad=grads
         self.optim_critic.step()

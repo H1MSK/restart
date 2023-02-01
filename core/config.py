@@ -1,8 +1,6 @@
-import logging
 import re
 from typing import Dict
 
-log = logging.getLogger("Config")
 
 _validator=re.compile(r"[\[\]=\\]")
 _section_name = re.compile(r"^\[(.+)\]$")

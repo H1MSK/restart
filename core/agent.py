@@ -74,14 +74,6 @@ class Agent():
         self.obs_normalizer.load(f'{prefix}.obsnorm.npz')
         self.ac.load(f"{prefix}.model.dat")
 
-    def choose_action(self, obs)-> Tuple[np.ndarray, np.ndarray]:
-        mu, sigma = self.ac.act(obs, requires_grad=False)
-        pi = self.distribution(mu, sigma)
-        a = pi.sample()
-        logprob = pi.log_prob(a).detach()
-        a = a.detach()
-        return a.numpy(), logprob.sum(dim=1, keepdim=True).detach()
-
     def forward(self, obs) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         v, mu, sigma = self.ac.forward(obs)
         pi = self.distribution(mu, sigma)
@@ -95,16 +87,6 @@ class Agent():
         pi = self.distribution(mu, std)
         return pi.log_prob(act).sum(1, keepdim=True)
 
-    def predict(self, obs):
-        value, pi = self.ac.forward(obs)
-        if self.act_continuous:
-            mu, rho = pi
-            sigma = torch.exp(rho)
-            distrib = self.distribution(mu, sigma)
-            return value.item(), distrib
-        else:
-            raise NotImplementedError()
-
     def train_batch(self, b_obs, b_acts, b_target_logprobs, b_returns, b_advantages):
         raise NotImplementedError()
 
@@ -117,14 +99,12 @@ class Agent():
         return self._act_dim
 
     def generate_epoch(self, env: Env, epoch_size: int, max_episode_steps: int):
-        episodes = 0
 
         memory = []
         scores = []
         steps = 0
         print(f"Sync state1:{torch.rand(1)} {np.random.rand()}")
         while steps < epoch_size:  # Horizen
-            episodes += 1
             s = self.obs_normalizer(env.reset()[0])
             score = 0
             for _ in range(max_episode_steps):
@@ -153,7 +133,7 @@ class Agent():
             scores.append((steps, score))
         return memory, scores
 
-    def calculate_gae(self, memory, states):
+    def calculate_gae(self, memory):
         rewards = torch.tensor(list(memory[:, 2]), dtype=torch.float32)
         masks = torch.tensor(list(memory[:, 3]), dtype=torch.float32)
 

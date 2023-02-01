@@ -1,10 +1,8 @@
 from itertools import chain
 import logging
-from typing import Tuple, Union
+from typing import Tuple
 import torch
 from torch import nn
-from torch.nn import functional as F
-import numpy as np
 
 _logger = logging.getLogger("LPyModel")
 
@@ -174,12 +172,6 @@ class LPyActorCritic():
             self._actor_steped = False
             self._critic_steped = False
             self.optim.step()
-
-    def optim_zero_grad(self):
-        self.optim.zero_grad()
-
-    def optim_step(self):
-        self.optim.step()
 
     def save(self, filename):
         sd = {
