@@ -27,7 +27,6 @@ module sync_fifo_controller#(
     // BRAM Read port
     output[ADDR_WIDTH-1:0]  bram_addra,
     output                  bram_clka,
-    output                  bram_rsta,
     output[DATA_WIDTH-1:0]  bram_dina,
     output                  bram_ena,
     output                  bram_wea,
@@ -53,7 +52,6 @@ module sync_fifo_controller#(
     
     assign bram_addra = write_addr;
     assign bram_clka = clk;
-    assign bram_rsta = reset;
     assign bram_dina = fifo_wr_data;
     assign bram_ena = fifo_wr_en;
     assign bram_wea = 1;  // TODO: Check this implementation

@@ -34,8 +34,6 @@ ipx::add_port_map DIN [ipx::get_bus_interfaces BRAM_PORT_R -of_objects [ipx::cur
 set_property physical_name bram_dina [ipx::get_port_maps DIN -of_objects [ipx::get_bus_interfaces BRAM_PORT_R -of_objects [ipx::current_core]]]
 ipx::add_port_map EN [ipx::get_bus_interfaces BRAM_PORT_R -of_objects [ipx::current_core]]
 set_property physical_name bram_ena [ipx::get_port_maps EN -of_objects [ipx::get_bus_interfaces BRAM_PORT_R -of_objects [ipx::current_core]]]
-ipx::add_port_map RST [ipx::get_bus_interfaces BRAM_PORT_R -of_objects [ipx::current_core]]
-set_property physical_name bram_rsta [ipx::get_port_maps RST -of_objects [ipx::get_bus_interfaces BRAM_PORT_R -of_objects [ipx::current_core]]]
 ipx::add_port_map CLK [ipx::get_bus_interfaces BRAM_PORT_R -of_objects [ipx::current_core]]
 set_property physical_name bram_clka [ipx::get_port_maps CLK -of_objects [ipx::get_bus_interfaces BRAM_PORT_R -of_objects [ipx::current_core]]]
 ipx::add_port_map WE [ipx::get_bus_interfaces BRAM_PORT_R -of_objects [ipx::current_core]]
@@ -58,7 +56,7 @@ set_property physical_name bram_clkb [ipx::get_port_maps CLK -of_objects [ipx::g
 ipx::add_port_map ADDR [ipx::get_bus_interfaces BRAM_PORT_W -of_objects [ipx::current_core]]
 set_property physical_name bram_addrb [ipx::get_port_maps ADDR -of_objects [ipx::get_bus_interfaces BRAM_PORT_W -of_objects [ipx::current_core]]]
 
-set_property value ACTIVE_HIGH [ipx::get_bus_parameters POLARITY -of_objects [ipx::get_bus_interfaces reset -of_objects [ipx::current_core]]]
+# set_property value ACTIVE_HIGH [ipx::get_bus_parameters POLARITY -of_objects [ipx::get_bus_interfaces reset -of_objects [ipx::current_core]]]
 
 ipx::create_xgui_files [ipx::current_core]
 ipx::update_checksums [ipx::current_core]
