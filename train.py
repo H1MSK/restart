@@ -25,6 +25,7 @@ if __name__ == '__main__':
             lr_critic=args.lr_critic,
             hidden_width=args.hidden_width,
             seed=args.seed,
+            enable_test=(test_interval > 0),
             use_orthogonal_init=args.orthogonal_init
         )
         tm.set_run(

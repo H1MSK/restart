@@ -22,6 +22,7 @@ class TrainManager:
             lr_critic=1e-3,
             hidden_width=64,
             seed=0,
+            enable_test=True,
             use_orthogonal_init=False) -> None:
 
         if not os.path.exists('./run'):
@@ -71,15 +72,20 @@ class TrainManager:
 
 
         self.train_env = env_choices[env_name]()
-        self.test_env = env_choices[env_name](render_mode='rgb_array_list')
+        if enable_test:
+            self.test_env = env_choices[env_name](render_mode='rgb_array_list')
+        else:
+            self.test_env = None
 
         if seed != 0:
             self.train_env.action_space.seed(seed)
-            self.test_env.action_space.seed(seed)
+            if enable_test:
+                self.test_env.action_space.seed(seed)
             torch.manual_seed(seed)
             np.random.seed(seed)
             self.train_env.reset(seed=seed)
-            self.test_env.reset(seed=seed)
+            if enable_test:
+                self.test_env.reset(seed=seed)
             _logger.info(f"Set seed to {seed}")
 
         act_continuous = not isinstance(self.train_env.action_space, gym.spaces.discrete.Discrete)
@@ -199,6 +205,8 @@ class TrainManager:
             "batch_size": str(batch_size),
             "test_interval": str(test_interval)
         })
+        if test_interval != 0:
+            assert(self.test_env != None)
         config.save_config(f'./run/{self.session_name}/conf.ini', self.conf)
 
     def run(self, total_train_epochs=2000000, epoch_size=2048, max_episode_steps=10000, batch_size=64, test_interval=4096):
@@ -219,6 +227,8 @@ class TrainManager:
         best_reward = -math.inf
         while self.train_count < total_train_epochs:
             if test_interval != 0 and self.train_count // test_interval != (self.train_count-1) // test_interval:
+                # If this call raises mujoco.FatalError with OpenGL platform
+                #  library not loaded, please add --test_interval=0 to stop test
                 self.test_episode(str(self.train_count // test_interval))
                 self.save(str(self.train_count // test_interval))
             rew = self.train_epoch(epoch_size=epoch_size, batch_size=batch_size, max_episode_steps=max_episode_steps)
