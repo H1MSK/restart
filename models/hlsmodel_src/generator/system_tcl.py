@@ -3,6 +3,7 @@ import math
 from dag import net
 from template_loader import load_template
 from params import *
+import os, stat
 
 def _gen_memory_scripts():
     scripts=[]
@@ -71,7 +72,7 @@ def _gen_cache_scripts():
         ))
     return '\n'.join(scripts)
 
-def gen_system_tcl(filename):
+def gen_system_tcl(filename, post_filename, struct_id):
     with open(filename, "w") as f:
         f.write(load_template("system.tcl").substitute(
             memory_scripts=_gen_memory_scripts(),
@@ -83,3 +84,10 @@ def gen_system_tcl(filename):
             grad_rsta_busy_out_scripts=_gen_grad_rsta_busy_out_scripts(),
             system_clk_mhz=implement_clock_period_MHz
         ))
+
+    with open(post_filename, "w") as f:
+        f.write(load_template("system", "wait_and_export.sh").substitute(
+            struct_id=struct_id
+        ))
+
+    os.chmod(post_filename, stat.S_IRWXU | stat.S_IRWXG | stat.S_IXOTH)

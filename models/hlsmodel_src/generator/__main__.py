@@ -7,6 +7,7 @@ from nn_ip_simulation_compile import gen_nn_ip_simulation_product
 from data_io_source import gen_data_io_source
 from data_io_tcl import gen_data_io_tcl
 from system_tcl import gen_system_tcl
+from params import *
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
@@ -19,7 +20,7 @@ if __name__ == '__main__':
     data_io_tcl = "generated.data_io.tcl"
     system_tcl = "generated.system.tcl"
     ip_sim_src = "generated.nn.sim.cpp"
-    ip_sim_lib = "generated.nn.sim"
+    post_system_sh = "generated.wait_and_export.sh"
 
     dag.build()
 
@@ -29,10 +30,13 @@ if __name__ == '__main__':
     with open("generated.param_usage.txt", "w") as f:
         f.write(dag.net.report_param_usage())
 
+    struct_id = f"{nn_in_size}.{nn_out_size}.{hidden_size}.{1 if act_continuous else 0}"
+    ip_sim_lib = f"generated.nn.sim.{struct_id}.so"
+
     gen_nn_ip_source(ip_src, ip_sim_src)
     gen_nn_ip_directives(fw_directive, bw_directive)
     gen_nn_ip_tcl(ip_tcl, ip_src, [fw_directive, bw_directive], export_design=True)
     gen_data_io_source(data_io_src)
     gen_data_io_tcl(data_io_tcl, data_io_src)
     gen_nn_ip_simulation_product(ip_sim_lib, [ip_src, ip_sim_src, data_io_src])
-    gen_system_tcl(system_tcl)
+    gen_system_tcl(system_tcl, post_system_sh, struct_id)
