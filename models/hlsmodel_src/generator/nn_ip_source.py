@@ -4,7 +4,7 @@ import logging
 from template_loader import load_template
 from dag import net, NodeType
 
-_logger = logging.getLogger("nn_ip_source")
+_logger = logging.getLogger("IpSrcGen")
 
 def _gen_fw_content():
     _logger.info("Generating forward content...")

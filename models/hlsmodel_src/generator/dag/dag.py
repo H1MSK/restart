@@ -4,7 +4,7 @@ from .node import Cache, Channel, Node, NodeType, Param, NodeCacheType, get_cach
 from params import obs_size
 import logging
 
-_logger = logging.getLogger("DAG")
+_logger = logging.getLogger("Dag")
 
 class DAG:
     def __init__(self) -> None:
