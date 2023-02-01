@@ -4,35 +4,47 @@ from params import *
 import re
 
 def _gen_target_ii():
-    fw_directives = [
-        'set_directive_pipeline -II 256 "run/ss"',
-        'set_directive_pipeline -II 256 "run/sc1"',
-        'set_directive_pipeline -II 256 "run/sc2"',
-        'set_directive_pipeline -II 256 "run/sa"',
-
-        'set_directive_pipeline -II 1 "forward_core/lfc_cal_i"',
-        'set_directive_pipeline -II 256 "forward_core/lfc_o"',
-        'set_directive_pipeline -II 256 "forward/tf"',
-        'set_directive_pipeline -II 256 "forward/ef"'
+    fast_pipelines = [
+        "forward/lfc_cal_i",
+        "forward_nc/lfn_cal_i",
+        "backward_output/lbo_cal_i",
+        "backward_param_calc/lbw_i"
     ]
-    bw_directives = [
-        'set_directive_pipeline -II 256 "run/ss"',
-        'set_directive_pipeline -II 256 "run/sc1"',
-        'set_directive_pipeline -II 256 "run/sc2"',
-        'set_directive_pipeline -II 256 "run/sa"',
-
-        'set_directive_pipeline -II 256 "backward/eb"',
-        'set_directive_pipeline -II 1 "backward_output/lbo_cal_i"',
-        'set_directive_pipeline -II 256 "backward_output/lbo_o"',
-        'set_directive_pipeline -II 1 "backward_param_calc/lbw_i"',
-        'set_directive_pipeline -II 256 "backward/tb"'
+    slow_pipelines = [
+        "forward/lfc_o",
+        "forward_nc/lfn_o",
+        "backward/lbo_o",
+        "forward/ef",
+        "backward/eb",
+        "forward/tf",
+        "backward/tb",
+        "forward/c2f_1",
+        "forward/c2f_2",
+        "forward/c3f_1",
+        "forward/c3f_2",
+        "forward/c3f_3",
+        "backward/c2b_1",
+        "backward/c2b_2",
+        "backward/c3b_1",
+        "backward/c3b_2",
+        "backward/c3b_3",
+        "forward/f2f",
+        "forward/f3f",
+        "backward/f2b",
+        "backward/f3b",
+        "run/f2r",
     ]
-    return fw_directives, bw_directives
+    directives = [
+        f'set_directive_pipeline -II 256 "{x}"' for x in slow_pipelines
+    ] + [
+        f'set_directive_pipeline -II 1 "{x}"' for x in fast_pipelines
+    ]
+    return directives
 
 def gen_nn_ip_directives(fw_name, bw_name):
     # fw_ii, bw_ii = _find_target_ii(ip_tcl_name)
-    fw_directives, bw_directives = _gen_target_ii()
+    directives = _gen_target_ii()
     with open(fw_name, 'w') as f:
-        f.writelines(x + '\n' for x in fw_directives)
+        f.writelines(x + '\n' for x in directives)
     with open(bw_name, 'w') as f:
-        f.writelines(x + '\n' for x in bw_directives)
+        f.writelines(x + '\n' for x in directives)

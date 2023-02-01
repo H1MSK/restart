@@ -1,4 +1,4 @@
-void nn_ip(hls::stream<cm_float>& in_x, hls::stream<cm_float, 35>& out_y, hls::stream<cm_float, 35>& in_grad_y, bool cache_en, $param_signatures, $grad_signatures) {
+void nn_ip(hls::stream<cm_float, $nn_in_size>& in_x, hls::stream<cm_float, $nn_out_size>& out_y, hls::stream<cm_float, $nn_out_size>& in_grad_y, bool cache_en, $param_signatures, $grad_signatures) {
     #pragma HLS INTERFACE mode=ap_ctrl_hs port=return
     #pragma HLS DATAFLOW
     #pragma HLS INTERFACE mode=axis port=in_x register_mode=reverse depth=376

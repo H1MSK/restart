@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../global.hpp"
+#include "fork.hpp"
 #include "functors.hpp"
 
 template <int In, int Out>
@@ -80,6 +81,29 @@ struct Linear {
         //     out_y << loop_y.read();
         // }
     }
+    static void forward(cm_float param[param_size],
+                        hls::stream<cm_float>& in_x,
+                        hls::stream<cm_float>& out_y) {
+#pragma HLS INTERFACE mode = ap_ctrl_chain port = return
+#pragma HLS INTERFACE mode = bram port = param storage_type = rom_1p
+#pragma HLS INTERFACE mode = ap_fifo port = in_x
+#pragma HLS INTERFACE mode = ap_fifo port = out_y
+        const cm_float* const w = param;
+        const cm_float* const b = param + in_size * out_size;
+        cm_float y[out_size] = {0};
+        #pragma HLS BIND_STORAGE variable=y type=ram_s2p
+        lfn_cal: for (int j = 0; j < in_size; ++j) {
+            cm_float x_j = in_x.read();
+            lfn_cal_i: for (int i = 0; i < out_size; ++i) {
+                #pragma HLS PIPELINE II=1
+                y[i] += w[i * in_size + j] * x_j;
+            }
+        }
+
+        lfn_o: for (int i = 0; i < out_size; ++i) {
+            out_y << y[i] + b[i];
+        }
+    }
 
     static void backward_output(cm_float param[param_size],
                                 hls::stream<cm_float>& in_grad_y,
@@ -151,7 +175,7 @@ struct Linear {
         hls::stream<cm_float, out_size> grad_y1;
         hls::stream<cm_float, out_size> grad_y2;
 
-        StreamSplitter2<out_size>::run(in_grad_y, grad_y1, grad_y2);
+        Fork2<out_size>::forward(in_grad_y, grad_y1, grad_y2);
 
         backward_output(param, grad_y1, out_grad_x);
 

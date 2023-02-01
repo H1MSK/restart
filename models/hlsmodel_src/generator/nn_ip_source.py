@@ -1,22 +1,11 @@
 from enum import Enum
 from typing import List
 from params import *
-import inspect
-from preprocess import Info, CacheInfo
+import logging
 from template_loader import load_template
+from dag import net, NodeType
 
-class NodeIO:
-    def __init__(self, fw_istream_name, fw_ostream_name, bw_istream_name, bw_ostream_name) -> None:
-        self.fi = fw_istream_name
-        self.fo = fw_ostream_name
-        self.bi = bw_istream_name
-        self.bo = bw_ostream_name
-
-    def __repr__(self) -> str:
-        return f"NodeIo(fi={self.fi}, fo={self.fo}, bi={self.bi}, bo={self.bo})"
-
-node_io: List[NodeIO] = []
-path_param_count: List[int] = []
+_logger = logging.getLogger("nn_ip_source")
 
 fw_general_port_signature = []
 bw_general_port_signature = []
@@ -32,94 +21,6 @@ grad_port_hls_pragma = []
 fw_cache_port_hls_pragma = []
 bw_cache_port_hls_pragma = []
 
-def _fw_scan():
-    global node_io
-    global path_param_count
-
-    current_input_name = "in_x"
-
-    forkpath_names: List[List[str]] = []
-
-    for kth, info in enumerate(nn_structures):
-        path_param_count.append(0 if kth == 0 else path_param_count[kth - 1])
-        if info[0] == "Fork":
-            node_io[kth].fi = current_input_name
-            node_io[kth].fo = tuple(f"fork{kth}_f{i}" for i in range(len(Info.fork_info[kth].fork_nodes) - 1)) # ignore ForkEnd
-            current_input_name = node_io[kth].fo[0]
-            forkpath_names.append([])
-        elif info[0] == "ForkAgain":
-            # No need to generate node
-            node_io[kth].fi = node_io[kth].fo = None
-            path_param_count[kth] = (0 if kth == 0 else path_param_count[Info.path_info[kth].fork_start])
-            forkpath_names[-1].append(current_input_name)
-            current_input_name = node_io[Info.path_info[kth].fork_start].fo[Info.path_info[kth].kth]
-        elif info[0] == "Cat":
-            forkpath_names[-1].append(current_input_name)
-            node_io[kth].fi = forkpath_names[-1]
-            forkpath_names.pop()
-            out_name = f"forkend{kth}_fo"
-            node_io[kth].fo = out_name
-            current_input_name = out_name
-        else:
-            path_param_count[kth] += (1 if Info.param_size[kth] != None else 0)
-            node_io[kth].fi = current_input_name
-            out_name = f"{info[0].lower()}{kth}_fo"
-            node_io[kth].fo = out_name
-            current_input_name = out_name
-
-    node_io[-1].fo = 'out_y'
-
-def _bw_scan():
-    global node_io
-
-    current_input_name = "in_grad_y"
-    forkpath_names: List[List[str]] = []
-
-    for kth, info in enumerate(reversed(nn_structures)):
-        kth = len(nn_structures) - 1 - kth
-        if path_param_count[kth] == 0:
-            if node_io[kth] != None:
-                node_io[kth].bi = None
-                node_io[kth].bo = None
-            if info[0] == "ForkAgain":
-                forkend_pos = Info.fork_info[Info.path_info[kth].fork_start].fork_nodes[-1]
-                current_input_name = node_io[forkend_pos].bo[Info.path_info[kth].kth - 1]
-            continue
-        if info[0] == "Cat":
-            node_io[kth].bi = current_input_name
-            node_io[kth].bo = tuple(f"fork{kth}_b{i}" for i in range(len(Info.fork_info[kth].fork_nodes) - 1))
-            current_input_name = node_io[kth].bo[-1]
-            forkpath_names.append([])
-        elif info[0] == "ForkAgain":
-            # No need to generate node
-            node_io[kth].bi = node_io[kth].bo = None
-            forkend_pos = Info.fork_info[Info.path_info[kth].fork_start].fork_nodes[-1]
-            forkpath_names[-1].append(current_input_name)
-            current_input_name = node_io[forkend_pos].bo[Info.path_info[kth].kth - 1]
-        elif info[0] == "Fork":
-            forkpath_names[-1].append(current_input_name)
-            node_io[kth].bi = forkpath_names[-1]
-            forkpath_names.pop()
-            out_name = f"forkend{kth}_bo"
-            node_io[kth].bo = out_name
-            current_input_name = out_name
-        else:
-            node_io[kth].bi = current_input_name
-            if path_param_count[kth] > 1 or (path_param_count[kth] == 1 and Info.param_size[kth] == None):
-                out_name = f"{info[0].lower()}{kth}_bo"
-                node_io[kth].bo = out_name
-                current_input_name = out_name
-            else:
-                node_io[kth].bo = None
-                current_input_name = None
-
-def _gen_stream_names():
-    global node_io
-    node_io = [NodeIO("", "", "", "") for info in nn_structures]
-    _fw_scan()
-    _bw_scan()
-    print("\n".join(f"{k}: {repr(x)}" for k, x in enumerate(zip(nn_structures, path_param_count, node_io))))
-
 def _gen_param_info():
     # Params = Static input + static output + generated params + generated cache
 
@@ -131,7 +32,7 @@ def _gen_param_info():
     fw_general_hls_pragma.append("DATAFLOW")
     bw_general_hls_pragma.append("DATAFLOW")
 
-    fw_general_port_signature.append(f"hls::stream<{element_name}>& in_x")
+    fw_general_port_signature.append(f"hls::stream<{element_name}, {nn_in_size}>& in_x")
     fw_general_hls_pragma.append(f"INTERFACE mode=axis port=in_x register_mode=reverse depth={nn_in_size}")
 
     fw_general_port_signature.append(f"hls::stream<{element_name}, {nn_out_size}>& out_y")
@@ -144,82 +45,68 @@ def _gen_param_info():
     bw_general_port_signature.append(f"hls::stream<{element_name}, {nn_out_size}>& in_grad_y")
     bw_general_hls_pragma.append(f"INTERFACE mode=axis port=in_grad_y register_mode=reverse depth={nn_out_size}")
 
-    for k, z in enumerate(zip(Info.param_name, Info.grad_name, Info.param_size)):
-        param, grad, size = z
-        if size != None:
-            param_port_signature.append(f"cm_float {param}[{size}]")
-            param_port_hls_pragma.append(f"INTERFACE mode=bram storage_type=rom_1p port={param} latency=1")
+    for p in net.all_params():
+        param_name = 'param' + p.name
+        grad_name = 'grad' + p.name
+        param_port_signature.append(f"cm_float {param_name}[{p.count}]")
+        param_port_hls_pragma.append(f"INTERFACE mode=bram storage_type=rom_1p port={param_name} latency=1")
+        grad_port_signature.append(f"cm_float {grad_name}[{p.count}]")
+        grad_port_hls_pragma.append(f"INTERFACE mode=bram storage_type=ram_s2p port={grad_name} latency=1")
 
-            grad_port_signature.append(f"cm_float {grad}[{size}]")
-            grad_port_hls_pragma.append(f"INTERFACE mode=bram storage_type=ram_s2p port={grad} latency=1")
-
-    for k, z in enumerate(zip(Info.cache_name, Info.cache_info)):
-        name, info = z
-        if info != None:
-            fw_cache_port_signature.append(f"hls::stream<{info.element_name}>& {name}_o")
-            fw_cache_port_hls_pragma.append(f"INTERFACE mode=ap_fifo port={name}_o depth={Info.cache_info[k].size * batch_size}")
-            bw_cache_port_signature.append(f"hls::stream<{info.element_name}>& {name}_i")
-            bw_cache_port_hls_pragma.append(f"INTERFACE mode=ap_fifo port={name}_i depth={Info.cache_info[k].size * batch_size}")
-
-def _gen_ip_info():
-    _gen_stream_names()
-    _gen_param_info()
-
-def _gen_ostream_defination(kth, names):
-    return [(f"hls::stream<{element_name}, {Info.node_out_size[kth]}> {name};",
-            f"#pragma HLS BIND_STORAGE variable={name} type=fifo")
-            for name in names]
+    for cache in net.all_caches():
+        cache_element = cache.element_type
+        size = cache.count
+        fw_cache_port_signature.append(f"hls::stream<{cache_element}>& {cache.name}")
+        fw_cache_port_hls_pragma.append(f"INTERFACE mode=ap_fifo port={cache.name} depth={size * batch_size}")
+        bw_cache_port_signature.append(f"hls::stream<{cache_element}>& {cache.name}")
+        bw_cache_port_hls_pragma.append(f"INTERFACE mode=ap_fifo port={cache.name} depth={size * batch_size}")
 
 def _gen_fw_content():
+    _logger.info("Generating forward content...")
     contents = []
-    for k, info in enumerate(nn_structures):
-        contents.append(f"// {k}: {info}")
-        if info[0] == "Fork":
-            if k + 1 != len(nn_structures):
-                d = _gen_ostream_defination(k, node_io[k].fo)
-                for t in d:
-                    contents.append(t[0])
-                    contents.append(t[1])
-            contents.append(f"StreamSplitter{len(node_io[k].fo)}<{Info.node_out_size[k]}>::run(")
-            contents.append(f"    {node_io[k].fi},")
-            contents.append("    {});".format(',\n        '.join(node_io[k].fo)))
-            contents.append("")
 
-        elif info[0] == "ForkAgain":
-            pass
+    for n in net.nodes:
 
-        elif info[0] == "Cat":
-            if k + 1 != len(nn_structures):
-                d = _gen_ostream_defination(k, [node_io[k].fo])
-                contents.append(d[0][0])
-                contents.append(d[0][1])
-            merged_nodes = [x - 1 for x in Info.fork_info[k].fork_nodes[1:]]
-            lens = [str(Info.node_out_size[x]) for x in merged_nodes]
-            contents.append(f"StreamCat{len(node_io[k].fi)}<{', '.join(lens)}>::run(")
-            for p in node_io[k].fi:
-                contents.append(f"    {p},")
-            contents.append(f"    {node_io[k].fo});")
+        # Add comment to indicate code for which node
+        contents.append(f"// {repr(n)}")
 
-        elif info[0] in ("Linear", "Tanh", "Exp"):
-            if k + 1 != len(nn_structures):
-                d = _gen_ostream_defination(k, [node_io[k].fo])
-                contents.append(d[0][0])
-                contents.append(d[0][1])
-            contents.append(f"{info[0]}<{', '.join(str(x) for x in info[1:])}>::forward(")
-            if (name := Info.param_name[k]) != None:
-                contents.append(f"    {name},")
-            contents.append(f"    {node_io[k].fi},")
-            if node_io[k].bi:
-                contents.append(f"    {node_io[k].fo},")
-                contents.append(f"    {Info.cache_name[k]}_o,")
-                contents.append(f"    cache_en);")
-            else:
-                contents.append(f"    {node_io[k].fo});")
-            contents.append("")
-        
+        # Generate function name
+        if n.type == NodeType.Fork:
+            class_name = f"Fork{len(n.outputs)}<{n.first_input_size}>"
+        elif n.type == NodeType.Cat:
+            class_name = f"Cat{len(n.inputs)}<{', '.join(str(x.data_count) for x in n.inputs)}>"
+        elif n.type == NodeType.Linear:
+            class_name = f"{str(n.type).split('.')[1]}<{n.first_input_size}, {n.first_output_size}>"
         else:
-            raise NameError(info)
+            class_name = f"{str(n.type).split('.')[1]}<{n.first_input_size}>"
+        function_name = f"{class_name}::forward"
 
+        # Generate parameters
+        parameters = []
+        if n.param != None:
+            parameters.append(f"param{n.param.name}")
+        for ch in n.inputs:
+            parameters.append(ch.name)
+        for ch in n.outputs:
+            parameters.append(ch.name)
+        if n.need_generate_cache:
+            parameters.append(n.cache.name)
+            parameters.append("cache_en")
+
+        # Add output stream on need
+        for ch in n.outputs:
+            if ch == net.output.inputs[0]:
+                continue
+            contents.append(f"hls::stream<{element_name}, {ch.data_count}> {ch.name};")
+        
+        # Add function call
+        contents.append(function_name + '(')
+        for x in parameters[:-1]:
+            contents.append("    " + x + ",")
+        contents.append("    " + parameters[-1] + ");")
+        contents.append("")
+
+    _logger.info("Done.")
     return "\n".join("    " + x for x in contents)
 
 def _gen_fw_function():
@@ -230,55 +117,100 @@ def _gen_fw_function():
         content=_gen_fw_content()
     )
 
+def _find_bw_passes():
+    _logger.info("Marking trimmable backward pathes...")
+    passed_nodes = set()
+    start_nodes = set()
+    g = net.bfs_nodes()
+    cur = next(g)
+
+    try:
+        while True:
+            if cur.param != None:
+                _logger.debug(f"{repr(cur)} is start node.")
+                start_nodes.add(cur)
+                cur = g.send(False)
+            else:
+                _logger.debug(f"{repr(cur)} can be trimmed.")
+                passed_nodes.add(cur)
+                cur = g.send(True)
+    except StopIteration:
+        pass
+
+    # passed_nodes.add(net.input)
+    passed_nodes.add(net.output)
+
+    return passed_nodes, start_nodes
+
 def _gen_bw_content():
-    contents = []
-    for k, info in enumerate(reversed(nn_structures)):
-        k = len(nn_structures) - 1 - k
-        contents.append(f"// {k}: {info}")
-        if node_io[k] == None or node_io[k].bi == None:
+    _logger.info("Generating backward content...")
+    contents: List[str] = []
+    passed_nodes, start_nodes = _find_bw_passes()
+    reversed_nodes = reversed(list(net.bfs_nodes()))
+    _logger.debug(passed_nodes)
+    for n in reversed_nodes:
+        if n in passed_nodes:
             continue
-        if info[0] == "Cat":
-            d = _gen_ostream_defination(k, node_io[k].bo)
-            for t in d:
-                contents.append(t[0])
-                contents.append(t[1])
-            contents.append(f"StreamSplitter{len(node_io[k].bo)}<{Info.node_out_size[k]}>::run(")
-            contents.append(f"    {node_io[k].bi},")
-            t = ',\n        '.join(node_io[k].bo)
-            contents.append(f"    {t});")
-            contents.append("")
-        
-        elif info[0] == "ForkAgain":
-            pass
 
-        elif info[0] == "Fork":
-            d = _gen_ostream_defination(k, [node_io[k].bo])
-            contents.append(d[0][0])
-            contents.append(d[0][1])
-            merged_nodes = [x - 1 for x in Info.fork_info[k].fork_nodes[:-1]]
-            contents.append(f"StreamAdder{len(node_io[k].bi)}<{Info.node_in_size[k]}>::run(")
-            t = ',\n        '.join(node_io[k].bi)
-            contents.append(f"    {t},")
-            contents.append(f"    {node_io[k].bo});")
+        # Split cache if it has more than 1 consumers
+        # Since one backward function call will only consume one group of cache,
+        # the batch_size is not multiplied in cache.count
+        if (cache := n.cache) != None and len(cache.consumers) > 1 and n == cache.consumers[-1]:
+            contents.append(f"// {cache.name}")
+            for k in range(len(cache.consumers)):
+                contents.append(
+                    f"hls::stream<{cache.element_type}, {cache.count}> {cache.name}_{k};"
+                )
+            contents.append(f"Fork{len(cache.consumers)}<{cache.count}>::forward(")
+            contents.append(f"    {cache.name}, ")
+            for x in range(len(cache.consumers)-1):
+                contents.append(f"    {cache.name}_{x},")
 
-        elif info[0] in ("Linear", "Tanh", "Exp"):
-            if node_io[k].bo:
-                d = _gen_ostream_defination(k, [node_io[k].bo])
-                contents.append(d[0][0])
-                contents.append(d[0][1])
-                contents.append(f"{info[0]}<{', '.join(str(x) for x in info[1:])}>::backward(")
-            else:
-                contents.append(f"{info[0]}<{', '.join(str(x) for x in info[1:])}>::backward_no(")
-            if Info.param_name[k] != None:
-                contents.append(f"    {Info.param_name[k]},")
-                contents.append(f"    {Info.grad_name[k]},")
-            contents.append(f"    {Info.cache_name[k]}_i,")
-            if node_io[k].bo != None:
-                contents.append(f"    {node_io[k].bi},")
-                contents.append(f"    {node_io[k].bo});")
-            else:
-                contents.append(f"    {node_io[k].bi});")
+            contents.append(f"    {cache.name}_{len(cache.consumers)-1});")
             contents.append("")
+
+        # Add comment to indicate code for which node
+        contents.append(f"// {repr(n)}")
+
+        # Generate function name
+        if n.type == NodeType.Fork:
+            class_name = f"Fork{len(n.outputs)}<{n.first_input_size}>"
+        elif n.type == NodeType.Cat:
+            class_name = f"Cat{len(n.inputs)}<{', '.join(str(x.data_count) for x in n.inputs)}>"
+        elif n.type == NodeType.Linear:
+            class_name = f"{str(n.type).split('.')[1]}<{n.first_input_size}, {n.first_output_size}>"
+        else:
+            class_name = f"{str(n.type).split('.')[1]}<{n.first_input_size}>"
+        function_name = f"{class_name}::backward{'_no' if n in start_nodes else ''}"
+
+        # Generate parameters
+        parameters = []
+        if n.param != None:
+            parameters.append(f"param{n.param.name}")
+            parameters.append(f"grad{n.param.name}")
+        if n.cache != None:
+            parameters.append(n.cache.name if len(n.cache.consumers) == 1
+                else n.cache.name + '_' + str(n.cache.consumers.index(n)))
+        for ch in n.outputs:
+            parameters.append(ch.back_name)
+        if n not in start_nodes:
+            for ch in n.inputs:
+                parameters.append(ch.back_name)
+
+        # Add output stream on need
+        for ch in n.inputs:
+            if ch == net.output.inputs[0]:
+                continue
+            contents.append(f"hls::stream<{element_name}, {ch.data_count}> {ch.back_name};")
+
+        # Add function call
+        contents.append(function_name + '(')
+        for x in parameters[:-1]:
+            contents.append("    " + x + ",")
+        contents.append("    " + parameters[-1] + ");")
+        contents.append("")
+
+    _logger.info("Done.")
     return "\n".join("    " + x for x in contents)
 
 def _gen_bw_function():
@@ -291,24 +223,26 @@ def _gen_bw_function():
 
 def _gen_top_function():
     return load_template("nn_ip", "top.cpp").substitute(
+        nn_in_size=nn_in_size,
+        nn_out_size=nn_out_size,
         param_signatures = ', '.join(param_port_signature),
         grad_signatures=', '.join(grad_port_signature),
-        param_hls_pragmas='\n'.join(f'    #pragma HLS INTERFACE mode=bram storage_type=rom_2p port={p} latency=1' for p in filter(None, Info.param_name)),
+        param_hls_pragmas='\n'.join(f'    #pragma HLS INTERFACE mode=bram storage_type=rom_2p port=param{param.name} latency=1' for param in net.all_params()),
         grad_hls_pragmas='\n'.join('    #pragma HLS ' + p for p in grad_port_hls_pragma),
         cache_definitions='\n'.join(
-            (f"    hls::stream<cm_float, {i.size}> {n};" '\n'
-             f"    #pragma HLS BIND_STORAGE variable={n} type=fifo")
-            for n, i in zip(Info.cache_name, Info.cache_info) if n != None
+            (f"    hls::stream<{cache.element_type}, {cache.count}> {cache.name};\n"
+             f"    #pragma HLS BIND_STORAGE variable={cache.name} type=fifo")
+            for cache in net.all_caches()
         ),
         forward_func='top_forward',
         backward_func='top_backward',
-        params=',\n        '.join(filter(None, Info.param_name)),
-        grads=',\n        '.join(filter(None, Info.grad_name)),
-        caches=',\n        '.join(filter(None, Info.cache_name))
+        params=',\n        '.join("param" + param.name for param in net.all_params()),
+        grads=',\n        '.join("grad" + param.name for param in net.all_params()),
+        caches=',\n        '.join(cache.name for cache in net.all_caches())
     )
 
 def gen_nn_ip_source(filename):
-    _gen_ip_info()
+    _gen_param_info()
 
     with open(filename, "w") as f:
         f.write(load_template("nn_ip", "source.cpp").substitute(

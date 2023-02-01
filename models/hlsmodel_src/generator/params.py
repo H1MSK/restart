@@ -15,22 +15,27 @@ element_name = 'cm_float'
 element_bitwidth = 32
 
 nn_structures = (
-    ("Fork", obs_size),
-        ("Linear", obs_size, hidden_size),
-        ("Tanh", hidden_size),
-        ("Linear", hidden_size, hidden_size),
-        ("Tanh", hidden_size),
-        ("Linear", hidden_size, 1),
-    ("ForkAgain", obs_size),
-        ("Linear", obs_size, hidden_size),
-        ("Tanh", hidden_size),
-        ("Linear", hidden_size, hidden_size),
-        ("Tanh", hidden_size),
-        ("Fork", hidden_size),
-            ("Linear", hidden_size, act_size),
-        ("ForkAgain", hidden_size),
-            ("Linear", hidden_size, act_size),
-            ("Exp", act_size),
-        ("Cat", act_size * 2),
-    ("Cat", act_size * 2 + 1)
+    ("Fork", ),
+        ("Linear", hidden_size, ),
+        ("Tanh",),
+        ("Linear", hidden_size, ),
+        ("Tanh", ),
+        ("Linear", 1, ),
+    ("ForkAgain", ),
+        ("Linear", hidden_size, ),
+        ("Tanh", ),
+        ("Linear", hidden_size, ),
+        ("Tanh", ),
+        ("Fork", ),
+            ("Linear", act_size, ),
+        ("ForkAgain", ),
+            ("Linear", act_size, ),
+            ("Exp", ),
+        ("Cat", ),
+    ("Cat", )
 )
+
+def _validate():
+    for i in nn_structures:
+        assert(isinstance(i, tuple) and isinstance(i[0], str))
+_validate()
