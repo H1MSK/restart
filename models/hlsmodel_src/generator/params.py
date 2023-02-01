@@ -1,5 +1,6 @@
 part_name = "xc7z020-clg400-2"
-clock_period = "200MHz"
+synthesis_clock_period_ns = 1.0
+implement_clock_period_MHz = 200
 
 batch_size = 64
 

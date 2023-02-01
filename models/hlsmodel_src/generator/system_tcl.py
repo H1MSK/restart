@@ -81,4 +81,5 @@ def gen_system_tcl(filename):
             cache_scripts=_gen_cache_scripts(),
             param_rsta_busy_out_scripts=_gen_param_rsta_busy_out_scripts(),
             grad_rsta_busy_out_scripts=_gen_grad_rsta_busy_out_scripts(),
+            system_clk_mhz=implement_clock_period_MHz
         ))
