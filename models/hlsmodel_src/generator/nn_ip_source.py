@@ -182,7 +182,7 @@ def gen_nn_ip_source(source, simulation):
         "all_param_count": sum(p.count for p in net.all_params()),
 
         "zero_grads": ";\n    ".join(
-            f"memset(grad{p.name}, 0, sizeof(grad{p.name}" for p in net.all_params()
+            f"memset(grad{p.name}, 0, sizeof(grad{p.name}))" for p in net.all_params()
         ),
 
         "param_rom1p_pragmas": "\n    ".join(
