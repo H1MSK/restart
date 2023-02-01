@@ -1,7 +1,6 @@
-from typing import List, Tuple, Type, Union
+from typing import List, Tuple, Type
 import torch
-from models.cmodel import CActirCritic
-from models.pymodel import PyActorCritic
+from models.interfaces import AbstractActorCritic
 from core.optimizations.observation_normalizer import ObservationNormalizer
 from core.optimizations.gae import gae
 try:
@@ -16,7 +15,7 @@ _logger = logging.getLogger("Agent")
 class Agent():
     def __init__(
         self,
-        model_class: Union[Type[PyActorCritic], Type[CActirCritic]],
+        model_class: Type[AbstractActorCritic],
         obs_dim,
         act_dim,
         /,
@@ -146,7 +145,7 @@ class Agent():
 class PPOAgent(Agent):
     def __init__(
         self,
-        model_class: Type[PyActorCritic],
+        model_class: Type[AbstractActorCritic],
         obs_dim,
         act_dim,
         /,
