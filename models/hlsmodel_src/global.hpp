@@ -26,6 +26,17 @@
 using cm_float = float;
 
 #include <hls_math.h>
+
+#ifndef __SYNTHESIS__
+#   if defined(WIN32)
+#       define MODEL_API extern "C" __declspec(dllexport)
+#   elif defined(__linux__)
+#       define MODEL_API extern "C" __attribute__((visibility("default")))
+#   endif
+#else
+#   define MODEL_API
+#endif
+
 #ifdef INTELLISENSE
 #define $param_static_definitions   static cm_float param1[12];static cm_float param2[1]
 #define $param_signatures           cm_float param1[12], cm_float param2[1]

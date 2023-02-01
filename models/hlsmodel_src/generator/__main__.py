@@ -3,6 +3,7 @@ import dag
 from nn_ip_source import gen_nn_ip_source
 from nn_ip_tcl import gen_nn_ip_tcl
 from nn_ip_directives import gen_nn_ip_directives
+from nn_ip_simulation_compile import gen_nn_ip_simulation_compile
 from data_io_source import gen_data_io_source
 from data_io_tcl import gen_data_io_tcl
 from system_tcl import gen_system_tcl
@@ -31,6 +32,7 @@ if __name__ == '__main__':
     gen_nn_ip_source(ip_src, ip_sim_src)
     gen_nn_ip_directives(fw_directive, bw_directive)
     gen_nn_ip_tcl(ip_tcl, ip_src, [fw_directive, bw_directive], export_design=True)
+    gen_nn_ip_simulation_compile(ip_sim_cpl)
     gen_data_io_source(data_io_src)
     gen_data_io_tcl(data_io_tcl, data_io_src)
     gen_system_tcl(system_tcl)

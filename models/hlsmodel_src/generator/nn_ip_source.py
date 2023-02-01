@@ -211,3 +211,6 @@ def gen_nn_ip_source(source, simulation):
 
     with open(source, "w") as f:
         f.write(load_template("nn_ip_source.cpp").substitute(template_strings))
+
+    with open(simulation, "w") as f:
+        f.write(load_template("nn_ip_simulated.cpp").substitute(template_strings))
