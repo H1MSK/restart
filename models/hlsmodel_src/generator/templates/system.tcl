@@ -261,7 +261,7 @@ add_files -norecurse ./build_system/system.gen/sources_1/bd/system/hdl/system_wr
 
 reset_run synth_1
 launch_runs synth_1
-wait_on_runs synth_1
+# wait_on_runs synth_1
 
 # Todo: synthesis, implement, export
 
