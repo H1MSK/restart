@@ -34,6 +34,8 @@ void top_backward(
     $bw_content
 }
 
+#ifndef NO_NN_IP_FUNC
+
 void nn_ip(
     hls::stream<cm_float, $nn_in_size>& in_x,
     hls::stream<cm_float, $nn_out_size>& out_y,
@@ -64,3 +66,5 @@ $cache_static_definitions;
         $grad_variables,
         $cache_variables);
 }
+
+#endif
