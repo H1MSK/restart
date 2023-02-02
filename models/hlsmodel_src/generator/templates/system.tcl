@@ -259,9 +259,9 @@ generate_target all [get_files  ./build_system/system.srcs/sources_1/bd/system/s
 make_wrapper -files [get_files ./build_system/system.srcs/sources_1/bd/system/system.bd] -top
 add_files -norecurse ./build_system/system.gen/sources_1/bd/system/hdl/system_wrapper.v
 
+reset_run impl_1
 reset_run synth_1
-launch_runs synth_1
-# wait_on_runs synth_1
+launch_runs impl_1 -to_step write_bitstream
 
 # Todo: synthesis, implement, export
 
