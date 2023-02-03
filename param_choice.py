@@ -4,6 +4,7 @@ except ImportError:
     import gymnasium as gym
 
 from models.cmodel import CActirCritic
+from models.hls_simmodel import HlsSimActorCritic
 from models.pymodel import PyActorCritic
 from models.light_pymodel import LPyActorCritic
 from core.agent import PPOAgent
@@ -11,7 +12,8 @@ from core.agent import PPOAgent
 model_choices = {
     'py': PyActorCritic,
     'c': CActirCritic,
-    'lpy': LPyActorCritic
+    'lpy': LPyActorCritic,
+    'hlssim': HlsSimActorCritic
 }
 
 agent_choices = {
