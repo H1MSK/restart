@@ -248,27 +248,9 @@ class CActirCritic(AbstractActorCritic):
 
     def actor_zero_grad(self):
         return
-        dummy = torch.zeros_like(self.aparams)
-        self.actor_arr_top(
-            NN_OP_DumpGradAndZero,
-            cm_float_p(),                                        # in_param
-            dummy.numpy().ctypes.data_as(cm_float_p),           # out_grad
-            cm_float_p(),                                        # in_x
-            cm_float_p(),                                        # in_grad_y
-            cm_float_p(),                                        # out_y
-        )
 
     def critic_zero_grad(self):
         return
-        dummy = torch.zeros_like(self.cparams)
-        self.critic_arr_top(
-            NN_OP_DumpGradAndZero,
-            cm_float_p(),                                        # in_param
-            dummy.numpy().ctypes.data_as(cm_float_p),           # out_grad
-            cm_float_p(),                                        # in_x
-            cm_float_p(),                                        # in_grad_y
-            cm_float_p(),                                        # out_y
-        )
 
     def actor_step(self):
         grads = torch.zeros_like(self.aparams)
