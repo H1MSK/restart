@@ -10,7 +10,7 @@ def gen_nn_ip_simulation_product(output_name, include_files: List[str]):
     ret = os.system(
         f"g++ -fPIC -shared -o {output_name} {' '.join(x for x in include_files)} "
         " -I hls_headers -Wall -Wextra -Wno-unknown-pragmas -Wno-unused-label"
-        " -DNO_NN_IP_FUNC")
+        " -DHLS_BUILD_SIM")
     if ret == 0:
         _logger.info("Compile succeeded.")
     else:

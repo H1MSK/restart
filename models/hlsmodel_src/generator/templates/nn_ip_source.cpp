@@ -34,7 +34,7 @@ void top_backward(
     $bw_content
 }
 
-#ifndef NO_NN_IP_FUNC
+#ifndef HLS_BUILD_SIM
 
 void nn_ip(
     hls::stream<cm_float, $nn_in_size>& in_x,
