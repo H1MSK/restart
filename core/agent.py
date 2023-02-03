@@ -120,7 +120,7 @@ class Agent():
                 s_ = self.obs_normalizer(s_)
 
                 mask = (1-done)*1
-                memory.append([s, a, r, mask, p, v])
+                memory.append([s, a, r, mask, p, float(v)])
 
                 # print(f"Sync state2:{s_}")
 
