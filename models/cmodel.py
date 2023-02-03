@@ -31,6 +31,7 @@ class CActirCritic(AbstractActorCritic):
                  hidden_width=64,
                  act_continuous=True,
                  use_orthogonal_init=False) -> None:
+        super().__init__(obs_dim, act_dim, lr_actor, lr_critic, hidden_width, act_continuous, use_orthogonal_init)
         _logger.info("Init CActorCritic with "
             f"obs_dim={obs_dim} "
             f"act_dim={act_dim} "
@@ -94,10 +95,6 @@ class CActirCritic(AbstractActorCritic):
 
         self.actor_param_size = c_aparam.value
         self.critic_param_size = c_cparam.value
-        self.act_continuous = act_continuous
-        self.obs_dim = obs_dim
-        self.act_dim = act_dim
-        self.hidden_width = hidden_width
 
     def _set_net_parameters(self, /, lr_critic, lr_actor, cparams, aparams):
         self.cparams = cparams.detach().requires_grad_()

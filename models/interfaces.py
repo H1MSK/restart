@@ -13,6 +13,10 @@ class AbstractActorCritic(ABC):
                  act_continuous=True,
                  use_orthogonal_init=False) -> None:
         super().__init__()
+        self.act_continuous = act_continuous
+        self.obs_dim = obs_dim
+        self.act_dim = act_dim
+        self.hidden_width = hidden_width
 
     @property
     def lr_critic(self) -> float:
