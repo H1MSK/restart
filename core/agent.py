@@ -161,7 +161,7 @@ class PPOAgent(Agent):
         self.epsilon = epsilon
 
     def train_batch(self, b_states, b_advants, b_actions, b_returns, old_prob):
-        mu, std = self.ac.act(b_states, requires_grad=True)
+        values, mu, std = self.ac.forward(b_states, requires_grad=True)
 
         pi = self.distribution(mu, std)
         new_prob = pi.log_prob(b_actions).sum(1, keepdim=True)
@@ -169,7 +169,7 @@ class PPOAgent(Agent):
         ratio = torch.exp(new_prob-old_prob)
 
         surrogate_loss = ratio*b_advants
-        values = self.ac.critic(b_states, requires_grad=True)
+        # values = self.ac.critic(b_states, requires_grad=True)
 
         critic_loss: torch.Tensor = self.critic_loss_func(values, b_returns)
 
