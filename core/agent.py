@@ -1,4 +1,4 @@
-from typing import List, Tuple, Type
+from typing import Tuple, Type
 import torch
 from models.interfaces import AbstractActorCritic
 from core.optimizations.observation_normalizer import ObservationNormalizer
@@ -79,7 +79,7 @@ class Agent():
         a = pi.sample()
         logprob = pi.log_prob(a).detach()
         a = a.detach()
-        return v.detach().numpy(), a.detach().numpy(), logprob.detach().numpy()
+        return v.detach().numpy(), a.detach().numpy(), logprob.sum(-1, keepdim=True).detach().numpy()
 
     def get_logprob(self, obs, act):
         mu, std = self.ac.act(obs, requires_grad=False)
@@ -120,7 +120,7 @@ class Agent():
                 s_ = self.obs_normalizer(s_)
 
                 mask = (1-done)*1
-                memory.append([s, a, r, mask, p, float(v)])
+                memory.append([s, a, r, mask, p, v])
 
                 # print(f"Sync state2:{s_}")
 
@@ -136,7 +136,7 @@ class Agent():
         rewards = torch.tensor(list(memory[:, 2]), dtype=torch.float32)
         masks = torch.tensor(list(memory[:, 3]), dtype=torch.float32)
 
-        values = torch.tensor(list(memory[:, 5]), dtype=torch.float32)
+        values = torch.tensor(np.vstack(memory[:, 5]), dtype=torch.float32)
 
         returns, advants = gae(len(memory), rewards, masks, values, 0.98, 0.98)
         return returns, advants
