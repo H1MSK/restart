@@ -131,7 +131,7 @@ class PyActorCritic(AbstractActorCritic):
     def critic(self, obs: torch.Tensor, requires_grad=False) -> torch.Tensor:
         return self.model.critic_net(obs)
 
-    def forward(self, obs: torch.Tensor)-> Tuple[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
+    def forward(self, obs: torch.Tensor, requires_grad=False)-> Tuple[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
         value = self.model.critic_net(obs)
         act_feat = self.model.act_feat_net(obs)
         mu = self.model.mu_net(act_feat)
