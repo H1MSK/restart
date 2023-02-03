@@ -118,25 +118,21 @@ class HlsSimActorCritic(AbstractActorCritic):
             p['lr'] = value
 
     def forward(self, obs: torch.Tensor, requires_grad=False) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        mu = torch.zeros((len(obs), self.act_dim), dtype=torch_cm_float)
-        sigma = torch.zeros((len(obs), self.act_dim), dtype=torch_cm_float)
-        value = torch.zeros((len(obs), 1), dtype=torch_cm_float)
-
-        holder = torch.zeros((self.act_dim * 2 + 1), dtype=torch_cm_float)
+        holder = torch.zeros((len(obs), self.act_dim * 2 + 1), dtype=torch_cm_float)
+        mu = holder[:, 0:self.act_dim]
+        sigma = holder[:, self.act_dim:self.act_dim*2]
+        value = holder[:, self.act_dim*2:]
 
         for i, o in enumerate(obs):
             self.net_forward(
                 c_bool(requires_grad),
                 o.numpy().ctypes.data_as(cm_float_p),
-                holder.numpy().ctypes.data_as(cm_float_p)
+                holder[i].numpy().ctypes.data_as(cm_float_p)
             )
-            mu[i] = holder[0:self.act_dim].clone().detach()
-            sigma[i] = holder[self.act_dim:self.act_dim*2].clone().detach()
-            value[i] = holder[self.act_dim*2].clone().detach()
 
-        return (value.requires_grad_(requires_grad),
-                mu.requires_grad_(requires_grad),
-                sigma.requires_grad_(requires_grad))
+        return (value.detach().requires_grad_(requires_grad),
+                mu.detach().requires_grad_(requires_grad),
+                sigma.detach().requires_grad_(requires_grad))
 
     def act(self, obs: torch.Tensor, requires_grad=False) -> Tuple[torch.Tensor, torch.Tensor]:
         return self.forward(obs, requires_grad)[1:]
