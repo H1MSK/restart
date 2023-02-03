@@ -138,11 +138,11 @@ class TrainManager:
         # old_rho = self.agent.ac.model.rho_net(old_f)
         # old_std = torch.exp(old_rho)
         # old_mu, old_std = self.agent.ac.act(states)
-        
+
         # pi = self.agent.distribution(old_mu,old_std)
 
         # old_log_prob = pi.log_prob(actions).sum(1,keepdim=True)
-        old_log_prob = self.agent.get_logprob(states, actions)
+        old_log_prob = torch.tensor(list(memory[:, 4]), dtype=torch.float32).detach()
 
         n = len(states)
         arr = np.arange(n)
@@ -154,12 +154,12 @@ class TrainManager:
                 b_advants = advants[b_index]
                 b_actions = actions[b_index]
                 b_returns = returns[b_index]
-                b_old_logprobs = old_log_prob[b_index].detach()
+                b_old_logprobs = old_log_prob[b_index]
 
                 # critic_loss, actor_loss = self.train_batch(b_states, b_advants, b_actions, b_returns, b_old_logprobs)
                 critic_loss, actor_loss = self.agent.train_batch(
                     b_states, b_advants, b_actions, b_returns, b_old_logprobs)
-                
+
                 self.train_count += 1
                 self.writer.add_scalar('Actor loss', actor_loss.item(), self.train_count)
                 self.writer.add_scalar('Critic loss', critic_loss.item(), self.train_count)
