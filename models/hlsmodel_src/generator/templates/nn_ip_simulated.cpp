@@ -44,7 +44,7 @@ MODEL_API void zero_grad() {
     $zero_grads;
 }
 
-void forward(bool cache_en, cm_float x[$nn_in_size], cm_float y[$nn_out_size]) {
+MODEL_API void forward(bool cache_en, cm_float x[$nn_in_size], cm_float y[$nn_out_size]) {
     hls::stream<cm_float, $nn_in_size> in_x;
     hls::stream<cm_float, $nn_out_size> out_y;
 
@@ -53,7 +53,7 @@ void forward(bool cache_en, cm_float x[$nn_in_size], cm_float y[$nn_out_size]) {
     Fifo2Ram1p<$nn_out_size>::run(out_y, y);
 }
 
-void backward(cm_float grad_y[$nn_out_size]) {
+MODEL_API void backward(cm_float grad_y[$nn_out_size]) {
     hls::stream<cm_float, $nn_out_size> in_grad_y;
 
     Ram1p2Fifo<$nn_out_size>::run(grad_y, in_grad_y);
