@@ -17,4 +17,6 @@ vivado -mode tcl -source generated.system.tcl -log build_system.log -nojournal
 echo -e "\033[32mFinished generation!\033[0m"
 echo -e "\033[32mSynthesis and implementaion of system is running in the background.\033[0m"
 echo -e "\033[32mOpen project build_system to see details.\033[0m"
-echo -e "\033[32mRun ./generated.wait_and_export.sh to export .xsa file.\033[0m"
+echo -e "\033[32m./generated.wait_and_export.sh is running in the background waiting to export .xsa file.\033[0m"
+
+./generated.wait_and_export.sh &
