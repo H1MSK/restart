@@ -46,7 +46,7 @@ module GPIO_Connection(
     // assign GPIO_I['h15] = grad_reset_busy;
 
     assign cache_en = GPIO_O['h18];
-    assign grad_sel = GPIO_O['h19];
+    assign bram_sel = GPIO_O['h19];
 
     assign GPIO_I = {
         1'b1,
