@@ -1,3 +1,5 @@
+set -e
+
 echo -e "\033[32mGenerating functions, tcls and directives for NN...\033[0m"
 python generator
 
@@ -19,4 +21,4 @@ echo -e "\033[32mSynthesis and implementaion of system is running in the backgro
 echo -e "\033[32mOpen project build_system to see details.\033[0m"
 echo -e "\033[32m./generated.wait_and_export.sh is running in the background waiting to export .xsa file.\033[0m"
 
-./generated.wait_and_export.sh &
+./generated.wait_and_export.sh 1>./generated.wait_and_export.sh.log 2>&1 &

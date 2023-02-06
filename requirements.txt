@@ -1,9 +1,12 @@
+# train env
 gymnasium==0.27.1
 imageio==2.25.0
 numpy==1.24.1
 torch==1.13.1+cpu
-pydot==1.4.2
 tensorboard==2.11.2
+
+# hls gen
+pydot==1.4.2
 
 # gymnaisum[box2d]
 box2d-py==2.3.5
