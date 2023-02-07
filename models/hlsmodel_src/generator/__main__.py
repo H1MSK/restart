@@ -20,6 +20,7 @@ if __name__ == '__main__':
     data_io_tcl = "generated.data_io.tcl"
     system_tcl = "generated.system.tcl"
     ip_sim_src = "generated.nn.sim.cpp"
+    ip_test_src = "generated.nn.test.cpp"
     post_system_sh = "generated.wait_and_export.sh"
 
     dag.build()
@@ -33,7 +34,7 @@ if __name__ == '__main__':
     struct_id = f"{obs_size}.{act_size}.{hidden_size}.{1 if act_continuous else 0}"
     ip_sim_lib = f"generated.nn.sim.{struct_id}.so"
 
-    gen_nn_ip_source(ip_src, ip_sim_src)
+    gen_nn_ip_source(ip_src, ip_sim_src, ip_test_src)
     gen_nn_ip_directives(fw_directive, bw_directive)
     gen_nn_ip_tcl(ip_tcl, ip_src, [fw_directive, bw_directive], export_design=True)
     gen_data_io_source(data_io_src)

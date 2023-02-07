@@ -151,7 +151,7 @@ def _gen_bw_content():
     return "\n".join("    " + x for x in contents)
 
 
-def gen_nn_ip_source(source, simulation):
+def gen_nn_ip_source(source, simulation, test):
     template_strings = {
         "param_static_definitions": ";\n".join(
             f"static {element_name} param{p.name}[{p.count}]" for p in net.all_params()
@@ -214,3 +214,6 @@ def gen_nn_ip_source(source, simulation):
 
     with open(simulation, "w") as f:
         f.write(load_template("nn_ip_simulated.cpp").substitute(template_strings))
+
+    with open(test, "w") as f:
+        f.write(load_template("nn_ip_test.cpp").substitute(template_strings))
