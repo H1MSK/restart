@@ -124,10 +124,7 @@ struct Linear {
                 grad_x_cache[j] += w[i * in_size + j] * grad_y_i;
             }
         }
-    lbo_o:
-        for (int j = 0; j < in_size; ++j) {
-            out_grad_x << grad_x_cache[j];
-        }
+        Array2stream<in_size>::run(grad_x_cache, out_grad_x);
     }
 
     static void backward_param_calc(hls::stream<cm_float>& cache,
