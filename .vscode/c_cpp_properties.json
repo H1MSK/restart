@@ -19,7 +19,8 @@
                 "${workspaceFolder}/models/hlsmodel_src/hls_headers"
             ],
             "defines": [
-                "INTELLISENSE"
+                "INTELLISENSE",
+                "HLS_BUILD_SIM"
             ],
             "compilerPath": "/usr/bin/gcc",
             "cStandard": "gnu11",

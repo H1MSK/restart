@@ -12,7 +12,9 @@
         "type_traits": "cpp",
         "utility": "cpp",
         "algorithm": "cpp",
-        "unordered_map": "cpp"
+        "unordered_map": "cpp",
+        "istream": "cpp",
+        "ostream": "cpp"
     },
     "cmake.configureOnOpen": false
 }

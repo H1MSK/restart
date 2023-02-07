@@ -35,7 +35,7 @@ using cm_float = float;
 #define $cache_variables            cache1, cache2
 #define $nn_in_size                 5
 #define $nn_out_size                2
-#define $all_param_count            2
+#define $all_param_count            13
 
 #define $zero_grads                 memset(grad1, 0, sizeof(grad1));memset(grad2, 0, sizeof(grad2))
 
