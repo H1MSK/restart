@@ -31,7 +31,7 @@ struct Linear {
         // cm_float x[in_size];
         // #pragma HLS BIND_STORAGE variable=x type=ram_s2p
         //
-        // Fifo2Ram1p<in_size>::run(in_x, x);
+        // Stream2array<in_size>::run(in_x, x);
         //
         // lfc_cal: for (int i = 0; i < out_size; ++i) {
         //     cm_float y_i = b[i];
@@ -57,7 +57,7 @@ struct Linear {
         lfc_o: for (int i = 0; i < out_size; ++i) {
             out_y << y[i] + b[i];
         }
-        
+
         // This method is ideal for me but the dependence will become true
         //   if clock speed is too fast, and all items will be read out before
         //   new items are written into the fifo
@@ -144,7 +144,7 @@ struct Linear {
         cm_float cache_x[in_size];
 #pragma HLS BIND_STORAGE variable=cache_x type=ram_s2p
 //#pragma HLS ARRAY_PARTITION variable=cache_x type=complete
-        Fifo2Ram1p<in_size>::run(cache, cache_x);
+        Stream2array<in_size>::run(cache, cache_x);
 
     lbw:
         for (int i = 0; i < out_size; ++i) {

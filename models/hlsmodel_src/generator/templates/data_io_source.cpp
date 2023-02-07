@@ -1,21 +1,21 @@
 #include "global.hpp"
 
 void param_loader(
-        hls::stream<cm_float>& in,
+        cm_float in[$all_param_count],
         $param_signatures) {
 #pragma HLS INTERFACE mode=ap_ctrl_hs port=return
-#pragma HLS INTERFACE mode=axis register_mode=reverse port=in
-$param_pragmas
+#pragma HLS INTERFACE mode=m_axi port=in
+$param_ram1p_pragmas
 
-$param_readers
+$param_loader_content
 }
 
 void grad_extractor(
         $grad_signatures,
-        hls::stream<cm_float>& out) {
+        cm_float out[$all_param_count]) {
 #pragma HLS INTERFACE mode=ap_ctrl_hs port=return
-$grad_pragmas
-#pragma HLS INTERFACE mode=axis register_mode=forward port=out
+#pragma HLS INTERFACE mode=m_axi port=out
+$grad_ram1p_pragmas
 
-$grad_writers
+$grad_extractor_content
 }

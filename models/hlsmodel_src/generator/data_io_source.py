@@ -1,46 +1,60 @@
 from typing import List, Tuple
 from template_loader import load_template
 from dag import net, Param
-from params import element_name
+from params import element_name, nn_in_size, nn_out_size
 
-def _gen_signatures_pragmas_and_content(net_params: List[Param], name_prefix: str, storage_type: str, content_template: str) -> Tuple[str, str, str]:
-    signatures = ",\n        ".join(
-        (f"{element_name} {name_prefix}{p.name}[{p.count}]") for p in net_params
-    )
+def _gen_pl_content():
+    contents = []
 
-    pragmas = "\n".join(
-        (f"#pragma HLS INTERFACE mode=bram storage_type={storage_type} port={name_prefix}{p.name} latency=1") for p in net_params
-    )
+    contents.append("int x = 0;")
+    contents.append("")
 
-    readers = "\n".join((
-        "\n".join((
-            f"    for (int i = 0; i < {p.count}; ++i) {{",
-            ("        " + content_template).format(name_prefix + p.name),
-            f"    }}",
-            "")
-        ) for p in net_params
-    ))
+    for p in net.all_params():
+        contents.append(f"for (int i = 0; i < {p.count}; ++i)")
+        contents.append(f"    param{p.name}[i] = in[x++];")
+        contents.append("")
 
-    return signatures, pragmas, readers
-    
+    return "\n".join("    " + x for x in contents)
+
+def _gen_ge_content():
+    contents = []
+
+    contents.append("int x = 0;")
+    contents.append("")
+
+    for p in net.all_params():
+        contents.append(f"for (int i = 0; i < {p.count}; ++i)")
+        contents.append(f"    out[x++] = grad{p.name}[i];")
+        contents.append("")
+
+    return "\n".join("    " + x for x in contents)
 
 def gen_data_io_source(filename):
-    template = load_template('data_io_source.cpp')
+    template_strings = {
+        "param_signatures": ", ".join(
+            f"{element_name} param{p.name}[{p.count}]" for p in net.all_params()
+        ),
+        "grad_signatures": ", ".join(
+            f"{element_name} grad{p.name}[{p.count}]" for p in net.all_params()
+        ),
 
-    filtered_params = list(net.all_params())
+        "nn_in_size": nn_in_size,
+        "nn_out_size": nn_out_size,
+        "all_param_count": sum(p.count for p in net.all_params()),
 
-    param_signatures, param_pragmas, param_readers = (
-        _gen_signatures_pragmas_and_content(filtered_params, "param", "ram_1p", "{}[i] = in.read();"))
+        "param_ram1p_pragmas": "\n    ".join(
+            f"#pragma HLS INTERFACE mode=bram storage_type=ram_1p port=param{p.name} latency=1"
+            for p in net.all_params()
+        ),
+        "grad_ram1p_pragmas": "\n    ".join(
+            f"#pragma HLS INTERFACE mode=bram storage_type=ram_1p port=grad{p.name} latency=1"
+            for p in net.all_params()
+        ),
+        "param_loader_content": _gen_pl_content(),
+        "grad_extractor_content": _gen_ge_content()
+    }
 
-    grad_signatures, grad_pragmas, grad_writers = (
-        _gen_signatures_pragmas_and_content(filtered_params, "grad", "rom_1p", "out << {}[i];"))
-    
     with open(filename, "w") as f:
-        f.write(template.substitute(
-            param_signatures=param_signatures,
-            param_pragmas=param_pragmas,
-            param_readers=param_readers,
-            grad_signatures=grad_signatures,
-            grad_pragmas=grad_pragmas,
-            grad_writers=grad_writers
+        f.write(load_template('data_io_source.cpp').substitute(
+            template_strings
         ))

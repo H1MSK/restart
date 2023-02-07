@@ -35,10 +35,12 @@ using cm_float = float;
 #define $cache_variables            cache1, cache2
 #define $nn_in_size                 5
 #define $nn_out_size                2
-#define $all_param_count             2
+#define $all_param_count            2
 
 #define $zero_grads                 memset(grad1, 0, sizeof(grad1));memset(grad2, 0, sizeof(grad2))
 
+#define $param_ram1p_pragmas
+#define $grad_ram1p_pragmas
 #define $param_rom1p_pragmas
 #define $param_rom2p_pragmas
 #define $grad_rams2p_pragmas
@@ -47,4 +49,6 @@ using cm_float = float;
 
 #define $fw_content                 Linear<$nn_in_size, $nn_out_size>::forward(param1, in_x, out_y, cache1, cache_en);
 #define $bw_content                 Linear<$nn_in_size, $nn_out_size>::backward_no(param1, grad1, cache1, in_grad_y);
+#define $param_loader_content       int x = 0; for(int i = 0; i < 12; ++i) param1[i] = in[x++]; for (int i = 0; i < 1; ++i) param2[i] = in[x++];
+#define $grad_extractor_content     int x = 0; for(int i = 0; i < 12; ++i) out[x++] = grad1[i]; for (int i = 0; i < 1; ++i) out[x++] = grad2[i];
 #endif
