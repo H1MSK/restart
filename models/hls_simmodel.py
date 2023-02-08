@@ -134,12 +134,6 @@ class HlsSimActorCritic(AbstractActorCritic):
                 mu.detach().requires_grad_(requires_grad),
                 sigma.detach().requires_grad_(requires_grad))
 
-    def act(self, obs: torch.Tensor, requires_grad=False) -> Tuple[torch.Tensor, torch.Tensor]:
-        return self.forward(obs, requires_grad)[1:]
-
-    def critic(self, obs: torch.Tensor, requires_grad=False) -> torch.Tensor:
-        return self.forward(obs, requires_grad)[0]
-
     def _actual_backward(self):
         grads: torch.Tensor = torch.concat(
             (self.mu_grad,

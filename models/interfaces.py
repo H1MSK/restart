@@ -43,16 +43,14 @@ class AbstractActorCritic(ABC):
         pass
 
     @abstractmethod
-    def act(self, obs: torch.Tensor, requires_grad=False) -> Tuple[torch.Tensor, torch.Tensor]:
-        pass
-
-    @abstractmethod
-    def critic(self, obs: torch.Tensor, requires_grad=False) -> torch.Tensor:
-        pass
-
-    @abstractmethod
     def forward(self, obs: torch.Tensor, requires_grad=False) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         pass
+
+    def act(self, obs: torch.Tensor, requires_grad=False) -> Tuple[torch.Tensor, torch.Tensor]:
+        return self.forward(obs, requires_grad)[1:]
+
+    def critic(self, obs: torch.Tensor, requires_grad=False) -> torch.Tensor:
+        return self.forward(obs, requires_grad)[0]
 
     @abstractmethod
     def actor_backward(self, mu_grad, std_grad):
