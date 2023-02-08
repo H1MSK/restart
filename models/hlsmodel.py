@@ -30,7 +30,7 @@ class _FuncFlipFlop:
             self.func()
         assert(self.diff > -2)
 
-class HlsSimActorCritic(AbstractActorCritic):
+class HlsActorCritic(AbstractActorCritic):
     def __init__(self, obs_dim, act_dim, /, lr_actor=0.0001, lr_critic=0.001, hidden_width=64, act_continuous=True, use_orthogonal_init=False) -> None:
         super().__init__(obs_dim, act_dim, lr_actor, lr_critic, hidden_width, act_continuous, use_orthogonal_init)
         lib_path = os.path.join(
