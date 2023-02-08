@@ -7,6 +7,7 @@ open_project build_param_loader
 open_solution -flow_target vivado sol
 add_files {source_name}
 create_clock -period {synthesis_clock_period_ns}ns
+config_interface -m_axi_addr64=false
 set_part {part_name}
 set_top param_loader
 
@@ -17,6 +18,7 @@ open_project build_grad_extractor
 open_solution -flow_target vivado sol
 add_files {source_name}
 create_clock -period {synthesis_clock_period_ns}ns
+config_interface -m_axi_addr64=false
 set_part {part_name}
 set_top grad_extractor
 
