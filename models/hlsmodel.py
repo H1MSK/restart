@@ -1,20 +1,16 @@
 from itertools import chain
 import os
 from models.interfaces import AbstractActorCritic
-from ctypes import c_float, c_bool, POINTER
 import torch
 from typing import Callable, Tuple
 import pynq
 from pynq import GPIO
 import time
-import numpy as np
 import logging
+from cm_type import get_float_pointer, torch_cm_float
 
 from models.pymodel import PyModel
 
-cm_float = c_float
-torch_cm_float = torch.float32
-cm_float_p = POINTER(cm_float)
 _logger = logging.getLogger("HlsActorCritic")
 
 class _FuncFlipFlop:
@@ -142,7 +138,7 @@ class HlsActorCritic(AbstractActorCritic):
 
         self.ip_param_loader.mmio.write(
             self.ip_param_loader.register_map.in_r.address,
-            self.params.detach().numpy().ctypes.data_as(cm_float_p)
+            get_float_pointer(self.params.detach())
         )
 
         self.pa_start_o.write(1)
@@ -180,15 +176,13 @@ class HlsActorCritic(AbstractActorCritic):
         self.bram_sel_o.write(1)
         self.cache_en_o.write(requires_grad)
         for i, o in enumerate(obs):
-            maxi_x_p = o.numpy().ctypes.data_as(cm_float_p)
-            maxi_y_p = holder[i].numpy().ctypes.data_as(cm_float_p)
             print(f"Forwarding #{i:2d}...", end="\r")
             self.ip_forward.mmio.write(
                 self.ip_forward.register_map.maxi_x.address,
-                maxi_x_p)
+                get_float_pointer(o))
             self.ip_forward.mmio.write(
                 self.ip_forward.register_map.maxi_y.address,
-                maxi_y_p)
+                get_float_pointer(holder[i]))
         
             self.fw_start_o.write(1)
             self.fw_start_o.write(0)
@@ -231,7 +225,7 @@ class HlsActorCritic(AbstractActorCritic):
             print(f"Backwarding #{i:2d}...", end="\r")
             self.ip_backward.mmio.write(
                 self.ip_backward.register_map.maxi_grad_y.address,
-                g.numpy().ctypes.data_as(cm_float_p)
+                get_float_pointer(g)
             )
             self.bw_start_o.write(1)
             self.bw_start_o.write(0)
@@ -249,15 +243,14 @@ class HlsActorCritic(AbstractActorCritic):
             time.sleep(0)
 
     def _extract_grads(self):
-        grads = torch.zeros_like(self.params)
         self.bram_sel_o.write(0)
         self.ip_grad_extractor.mmio.write(
             self.ip_grad_extractor.register_map.out_r.address,
-            grads.numpy().ctypes.data_as(cm_float_p)
+            get_float_pointer(self.grads)
         )
         while not self.gr_idle_i.read():
             time.sleep(0)
-        self.params.grad = grads
+        self.params.grad = self.grads
 
     def _actual_step(self):
         self._extract_grads()
