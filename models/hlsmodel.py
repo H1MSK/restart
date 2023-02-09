@@ -35,28 +35,30 @@ class _FuncFlipFlop:
 class HlsActorCritic(AbstractActorCritic):
     def __init__(self, obs_dim, act_dim, /, lr_actor=0.0001, lr_critic=0.001, hidden_width=64, act_continuous=True, use_orthogonal_init=False) -> None:
         super().__init__(obs_dim, act_dim, lr_actor, lr_critic, hidden_width, act_continuous, use_orthogonal_init)
-        lib_path = os.path.join(
-            os.path.dirname(__file__),
-            "hlsmodel_src",
-            f"generated.nn.sim.{obs_dim}.{act_dim}.{hidden_width}.{1 if act_continuous else 0}.so"
-        )
         _logger.info("Constructing HlsActorCritic...")
 
         self._init_backend()
 
         self._init_net_parameters(lr_critic, lr_actor, use_orthogonal_init)
 
+        self._init_holders()
+
         self.backward_fff = _FuncFlipFlop(self._actual_backward)
         self.step_fff = _FuncFlipFlop(self._actual_step)
         self.zero_grad_fff = _FuncFlipFlop(self._actual_zero_grad)
 
+    def _init_holders(self):
+        self.grads = torch.zeros_like(self.params)
+
     def _init_backend(self):
-        bitfile_path = os.path.exists(os.path.join(
+        bitfile_path = os.path.join(
             os.path.dirname(__file__),
             'hlsmodel_src',
-            f'generated.system.{self.obs_dim}.{self.act_dim}.{self.hidden_width}.{1 if self.act_continuous else 0}.bit'))
+            f'generated.system.{self.obs_dim}.{self.act_dim}.{self.hidden_width}.{1 if self.act_continuous else 0}.bit')
         assert(os.path.exists(bitfile_path))
-        pynq.PL.reset()
+        # Use internal cache to speed up loading
+        # _logger.info("Resetting PL...")
+        # pynq.PL.reset()
         _logger.info("Loading overlay...")
         self.overlay = pynq.Overlay(bitfile_path)
 
@@ -111,8 +113,6 @@ class HlsActorCritic(AbstractActorCritic):
             if len(x[i].shape) > 1:
                 x[i] = x[i].flatten()
         params = torch.concat(x)
-
-        self._set_net_parameters(lr_critic=lr_critic, lr_actor=lr_actor, params=params)
 
         del pymodel
 
@@ -204,10 +204,12 @@ class HlsActorCritic(AbstractActorCritic):
                 sigma.detach().requires_grad_(requires_grad))
 
     def act(self, obs: torch.Tensor, requires_grad=False) -> Tuple[torch.Tensor, torch.Tensor]:
+        # To avoid messing up cache
         assert(not requires_grad)
         return self.forward(obs, requires_grad)[1:]
 
     def critic(self, obs: torch.Tensor, requires_grad=False) -> torch.Tensor:
+        # To avoid messing up cache
         assert(not requires_grad)
         return self.forward(obs, requires_grad)[0]
 
