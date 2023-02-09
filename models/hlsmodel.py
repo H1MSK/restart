@@ -8,12 +8,14 @@ import pynq
 from pynq import GPIO
 import time
 import numpy as np
+import logging
 
 from models.pymodel import PyModel
 
 cm_float = c_float
 torch_cm_float = torch.float32
 cm_float_p = POINTER(cm_float)
+_logger = logging.getLogger("HlsActorCritic")
 
 class _FuncFlipFlop:
     def __init__(self, func: Callable[[None], None]) -> None:
@@ -38,6 +40,7 @@ class HlsActorCritic(AbstractActorCritic):
             "hlsmodel_src",
             f"generated.nn.sim.{obs_dim}.{act_dim}.{hidden_width}.{1 if act_continuous else 0}.so"
         )
+        _logger.info("Constructing HlsActorCritic...")
 
         self._init_backend()
 
@@ -54,7 +57,10 @@ class HlsActorCritic(AbstractActorCritic):
             f'generated.system.{self.obs_dim}.{self.act_dim}.{self.hidden_width}.{1 if self.act_continuous else 0}.bit'))
         assert(os.path.exists(bitfile_path))
         pynq.PL.reset()
+        _logger.info("Loading overlay...")
         self.overlay = pynq.Overlay(bitfile_path)
+
+        _logger.info("Instantiating IP drivers...")
         self.ip_forward = self.overlay.forward
         self.ip_backward = self.overlay.backward
         self.ip_param_loader = self.overlay.param_loader
@@ -87,6 +93,7 @@ class HlsActorCritic(AbstractActorCritic):
         self.bram_sel_o    = GPIO(GPIO.get_gpio_pin(0x18), 'out')
 
     def _init_net_parameters(self, lr_critic, lr_actor, use_orthogonal_init):
+        _logger.info("Generating initial parameters...")
         pymodel = PyModel(
             self.obs_dim,
             self.act_dim,
@@ -130,6 +137,7 @@ class HlsActorCritic(AbstractActorCritic):
         )
 
     def _apply_params(self):
+        _logger.info("Parameters syncing out...")
         self.bram_sel_o.write(0)
 
         self.ip_param_loader.mmio.write(
@@ -141,7 +149,10 @@ class HlsActorCritic(AbstractActorCritic):
         self.pa_start_o.write(0)
 
         while not self.pa_idle_i.read():
+            _logger.info("Still syncing...")
             time.sleep(0)
+
+        _logger.info("Parameters syncing finished!")
 
     @property
     def lr_critic(self):
@@ -171,6 +182,7 @@ class HlsActorCritic(AbstractActorCritic):
         for i, o in enumerate(obs):
             maxi_x_p = o.numpy().ctypes.data_as(cm_float_p)
             maxi_y_p = holder[i].numpy().ctypes.data_as(cm_float_p)
+            print(f"Forwarding #{i:2d}...", end="\r")
             self.ip_forward.mmio.write(
                 self.ip_forward.register_map.maxi_x.address,
                 maxi_x_p)
@@ -181,7 +193,10 @@ class HlsActorCritic(AbstractActorCritic):
             self.fw_start_o.write(1)
             self.fw_start_o.write(0)
 
+            cnt = 0
             while not self.fw_idle_i.read():
+                cnt += 1
+                print(f"Waiting {cnt}...", end="\r")
                 time.sleep(0)
 
         return (value.detach().requires_grad_(requires_grad),
@@ -208,14 +223,21 @@ class HlsActorCritic(AbstractActorCritic):
 
         assert(len(grads.shape) == 2)
 
+        i = 0
         for g in grads:
+            i += 1
+            print(f"Backwarding #{i:2d}...", end="\r")
             self.ip_backward.mmio.write(
                 self.ip_backward.register_map.maxi_grad_y.address,
                 g.numpy().ctypes.data_as(cm_float_p)
             )
             self.bw_start_o.write(1)
             self.bw_start_o.write(0)
+
+            cnt = 0
             while not self.bw_idle_i.read():
+                cnt += 1
+                print(f"Waiting #{cnt:2d}...", end="\r")
                 time.sleep(0)
         
     def _actual_zero_grad(self):
