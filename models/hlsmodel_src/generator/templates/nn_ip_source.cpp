@@ -7,7 +7,7 @@ void top_forward(
     bool cache_en,
     $param_signatures,
     $cache_signatures) {
-    #pragma HLS INTERFACE mode=ap_ctrl_chain port=return
+    #pragma HLS INTERFACE mode=ap_ctrl_hs port=return
     #pragma HLS DATAFLOW
     #pragma HLS INTERFACE mode=m_axi port=maxi_x depth=$nn_in_size
     #pragma HLS INTERFACE mode=m_axi port=maxi_y depth=$nn_out_size

@@ -1,7 +1,7 @@
 from collections import deque
 from typing import Deque, Dict, List, Optional, Tuple
 from .node import Cache, Channel, Node, NodeType, Param, NodeCacheType, get_cache_type
-from params import obs_size
+from params import nn_in_size
 import logging
 
 _logger = logging.getLogger("Dag")
@@ -29,7 +29,7 @@ class DAG:
         input_stack: List[Node] = []
         predecessor = self.input
         fork_tails: List[List[Node]] = []
-        output_sizes: Dict[Node, int] = {self.input: obs_size}
+        output_sizes: Dict[Node, int] = {self.input: nn_in_size}
 
         plain_nets = {
             "Linear": NodeType.Linear,

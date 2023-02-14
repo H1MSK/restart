@@ -2,46 +2,65 @@ module GPIO_Connection(
     output[31:0] GPIO_I,
     input[31:0] GPIO_O,
     input[31:0] GPIO_T,
+
     output fw_start,
-    input fw_done,
+    output fw_complete,
+    input fw_finish,
     input fw_idle,
+
     output bw_start,
-    input bw_done,
+    output bw_complete,
+    input bw_finish,
     input bw_idle,
+
     output param_start,
-    input param_done,
+    output param_complete,
+    input param_finish,
     input param_idle,
+
     output grad_start,
-    input grad_done,
+    output grad_complete,
+    input grad_finish,
     input grad_idle,
+
     output param_reset,
     input param_reset_busy,
+
     output grad_reset,
     input grad_reset_busy,
+
     output cache_en,
-    output bram_sel
-);
-    // assign GPIO_I = ~0;
+    output bram_sel);
 
+    // 0x00-0x03: forward
     assign fw_start = GPIO_O['h00];
-    // assign GPIO_I['h01] = fw_done;
-    // assign GPIO_I['h02] = fw_idle;
+    assign fw_complete = GPIO_O['h01];
+    // assign GPIO_I['h02] = fw_finish;
+    // assign GPIO_I['h03] = fw_idle;
 
+    // 0x04-0x07: backward
     assign bw_start = GPIO_O['h04];
-    // assign GPIO_I['h05] = bw_done;
-    // assign GPIO_I['h06] = bw_idle;
+    assign bw_complete = GPIO_O['h05];
+    // assign GPIO_I['h06] = bw_finish;
+    // assign GPIO_I['h07] = bw_idle;
 
+    // 0x08-0x0b: param loader
     assign param_start = GPIO_O['h08];
-    // assign GPIO_I['h09] = param_done;
-    // assign GPIO_I['h0a] = param_idle;
+    assign param_complete = GPIO_O['h09];
+    // assign GPIO_I['h0a] = param_finish;
+    // assign GPIO_I['h0b] = param_idle;
 
+    // 0x0c-0x0f: grad extractor
     assign grad_start = GPIO_O['h0c];
-    // assign GPIO_I['h0d] = grad_done;
-    // assign GPIO_I['h0e] = grad_idle;
+    assign grad_complete = GPIO_O['h0d];
+    // assign GPIO_I['h0e] = grad_finish;
+    // assign GPIO_I['h0f] = grad_idle;
 
+    // 0x10-0x13: param bram
     assign param_reset = GPIO_O['h10];
     // assign GPIO_I['h11] = param_reset_busy;
     
+    // 0x14-0x17: grad bram
     assign grad_reset = GPIO_O['h14];
     // assign GPIO_I['h15] = grad_reset_busy;
 
@@ -49,26 +68,39 @@ module GPIO_Connection(
     assign bram_sel = GPIO_O['h19];
 
     assign GPIO_I = {
-        1'b1,
-        fw_done,            // 0x01
+        // 0x00-0x03: forward
+        2'b11,
+        fw_finish,
         fw_idle,
+
+        // 0x04-0x07: backward
         2'b11,
-        bw_done,            // 0x05
+        bw_finish,
         bw_idle,
+
+        // 0x08-0x0b: param loader
         2'b11,
-        param_done,         // 0x09
+        param_finish,
         param_idle,
+
+        // 0x0c-0x0f: grad extractor
         2'b11,
-        grad_done,          // 0x0d
+        grad_finish,
         grad_idle,
+
+        // 0x10-0x13: param bram
+        GPIO_O['h10],
+        param_reset_busy,
         2'b11,
-        param_reset_busy,   // 0x11
-        3'b111,
-        grad_reset_busy,    // 0x15
-        10'b1111111111
+
+        // 0x14-0x17: grad bram
+        GPIO_O['h14],
+        grad_reset_busy,
+        2'b11,
+
+        // 0x18-0x1b:
+        4'b1111,
+        // 0x1c-0x1f: not used currently
+        4'b1111
     };
-    // assign fw_start = GPIO_O['h00];
-    // assign bw_start = GPIO_O['h04];
-    // assign param_start = GPIO_O['h08];
-    // assign grad_start = GPIO_O['h0c];
 endmodule

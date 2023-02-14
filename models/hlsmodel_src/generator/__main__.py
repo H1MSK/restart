@@ -31,7 +31,7 @@ if __name__ == '__main__':
     with open("generated.param_usage.txt", "w") as f:
         f.write(dag.net.report_param_usage())
 
-    struct_id = f"{obs_size}.{act_size}.{hidden_size}.{1 if act_continuous else 0}"
+    struct_id = f"{nn_in_size}.{act_size}.{nn_hidden_size}.{1 if act_continuous else 0}"
     ip_sim_lib = f"generated.nn.sim.{struct_id}.so"
 
     gen_nn_ip_source(ip_src, ip_sim_src, ip_test_src)

@@ -16,6 +16,8 @@ def _gen_memory_scripts():
         scripts.append(
             param_template.substitute(
                 mem_name=f"mem_{param_name}",
+                mem_depth=param.count,
+                mem_bitwidth=element_bitwidth,
                 mux_name=f"mux_{param_name}",
                 porta=f"{param_name}_PORTA",
                 portb=f"{param_name}_PORTB",
@@ -25,6 +27,8 @@ def _gen_memory_scripts():
         scripts.append(
             grad_template.substitute(
                 mem_name=f"mem_{grad_name}",
+                mem_depth=param.count,
+                mem_bitwidth=element_bitwidth,
                 mux_name=f"mux_{grad_name}",
                 porta=f"{grad_name}_PORTA",
                 portb=f"{grad_name}_PORTB",

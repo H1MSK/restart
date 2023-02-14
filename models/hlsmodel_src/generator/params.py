@@ -5,27 +5,30 @@ implement_clock_period_MHz = 166.666666
 batch_size = 64
 
 obs_size = 376
-hidden_size = 64
 act_size = 17
 act_continuous = True
 
 
-nn_in_size = obs_size
+nn_in_size = min(obs_size, 376)
+nn_hidden_size = 64
 nn_out_size = act_size * 2 + 1
 element_name = 'cm_float'
 element_bitwidth = 32
 
+assert(nn_in_size <= obs_size)
+enable_pca = (nn_in_size < obs_size)
+
 nn_structures = (
     ("Fork", ),
-        ("Linear", hidden_size, ),
+        ("Linear", nn_hidden_size, ),
         ("Tanh",),
-        ("Linear", hidden_size, ),
+        ("Linear", nn_hidden_size, ),
         ("Tanh", ),
         ("Linear", 1, ),
     ("ForkAgain", ),
-        ("Linear", hidden_size, ),
+        ("Linear", nn_hidden_size, ),
         ("Tanh", ),
-        ("Linear", hidden_size, ),
+        ("Linear", nn_hidden_size, ),
         ("Tanh", ),
         ("Fork", ),
             ("Linear", act_size, ),
