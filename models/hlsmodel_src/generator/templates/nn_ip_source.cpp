@@ -1,6 +1,8 @@
 #include "global.hpp"
 #include "net/net.hpp"
 
+using namespace hlsnn;
+
 void top_forward(
     cm_float maxi_x[$nn_in_size],
     cm_float maxi_y[$nn_out_size],

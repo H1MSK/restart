@@ -2,6 +2,8 @@
 
 #include "../global.hpp"
 
+namespace hlsnn {
+
 // Y = exp(X)
 template <int vec_size>
 struct Tanh {
@@ -48,3 +50,5 @@ struct Tanh {
         }
     }
 };
+
+}  //namespace hlsnn

@@ -7,7 +7,9 @@
 #pragma GCC diagnostic pop
 #include <cstring>
 
+namespace hlsnn {
 using cm_float = float;
+}  //namespace hlsnn
 
 #include <hls_math.h>
 

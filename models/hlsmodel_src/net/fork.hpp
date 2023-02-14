@@ -2,6 +2,8 @@
 
 #include "../global.hpp"
 
+namespace hlsnn {
+
 template <int len>
 struct Fork2 {
     static void forward(hls::stream<cm_float>& in,
@@ -67,3 +69,5 @@ struct Fork3 {
         }
     }
 };
+
+}  //namespace hlsnn

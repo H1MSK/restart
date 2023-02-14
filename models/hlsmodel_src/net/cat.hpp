@@ -3,6 +3,8 @@
 #include "../global.hpp"
 
 
+namespace hlsnn {
+
 template <int len1, int len2>
 struct Cat2 {
     static void forward(hls::stream<cm_float>& in1,
@@ -86,3 +88,5 @@ struct Cat3 {
         }
     }
 };
+
+}  //namespace hlsnn

@@ -4,6 +4,8 @@
 #include "fork.hpp"
 #include "functors.hpp"
 
+namespace hlsnn {
+
 template <int In, int Out>
 struct Linear {
     constexpr static int in_size = In;
@@ -195,3 +197,5 @@ struct Linear {
         backward_param_calc(cache, in_grad_y, grad);
     }
 };
+
+}  //namespace hlsnn

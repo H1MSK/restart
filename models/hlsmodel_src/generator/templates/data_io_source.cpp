@@ -1,5 +1,7 @@
 #include "global.hpp"
 
+using namespace hlsnn;
+
 void param_loader(
         cm_float in[$all_param_count],
         $param_signatures) {

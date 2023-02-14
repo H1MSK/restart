@@ -1,6 +1,8 @@
 #include "global.hpp"
 #include "net/net.hpp"
 
+using namespace hlsnn;
+
 $param_static_definitions;
 
 $grad_static_definitions;

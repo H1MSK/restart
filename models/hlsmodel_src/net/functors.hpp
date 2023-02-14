@@ -2,6 +2,8 @@
 
 #include "../global.hpp"
 
+namespace hlsnn {
+
 template <int len>
 struct Stream2array {
     static void run(hls::stream<cm_float>& in, cm_float out[len]) {
@@ -20,3 +22,5 @@ struct Array2stream {
         }
     }
 };
+
+}  //namespace hlsnn
