@@ -4,7 +4,7 @@ from typing import Dict
 
 _validator=re.compile(r"[\[\]=\\]")
 _section_name = re.compile(r"^\[(.+)\]$")
-_value_pair = re.compile(r"^([^=\[\]\n]+?)\W*=\W*([^=\[\]\n]+?)\W*$")
+_value_pair = re.compile(r"^([^=\[\]\n]+?)[ \t]*=[ \t]*([^=\[\]\n]+?)\W*$")
 
 def _genlines(name:str, d:dict):
     assert(0 == len(_validator.findall(name)))

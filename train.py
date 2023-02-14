@@ -11,6 +11,10 @@ if __name__ == '__main__':
     min_epoch_size=args.min_epoch_size
     batch_size=args.batch_size
     test_interval=args.test_interval
+    pca_dim=args.pca_dim
+    store_obs=args.store_obs
+    obs_cut_start=args.obs_cut_start
+    obs_cut_end=args.obs_cut_end
 
     logging.basicConfig(level=logging.INFO)
     logging.info(f"Args={args}")
@@ -26,7 +30,11 @@ if __name__ == '__main__':
             hidden_width=args.hidden_width,
             seed=args.seed,
             enable_test=(test_interval > 0),
-            use_orthogonal_init=args.orthogonal_init
+            use_orthogonal_init=args.orthogonal_init,
+            pca_dim=pca_dim,
+            obs_cut_start=obs_cut_start,
+            obs_cut_end=obs_cut_end,
+            store_obs=store_obs
         )
         tm.set_run(
             total_train_epochs=total_train_epochs,

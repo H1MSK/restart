@@ -23,7 +23,12 @@ class TrainManager:
             hidden_width=64,
             seed=0,
             enable_test=True,
-            use_orthogonal_init=False) -> None:
+            use_orthogonal_init=False,
+            use_obs_normalization=True,
+            pca_dim=0,
+            obs_cut_start=0,
+            obs_cut_end=-1,
+            store_obs=False) -> None:
 
         if not os.path.exists('./run'):
             os.mkdir('./run')
@@ -50,6 +55,11 @@ class TrainManager:
             self.conf["params"]["seed"] = str(seed)
             self.conf["params"]["lr_actor"] = str(lr_actor)
             self.conf["params"]["lr_critic"] = str(lr_critic)
+            self.conf["params"]["obs_normalization"] = str(int(use_obs_normalization))
+            assert(pca_dim >= 0)
+            self.conf["params"]["pca_dim"]=str(pca_dim)
+            self.conf["params"]["obs_cut_start"] = str(obs_cut_start)
+            self.conf["params"]["obs_cut_end"] = str(obs_cut_end)
             config.save_config(f'./run/{session_name}/conf.ini', self.conf)
             need_load = False
         else:
@@ -62,6 +72,10 @@ class TrainManager:
             lr_actor = float(self.conf["params"]["lr_actor"])
             lr_critic = float(self.conf["params"]["lr_critic"])
             hidden_width = int(self.conf["params"]["hidden_width"])
+            use_obs_normalization=bool(int(self.conf["params"]["obs_normalization"]))
+            pca_dim = int(self.conf["params"]["pca_dim"])
+            obs_cut_start = int(self.conf["params"]["obs_cut_start"])
+            obs_cut_end = int(self.conf["params"]["obs_cut_end"])
             seed = int(self.conf["params"]["seed"])
             assert(model_name in model_choices.keys() and
                    agent_name in agent_choices.keys() and
@@ -104,6 +118,11 @@ class TrainManager:
             hidden_width=hidden_width,
             act_continuous=act_continuous,
             use_orthogonal_init=use_orthogonal_init,
+            pca_dim=pca_dim,
+            pca_load_file=f"data/pca/{env_name}.npz",
+            store_obs=store_obs,
+            obs_cut_start=obs_cut_start,
+            obs_cut_end=obs_cut_end,
             epsilon=0.2)
         self.writer = SummaryWriter(f'./run/{session_name}/logs')
         self.train_count = 0
@@ -142,7 +161,7 @@ class TrainManager:
         # pi = self.agent.distribution(old_mu,old_std)
 
         # old_log_prob = pi.log_prob(actions).sum(1,keepdim=True)
-        old_log_prob = torch.tensor(list(memory[:, 4]), dtype=torch.float32).detach()
+        old_log_prob = torch.tensor(np.vstack(memory[:, 4]), dtype=torch.float32).detach()
 
         n = len(states)
         arr = np.arange(n)

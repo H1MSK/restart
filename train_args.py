@@ -19,6 +19,14 @@ def parse(argv):
 
     parser.add_argument('--orthogonal_init', action='store_true', help='Use orthogonal initialization for linear layers')
 
+    parser.add_argument('--pca_dim', type=int, default=0, help='PCA output dimensionality, 0 for disable')
+
+    parser.add_argument('--store_obs', action='store_true', help='Store observations to obs.sav.[num].npz')
+
+    parser.add_argument('--obs_cut_start', type=int, default=0, help='Observation cut range start, inclusive')
+    parser.add_argument('--obs_cut_end', type=int, default=-1, help='Observation cut range end, exclusive')
+
+
     default_model=None
     for i in model_choices.keys():
         default_model=i
