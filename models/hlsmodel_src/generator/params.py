@@ -4,8 +4,8 @@ implement_clock_period_MHz = 166.666666
 
 batch_size = 64
 
-obs_size = 376
-act_size = 17
+obs_size = 27
+act_size = 8
 act_continuous = True
 
 
