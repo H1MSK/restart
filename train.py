@@ -7,7 +7,7 @@ if __name__ == '__main__':
     args = parse(argv=argv[1:])
 
     total_train_epochs=args.total_train_epochs
-    max_episode_step=args.max_episode_step
+    max_episode_step=args.max_episode_steps
     min_epoch_size=args.min_epoch_size
     batch_size=args.batch_size
     test_interval=args.test_interval

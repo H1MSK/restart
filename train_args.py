@@ -12,7 +12,7 @@ def parse(argv):
     parser.add_argument('--seed', type=int, default=0, help='Environment seed')
 
     parser.add_argument('--total_train_epochs', type=int, default=2000000, help='Total count of trained epochs')
-    parser.add_argument('--max_episode_step', type=int, default=10000, help='Max steps in each episode')
+    parser.add_argument('--max_episode_steps', type=int, default=10000, help='Max steps in each episode')
     parser.add_argument('--min_epoch_size', type=int, default=2048, help='Minimum steps in each epoch')
     parser.add_argument('--batch_size', type=int, default=64, help='Batch size')
     parser.add_argument('--test_interval', type=int, default=4096, help='Test once after trainning this many episodes')
