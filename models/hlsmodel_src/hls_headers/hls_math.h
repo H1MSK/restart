@@ -5,6 +5,7 @@
 #include "../global.hpp"
 namespace hls
 {
+using hlsnn::cm_float;
 static inline cm_float exp(cm_float x) { return std::exp(x); }
 static inline bool isinf(cm_float x) { return std::isinf(x); }
 static inline cm_float tanh(cm_float x) { return std::tanh(x); }
