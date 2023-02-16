@@ -30,10 +30,11 @@
 | 0x0e  |    In     | end flag of grad extractor |    up     |
 | 0x0f  |    In     | ap_idle of grad extractor  |   down    |
 |       |           |                            |           |
-| 0x10  |    Out    |   1 to reset param bram    |    --     |
-| 0x11  |    In     |   param bram reset busy    |   down    |
+| 0x10  |    Out    |     1 to reset system      |    --     |
+| 0x11  |    Out    |   1 to reset param bram    |    --     |
+| 0x12  |    Out    |    1 to reset grad bram    |    --     |
 |       |           |                            |           |
-| 0x14  |    Out    |    1 to reset grad bram    |    --     |
+| 0x14  |    In     |   param bram reset busy    |   down    |
 | 0x15  |    In     |    grad bram reset busy    |   down    |
 |       |           |                            |           |
 | 0x18  |    Out    |          cache_en          |    --     |
