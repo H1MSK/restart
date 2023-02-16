@@ -20,6 +20,9 @@ set_property physical_name GPIO_T [ipx::get_port_maps TRI_T -of_objects [ipx::ge
 ipx::add_port_map TRI_I [ipx::get_bus_interfaces GPIO -of_objects [ipx::current_core]]
 set_property physical_name GPIO_I [ipx::get_port_maps TRI_I -of_objects [ipx::get_bus_interfaces GPIO -of_objects [ipx::current_core]]]
 
+ipx::add_bus_parameter POLARITY [ipx::get_bus_interfaces system_reset -of_objects [ipx::current_core]]
+set_property value ACTIVE_HIGH [ipx::get_bus_parameters POLARITY -of_objects [ipx::get_bus_interfaces system_reset -of_objects [ipx::current_core]]]
+
 ipx::create_xgui_files [ipx::current_core]
 ipx::update_checksums [ipx::current_core]
 ipx::check_integrity [ipx::current_core]

@@ -213,6 +213,9 @@ connect_bd_net [get_bd_pins gpio_connection/grad_idle] [get_bd_pins apcon_grad/i
 connect_bd_net [get_bd_pins forward/cache_en] [get_bd_pins gpio_connection/cache_en]
 connect_bd_net [get_bd_pins gpio_connection/param_reset_busy] [get_bd_pins reduce_param_reset/Res]
 connect_bd_net [get_bd_pins gpio_connection/grad_reset_busy] [get_bd_pins reduce_grad_reset/Res]
+
+connect_bd_net [get_bd_pins gpio_connection/system_reset] [get_bd_pins proc_sys_reset_0/aux_reset_in]
+
 $bram_mux_sel_connections
 
 $bram_rst_connections

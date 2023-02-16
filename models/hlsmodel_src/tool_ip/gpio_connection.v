@@ -23,10 +23,11 @@ module GPIO_Connection(
     input grad_finish,
     input grad_idle,
 
+    output system_reset,
     output param_reset,
-    input param_reset_busy,
-
     output grad_reset,
+
+    input param_reset_busy,
     input grad_reset_busy,
 
     output cache_en,
@@ -56,12 +57,13 @@ module GPIO_Connection(
     // assign GPIO_I['h0e] = grad_finish;
     // assign GPIO_I['h0f] = grad_idle;
 
-    // 0x10-0x13: param bram
-    assign param_reset = GPIO_O['h10];
-    // assign GPIO_I['h11] = param_reset_busy;
+    // 0x10-0x13: reset signals
+    assign system_reset = GPIO_O['h10];
+    assign param_reset = GPIO_O['h11];
+    assign grad_reset = GPIO_O['h12];
     
-    // 0x14-0x17: grad bram
-    assign grad_reset = GPIO_O['h14];
+    // 0x14-0x17: reset busy signals
+    // assign GPIO_I['h14] = param_reset_busy;
     // assign GPIO_I['h15] = grad_reset_busy;
 
     assign cache_en = GPIO_O['h18];
@@ -88,13 +90,11 @@ module GPIO_Connection(
         grad_finish,
         grad_idle,
 
-        // 0x10-0x13: param bram
-        GPIO_O['h10],
-        param_reset_busy,
-        2'b11,
+        // 0x10-0x13: reset signals
+        4'b1111,
 
-        // 0x14-0x17: grad bram
-        GPIO_O['h14],
+        // 0x14-0x17: reset busy signals
+        param_reset_busy,
         grad_reset_busy,
         2'b11,
 
