@@ -84,15 +84,22 @@ class HlsActorCritic(AbstractActorCritic):
         self.gr_done_i     = GPIO(GPIO.get_gpio_pin(0x0e), 'in')
         self.gr_idle_i     = GPIO(GPIO.get_gpio_pin(0x0f), 'in')
 
-        self.pa_reset_o    = GPIO(GPIO.get_gpio_pin(0x10), 'out')
-        self.pa_rst_busy_i = GPIO(GPIO.get_gpio_pin(0x11), 'in')
+        self.sys_reset_o   = GPIO(GPIO.get_gpio_pin(0x10), 'out')
+        self.pa_reset_o    = GPIO(GPIO.get_gpio_pin(0x11), 'out')
+        self.gr_reset_o    = GPIO(GPIO.get_gpio_pin(0x12), 'out')
 
-        self.gr_reset_o    = GPIO(GPIO.get_gpio_pin(0x14), 'out')
+        self.pa_rst_busy_i = GPIO(GPIO.get_gpio_pin(0x14), 'in')
         self.gr_rst_busy_i = GPIO(GPIO.get_gpio_pin(0x15), 'in')
 
         self.cache_en_o    = GPIO(GPIO.get_gpio_pin(0x18), 'out')
 
         self.bram_sel_o    = GPIO(GPIO.get_gpio_pin(0x19), 'out')
+        
+        _logger.info("Resetting PL IPs...")
+        self.sys_reset_o.write(1)
+        time.sleep(0.001)
+        self.sys_reset_o.write(0)
+        _logger.info("Done!")
 
     def _init_net_parameters(self, lr_critic, lr_actor, use_orthogonal_init):
         _logger.info("Generating initial parameters...")
