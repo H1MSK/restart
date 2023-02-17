@@ -28,6 +28,39 @@ class _FuncFlipFlop:
             self.func()
         assert(self.diff > -2)
 
+class ApController:
+    def __init__(self, name: str, control_start_pin: int, state_monitor_pin: int):
+        self.name = name
+        self.start_o    = GPIO(GPIO.get_gpio_pin(control_start_pin+0x00), 'out')
+        self.compl_o    = GPIO(GPIO.get_gpio_pin(control_start_pin+0x01), 'out')
+        self.done_i     = GPIO(GPIO.get_gpio_pin(control_start_pin+0x02), 'in')
+        self.idle_i     = GPIO(GPIO.get_gpio_pin(control_start_pin+0x03), 'in')
+        self.ap_start   = GPIO(GPIO.get_gpio_pin(state_monitor_pin+0x00), 'in')
+        self.ap_done    = GPIO(GPIO.get_gpio_pin(state_monitor_pin+0x01), 'in')
+        self.ap_ready   = GPIO(GPIO.get_gpio_pin(state_monitor_pin+0x02), 'in')
+        self.ap_idle    = GPIO(GPIO.get_gpio_pin(state_monitor_pin+0x03), 'in')
+    
+    def state_str(self):
+        return (f"State:{self.done_i.read()}{self.idle_i.read()}{self.ap_start.read()}"
+                f"{self.ap_done.read()}{self.ap_ready.read()}{self.ap_idle.read()}")
+
+    def wait_to_complete(self):
+        self.compl_o.write(1)
+        cnt=0
+        while not self.idle_i.read() or self.done_i.read():
+            cnt+=1
+            print(f"{cnt}:wait {self.name} to complete({self.state_str()})...",
+                  end='\r')
+        self.compl_o.write(0)
+    
+    def start(self):
+        self.start_o.write(1)
+        cnt = 0
+        while self.idle_i.read() and not self.done_i.read():
+            cnt += 1
+            print(f"{cnt}: wait {self.name} to start({self.state_str})...", end='\r')
+        self.start_o.write(0)
+
 class HlsActorCritic(AbstractActorCritic):
     def __init__(self, obs_dim, act_dim, /, lr_actor=0.0001, lr_critic=0.001, hidden_width=64, act_continuous=True, use_orthogonal_init=False) -> None:
         super().__init__(obs_dim, act_dim, lr_actor, lr_critic, hidden_width, act_continuous, use_orthogonal_init)
@@ -52,9 +85,9 @@ class HlsActorCritic(AbstractActorCritic):
             'hlsmodel_src',
             f'generated.system.{self.obs_dim}.{self.act_dim}.{self.hidden_width}.{1 if self.act_continuous else 0}.bit')
         assert(os.path.exists(bitfile_path))
-        # Use internal cache to speed up loading
-        # _logger.info("Resetting PL...")
-        # pynq.PL.reset()
+        # TODO: Option not to reset, use internal cache to speed up loading
+        _logger.info("Resetting PL...")
+        pynq.PL.reset()
         _logger.info("Loading overlay...")
         self.overlay = pynq.Overlay(bitfile_path)
 
@@ -63,26 +96,6 @@ class HlsActorCritic(AbstractActorCritic):
         self.ip_backward = self.overlay.backward
         self.ip_param_loader = self.overlay.param_loader
         self.ip_grad_extractor = self.overlay.grad_extractor
-
-        self.fw_start_o    = GPIO(GPIO.get_gpio_pin(0x00), 'out')
-        self.fw_compl_o    = GPIO(GPIO.get_gpio_pin(0x01), 'out')
-        self.fw_done_i     = GPIO(GPIO.get_gpio_pin(0x02), 'in')
-        self.fw_idle_i     = GPIO(GPIO.get_gpio_pin(0x03), 'in')
-
-        self.bw_start_o    = GPIO(GPIO.get_gpio_pin(0x04), 'out')
-        self.bw_compl_o    = GPIO(GPIO.get_gpio_pin(0x05), 'out')
-        self.bw_done_i     = GPIO(GPIO.get_gpio_pin(0x06), 'in')
-        self.bw_idle_i     = GPIO(GPIO.get_gpio_pin(0x07), 'in')
-
-        self.pa_start_o    = GPIO(GPIO.get_gpio_pin(0x08), 'out')
-        self.pa_compl_o    = GPIO(GPIO.get_gpio_pin(0x09), 'out')
-        self.pa_done_i     = GPIO(GPIO.get_gpio_pin(0x0a), 'in')
-        self.pa_idle_i     = GPIO(GPIO.get_gpio_pin(0x0b), 'in')
-
-        self.gr_start_o    = GPIO(GPIO.get_gpio_pin(0x0c), 'out')
-        self.gr_compl_o    = GPIO(GPIO.get_gpio_pin(0x0d), 'out')
-        self.gr_done_i     = GPIO(GPIO.get_gpio_pin(0x0e), 'in')
-        self.gr_idle_i     = GPIO(GPIO.get_gpio_pin(0x0f), 'in')
 
         self.sys_reset_o   = GPIO(GPIO.get_gpio_pin(0x10), 'out')
         self.pa_reset_o    = GPIO(GPIO.get_gpio_pin(0x11), 'out')
@@ -94,6 +107,11 @@ class HlsActorCritic(AbstractActorCritic):
         self.cache_en_o    = GPIO(GPIO.get_gpio_pin(0x18), 'out')
 
         self.bram_sel_o    = GPIO(GPIO.get_gpio_pin(0x19), 'out')
+
+        self.fw_ap = ApController("fw", 0x00, 0x20)
+        self.bw_ap = ApController("bw", 0x04, 0x24)
+        self.pa_ap = ApController("pa", 0x08, 0x28)
+        self.gr_ap = ApController("gr", 0x0c, 0x2c)
         
         _logger.info("Resetting PL IPs...")
         self.sys_reset_o.write(1)
@@ -130,9 +148,7 @@ class HlsActorCritic(AbstractActorCritic):
 
         if params.dtype != torch_cm_float:
             params = torch.tensor(params, dtype=torch_cm_float)
-        self.params = params
-
-        self.params.requires_grad_(True)
+        self.params = params.detach().requires_grad_(True)
 
         self._apply_params()
 
@@ -147,27 +163,15 @@ class HlsActorCritic(AbstractActorCritic):
         _logger.info("Parameters syncing out...")
         self.bram_sel_o.write(0)
 
-        self.pa_compl_o.write(1)
-        while not self.pa_idle_i.read() or self.pa_done_i.read():
-            print("Wait pa to be idle...")
-            time.sleep(0)
-        self.pa_compl_o.write(0)
+        self.pa_ap.wait_to_complete()
 
         self.ip_param_loader.mmio.write(
             self.ip_param_loader.register_map.in_r.address,
             get_float_pointer(self.params.detach())
         )
 
-        self.pa_start_o.write(1)
-        while not self.pa_done_i.read():
-            _logger.info("Still syncing...")
-            time.sleep(0)
-        self.pa_start_o.write(0)
-        self.pa_compl_o.write(1)
-        while self.pa_done_i.read():
-            time.sleep(0)
-        self.pa_compl_o.write(0)
-
+        self.pa_ap.start()
+        self.pa_ap.wait_to_complete()
 
         _logger.info("Parameters syncing finished!")
 
@@ -195,15 +199,10 @@ class HlsActorCritic(AbstractActorCritic):
         value = holder[:, self.act_dim*2:]
 
         self.bram_sel_o.write(1)
-        self.cache_en_o.write(requires_grad)
-
-        self.fw_compl_o.write(1)
-        while not self.fw_idle_i.read() or self.fw_done_i.read():
-            print("Wait fw to be idle...")
-            time.sleep(0)
-        self.fw_compl_o.write(0)
+        self.cache_en_o.write(1 if requires_grad else 0)
 
         for i, o in enumerate(obs):
+            self.fw_ap.wait_to_complete()
             print(f"Forwarding #{i:2d}...", end="\r")
             self.ip_forward.mmio.write(
                 self.ip_forward.register_map.maxi_x.address,
@@ -211,19 +210,9 @@ class HlsActorCritic(AbstractActorCritic):
             self.ip_forward.mmio.write(
                 self.ip_forward.register_map.maxi_y.address,
                 get_float_pointer(holder[i]))
-        
-            self.fw_start_o.write(1)
-            cnt = 0
-            while not self.fw_done_i.read():
-                cnt += 1
-                print(f"Waiting {cnt}...", end="\r")
-                time.sleep(0)
-            self.fw_start_o.write(0)
-            self.fw_compl_o.write(1)
-            while not self.fw_idle_i.read():
-                time.sleep(0)
-            self.fw_compl_o.write(0)
+            self.fw_ap.start()
 
+        self.fw_ap.wait_to_complete()
 
         return (value.detach().requires_grad_(requires_grad),
                 mu.detach().requires_grad_(requires_grad),
@@ -250,61 +239,38 @@ class HlsActorCritic(AbstractActorCritic):
             grads = grads.unsqueeze(0)
 
         assert(len(grads.shape) == 2)
+        self.bram_sel_o.write(1)
 
-        self.bw_compl_o.write(1)
-        while not self.bw_idle_i.read() or self.bw_done_i.read():
-            print("Wait bw to be idle...")
-            time.sleep(0)
-        self.bw_compl_o.write(0)
 
-        i = 0
-        for g in grads:
-            i += 1
+        for i, g in enumerate(grads):
             print(f"Backwarding #{i:2d}...", end="\r")
+            self.bw_ap.wait_to_complete()
             self.ip_backward.mmio.write(
                 self.ip_backward.register_map.maxi_grad_y.address,
                 get_float_pointer(g)
             )
-            self.bw_start_o.write(1)
-            cnt = 0
-            while not self.bw_done_i.read():
-                cnt += 1
-                print(f"Waiting {cnt}...", end="\r")
-                time.sleep(0)
-            self.bw_start_o.write(0)
-            self.bw_compl_o.write(1)
-            while not self.bw_idle_i.read():
-                time.sleep(0)
-            self.bw_compl_o.write(0)
+            self.bw_ap.start()
+
+        self.bw_ap.wait_to_complete()
         
     def _actual_zero_grad(self):
         self.gr_reset_o.write(1)
+        time.sleep(0)
         self.gr_reset_o.write(0)
         while self.gr_rst_busy_i.read():
             time.sleep(0)
 
     def _extract_grads(self):
         self.bram_sel_o.write(0)
-        self.gr_compl_o.write(1)
-        while not self.gr_idle_i.read():
-            print("Wait gr to be idle...")
-            time.sleep(0)
-        self.gr_compl_o.write(0)
+
+        self.gr_ap.wait_to_complete()
+        
         self.ip_grad_extractor.mmio.write(
             self.ip_grad_extractor.register_map.out_r.address,
             get_float_pointer(self.grads)
         )
-        self.gr_start_o.write(1)
-        cnt = 0
-        while self.gr_idle_i.read() or self.gr_done_i.read():
-            cnt += 1
-            print(f"Waiting {cnt}...", end="\r")
-            time.sleep(0)
-        self.gr_start_o.write(0)
-        self.gr_compl_o.write(1)
-        while not self.gr_idle_i.read():
-            time.sleep(0)
-        self.gr_compl_o.write(0)
+        self.gr_ap.start()
+        self.gr_ap.wait_to_complete()
         self.params.grad = self.grads
 
     def _actual_step(self):
