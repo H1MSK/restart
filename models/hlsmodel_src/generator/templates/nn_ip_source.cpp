@@ -9,7 +9,7 @@ void top_forward(
     bool cache_en,
     $param_signatures,
     $cache_signatures) {
-    #pragma HLS INTERFACE mode=ap_ctrl_hs port=return
+    #pragma HLS INTERFACE mode=s_axilite port=return
     #pragma HLS DATAFLOW
     #pragma HLS INTERFACE mode=m_axi port=maxi_x depth=$nn_in_size
     #pragma HLS INTERFACE mode=m_axi port=maxi_y depth=$nn_out_size
@@ -36,7 +36,7 @@ void top_backward(
     $param_signatures,
     $grad_signatures,
     $cache_signatures) {
-    #pragma HLS INTERFACE mode=ap_ctrl_hs port=return
+    #pragma HLS INTERFACE mode=s_axilite port=return
     #pragma HLS DATAFLOW
     #pragma HLS INTERFACE mode=m_axi port=maxi_grad_y depth=$nn_out_size
     $param_rom1p_pragmas
@@ -60,7 +60,7 @@ void nn_ip(
     bool cache_en,
     $param_signatures,
     $grad_signatures) {
-    #pragma HLS INTERFACE mode=ap_ctrl_hs port=return
+    #pragma HLS INTERFACE mode=s_axilite port=return
     #pragma HLS DATAFLOW
     #pragma HLS INTERFACE mode=m_axi port=maxi_x depth=$nn_in_size
     #pragma HLS INTERFACE mode=m_axi port=maxi_y depth=$nn_out_size

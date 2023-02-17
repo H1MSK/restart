@@ -24,25 +24,19 @@ module ap_controller(
      * - ap_ready: end of current task, make start 1->0 if trig not function
      *
      */
-    wire next_finish = ap_done | (finish & ~complete_trig);
-    always @(posedge ap_clk) begin
-        if (~ap_rst_n) begin
-            finish <= 0;
-        end else begin
-            finish <= next_finish;
-        end
-    end
+     always@(*) begin
+        if (~ap_rst_n) finish <= 0;
+        else if (complete_trig) finish <= 0;
+        else if (ap_done) finish <= 1;
+     end
 
-    wire next_start = (start_trig & ~finish) | (start & ~ap_ready);
-    always @(posedge ap_clk) begin
-        if (~ap_rst_n) begin
-            start <= 0;
-        end else begin
-            start <= next_start;
-        end
+    always@(*) begin
+        if (~ap_rst_n) start <= 0;
+        else if (start_trig & ~finish) start <= 1;
+        else if (ap_done) start <= 0;
     end
 
     assign idle = ap_idle & ~finish;
-    assign ap_start = next_start;
+    assign ap_start = start;
 
 endmodule

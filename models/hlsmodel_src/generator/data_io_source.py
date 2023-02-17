@@ -43,11 +43,11 @@ def gen_data_io_source(filename):
         "all_param_count": sum(p.count for p in net.all_params()),
 
         "param_ram1p_pragmas": "\n    ".join(
-            f"#pragma HLS INTERFACE mode=bram storage_type=ram_1p port=param{p.name} latency=1"
+            f"#pragma HLS INTERFACE mode=bram storage_type=ram_1p port=param{p.name} latency=1 depth={p.count}"
             for p in net.all_params()
         ),
         "grad_ram1p_pragmas": "\n    ".join(
-            f"#pragma HLS INTERFACE mode=bram storage_type=ram_1p port=grad{p.name} latency=1"
+            f"#pragma HLS INTERFACE mode=bram storage_type=ram_1p port=grad{p.name} latency=1 depth={p.count}"
             for p in net.all_params()
         ),
         "param_loader_content": _gen_pl_content(),

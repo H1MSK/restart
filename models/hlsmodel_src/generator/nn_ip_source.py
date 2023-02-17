@@ -186,15 +186,15 @@ def gen_nn_ip_source(source, simulation, test):
         ),
 
         "param_rom1p_pragmas": "\n    ".join(
-            f"#pragma HLS INTERFACE mode=bram storage_type=rom_1p port=param{p.name} latency=1"
+            f"#pragma HLS INTERFACE mode=bram storage_type=rom_1p port=param{p.name} latency=1 depth={p.count}"
             for p in net.all_params()
         ),
         "param_rom2p_pragmas": "\n    ".join(
-            f"#pragma HLS INTERFACE mode=bram storage_type=rom_2p port=param{p.name} latency=1"
+            f"#pragma HLS INTERFACE mode=bram storage_type=rom_2p port=param{p.name} latency=1 depth={p.count}"
             for p in net.all_params()
         ),
         "grad_rams2p_pragmas": "\n    ".join(
-            f"#pragma HLS INTERFACE mode=bram storage_type=ram_s2p port=grad{p.name} latency=1"
+            f"#pragma HLS INTERFACE mode=bram storage_type=ram_s2p port=grad{p.name} latency=1 depth={p.count}"
             for p in net.all_params()
         ),
         "cache_fifo_interface_pragmas": "\n    ".join(
