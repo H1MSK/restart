@@ -4,11 +4,18 @@
 #pragma GCC diagnostic ignored "-Wunused-variable"
 #pragma GCC diagnostic ignored "-Wsign-compare"
 #include <hls_stream.h>
+#include <ap_axi_sdata.h>
 #pragma GCC diagnostic pop
 #include <cstring>
 
 namespace hlsnn {
 using cm_float = float;
+constexpr size_t cm_float_bitwidth = sizeof(cm_float) * 8;
+#ifdef HLS_BUILD_SIM
+struct cm_axis_data { int32_t data; };
+#else
+using cm_axis_data = ap_axis<cm_float_bitwidth, 0, 0, 0>;
+#endif
 }  //namespace hlsnn
 
 #include <hls_math.h>
@@ -51,6 +58,6 @@ using cm_float = float;
 
 #define $fw_content                 Linear<$nn_in_size, $nn_out_size>::forward(param1, in_x, out_y, cache1, cache_en);
 #define $bw_content                 Linear<$nn_in_size, $nn_out_size>::backward_no(param1, grad1, cache1, in_grad_y);
-#define $param_loader_content       int x = 0; for(int i = 0; i < 12; ++i) param1[i] = in[x++]; for (int i = 0; i < 1; ++i) param2[i] = in[x++];
-#define $grad_extractor_content     int x = 0; for(int i = 0; i < 12; ++i) out[x++] = grad1[i]; for (int i = 0; i < 1; ++i) out[x++] = grad2[i];
+#define $param_loader_content       for(int i = 0; i < 12; ++i) param1[i] = FloatBusCarrier::unpack(in.read()); for (int i = 0; i < 1; ++i) param2[i] = FloatBusCarrier::unpack(in.read());
+#define $grad_extractor_content     for(int i = 0; i < 12; ++i) out << FloatBusCarrier::pack(grad1[i], false); for (int i = 0; i < 0; ++i) out << FloatBusCarrier::pack(grad2[i], false); FloatBusCarrier::pack(grad2[0], true);
 #endif

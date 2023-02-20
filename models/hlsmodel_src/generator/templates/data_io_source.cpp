@@ -1,22 +1,23 @@
 #include "global.hpp"
+#include "net/functors.hpp"
 
 using namespace hlsnn;
 
 void param_loader(
-        cm_float in[$all_param_count],
-        $param_signatures) {
+    hls::stream<cm_axis_data> &in,
+    $param_signatures) {
 #pragma HLS INTERFACE mode=s_axilite port=return
-#pragma HLS INTERFACE mode=m_axi port=in
+#pragma HLS INTERFACE mode=axis port=in register_mode=reverse
 $param_ram1p_pragmas
 
 $param_loader_content
 }
 
 void grad_extractor(
-        $grad_signatures,
-        cm_float out[$all_param_count]) {
+    $grad_signatures,
+    hls::stream<cm_axis_data> &out) {
 #pragma HLS INTERFACE mode=s_axilite port=return
-#pragma HLS INTERFACE mode=m_axi port=out
+#pragma HLS INTERFACE mode=axis port=out register_mode=forward
 $grad_ram1p_pragmas
 
 $grad_extractor_content

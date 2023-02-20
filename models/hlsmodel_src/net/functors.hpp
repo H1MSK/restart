@@ -23,4 +23,63 @@ struct Array2stream {
     }
 };
 
-}  //namespace hlsnn
+struct FloatBusCarrier {
+    static_assert(cm_float_bitwidth == 32,
+                  "Please change the type of i in View to match the bitwidth "
+                  "of cm_float");
+    union View {
+        cm_float f;
+        int i;
+    };
+    template <int len>
+    static void loadArrayToAxisBus(hls::stream<cm_axis_data>& bus,
+                                   cm_float arr[len],
+                                   bool isLast) {
+        for (int i = 0; i < len - 1; ++i) {
+            #pragma HLS PIPELINE II = 1
+            bus.write(pack(arr[i], false));
+        }
+        bus.write(pack(arr[len - 1], isLast));
+    }
+    template <int len>
+    static void dumpArrayFromAxisBus(hls::stream<cm_axis_data>& bus,
+                                     cm_float arr[len]) {
+        for (int i = 0; i < len; ++i) {
+            #pragma HLS PIPELINE II = 1
+            arr[i] = unpack(bus.read());
+        }
+    }
+    template <int len>
+    static void loadFifoToAxisBus(hls::stream<cm_axis_data>& bus,
+                                  hls::stream<cm_float, len>& fifo,
+                                  bool isLast) {
+        for (int i = 0; i < len - 1; ++i) {
+            #pragma HLS PIPELINE II = 1
+            bus.write(pack(fifo.read(), false));
+        }
+        bus.write(pack(fifo.read(), isLast));
+    }
+    template <int len>
+    static void dumpFifoFromAxisBus(hls::stream<cm_axis_data>& bus,
+                                    hls::stream<cm_float, len>& fifo) {
+        for (int i = 0; i < len; ++i) {
+            #pragma HLS PIPELINE II = 1
+            fifo << unpack(bus.read());
+        }
+    }
+    static cm_axis_data pack(cm_float x, bool isLast) {
+        cm_axis_data e;
+
+        #ifndef HLS_BUILD_SIM
+        e.last = isLast;
+        #endif
+
+        e.data = (View{.f = x}.i);
+        return e;
+    }
+    static cm_float unpack(const cm_axis_data& i) {
+        return View{.i = int(i.data)}.f;
+    }
+};
+
+}  // namespace hlsnn

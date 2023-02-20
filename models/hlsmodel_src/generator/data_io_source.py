@@ -6,12 +6,9 @@ from params import element_name, nn_in_size, nn_out_size
 def _gen_pl_content():
     contents = []
 
-    contents.append("int x = 0;")
-    contents.append("")
-
     for p in net.all_params():
         contents.append(f"for (int i = 0; i < {p.count}; ++i)")
-        contents.append(f"    param{p.name}[i] = in[x++];")
+        contents.append(f"    param{p.name}[i] = FloatBusCarrier::unpack(in.read());")
         contents.append("")
 
     return "\n".join("    " + x for x in contents)
@@ -19,13 +16,18 @@ def _gen_pl_content():
 def _gen_ge_content():
     contents = []
 
-    contents.append("int x = 0;")
-    contents.append("")
+    l = list(net.all_params())
 
-    for p in net.all_params():
+    for p in l[:-1]:
         contents.append(f"for (int i = 0; i < {p.count}; ++i)")
-        contents.append(f"    out[x++] = grad{p.name}[i];")
+        contents.append(f"    out << FloatBusCarrier::pack(grad{p.name}[i], false);")
         contents.append("")
+
+    p=l[-1]
+    contents.append(f"for (int i = 0; i < {p.count} - 1; ++i)")
+    contents.append(f"    out << FloatBusCarrier::pack(grad{p.name}[i], false);")
+    contents.append("")
+    contents.append(f"out << FloatBusCarrier::pack(grad{p.name}[{p.count} - 1], true);")
 
     return "\n".join("    " + x for x in contents)
 

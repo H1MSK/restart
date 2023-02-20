@@ -41,7 +41,7 @@ endgroup
 # ZYNQ system
 startgroup
 create_bd_cell -type ip -vlnv xilinx.com:ip:processing_system7:5.5 processing_system7_0
-set_property -dict [list CONFIG.PCW_FPGA0_PERIPHERAL_FREQMHZ {$system_clk_mhz} CONFIG.PCW_USE_S_AXI_HP0 {1} CONFIG.PCW_USE_S_AXI_HP1 {1} CONFIG.PCW_USE_S_AXI_HP2 {1} CONFIG.PCW_USE_S_AXI_HP3 {1} CONFIG.PCW_USE_FABRIC_INTERRUPT {1} CONFIG.PCW_S_AXI_HP0_DATA_WIDTH {32} CONFIG.PCW_S_AXI_HP1_DATA_WIDTH {32} CONFIG.PCW_S_AXI_HP2_DATA_WIDTH {32} CONFIG.PCW_S_AXI_HP3_DATA_WIDTH {32} CONFIG.PCW_IRQ_F2P_INTR {1} CONFIG.PCW_UIPARAM_DDR_PARTNO {MT41J256M16 RE-125} CONFIG.PCW_GPIO_EMIO_GPIO_ENABLE {1} CONFIG.PCW_GPIO_EMIO_GPIO_IO {32} CONFIG.PCW_PRESET_BANK1_VOLTAGE {LVCMOS 1.8V}] [get_bd_cells processing_system7_0]
+set_property -dict [list CONFIG.PCW_FPGA0_PERIPHERAL_FREQMHZ {$system_clk_mhz} CONFIG.PCW_USE_S_AXI_HP0 {1} CONFIG.PCW_USE_S_AXI_HP1 {1} CONFIG.PCW_USE_S_AXI_HP2 {1} CONFIG.PCW_USE_S_AXI_HP3 {0} CONFIG.PCW_USE_FABRIC_INTERRUPT {1} CONFIG.PCW_S_AXI_HP0_DATA_WIDTH {32} CONFIG.PCW_S_AXI_HP1_DATA_WIDTH {32} CONFIG.PCW_S_AXI_HP2_DATA_WIDTH {32} CONFIG.PCW_S_AXI_HP3_DATA_WIDTH {32} CONFIG.PCW_IRQ_F2P_INTR {1} CONFIG.PCW_UIPARAM_DDR_PARTNO {MT41J256M16 RE-125} CONFIG.PCW_GPIO_EMIO_GPIO_ENABLE {1} CONFIG.PCW_GPIO_EMIO_GPIO_IO {32} CONFIG.PCW_PRESET_BANK1_VOLTAGE {LVCMOS 1.8V}] [get_bd_cells processing_system7_0]
 endgroup
 
 
@@ -115,28 +115,40 @@ endgroup
 
 
 
-# AXI Interconnect IP gmem <==> HP Slave
+# AXI Interconnect param&grad <==> DMA <==> HP Slave 0/1
 startgroup
-apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config { Clk_master {/processing_system7_0/FCLK_CLK0} Clk_slave {Auto} Clk_xbar {Auto} Master {/forward/m_axi_gmem} Slave {/processing_system7_0/S_AXI_HP0} ddr_seg {Auto} intc_ip {New AXI Interconnect} master_apm {0}}  [get_bd_intf_pins processing_system7_0/S_AXI_HP0]
-set_property name axi_mem_intercon_fw [get_bd_cells axi_mem_intercon]
-delete_bd_objs [get_bd_addr_segs forward/Data_m_axi_gmem/*]
+create_bd_cell -type ip -vlnv xilinx.com:ip:axi_dma:7.1 axi_dma_pg
+set_property -dict [list CONFIG.c_include_sg {0} CONFIG.c_sg_length_width {20} CONFIG.c_sg_include_stscntrl_strm {0} CONFIG.c_mm2s_burst_size {256} CONFIG.c_s2mm_burst_size {256}] [get_bd_cells axi_dma_pg]
+connect_bd_intf_net [get_bd_intf_pins axi_dma_pg/M_AXIS_MM2S] [get_bd_intf_pins param_loader/in_r]
+connect_bd_intf_net [get_bd_intf_pins grad_extractor/out_r] [get_bd_intf_pins axi_dma_pg/S_AXIS_S2MM]
+apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config { Clk_master {Auto} Clk_slave {/processing_system7_0/FCLK_CLK0} Clk_xbar {Auto} Master {/axi_dma_pg/M_AXI_MM2S} Slave {/processing_system7_0/S_AXI_HP0} ddr_seg {Auto} intc_ip {New AXI Interconnect} master_apm {0}}  [get_bd_intf_pins processing_system7_0/S_AXI_HP0]
+apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config { Clk_master {Auto} Clk_slave {/processing_system7_0/FCLK_CLK0} Clk_xbar {Auto} Master {/axi_dma_pg/M_AXI_S2MM} Slave {/processing_system7_0/S_AXI_HP1} ddr_seg {Auto} intc_ip {New AXI Interconnect} master_apm {0}}  [get_bd_intf_pins processing_system7_0/S_AXI_HP1]
+endgroup
 
-apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config { Clk_master {/processing_system7_0/FCLK_CLK0} Clk_slave {Auto} Clk_xbar {Auto} Master {/backward/m_axi_gmem} Slave {/processing_system7_0/S_AXI_HP1} ddr_seg {Auto} intc_ip {New AXI Interconnect} master_apm {0}}  [get_bd_intf_pins processing_system7_0/S_AXI_HP1]
-set_property name axi_mem_intercon_bw [get_bd_cells axi_mem_intercon]
-delete_bd_objs [get_bd_addr_segs backward/Data_m_axi_gmem/*]
 
-apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config { Clk_master {/processing_system7_0/FCLK_CLK0} Clk_slave {Auto} Clk_xbar {Auto} Master {/param_loader/m_axi_gmem} Slave {/processing_system7_0/S_AXI_HP2} ddr_seg {Auto} intc_ip {New AXI Interconnect} master_apm {0}}  [get_bd_intf_pins processing_system7_0/S_AXI_HP2]
-set_property name axi_mem_intercon_pa [get_bd_cells axi_mem_intercon]
-delete_bd_objs [get_bd_addr_segs param_loader/Data_m_axi_gmem/*]
 
-apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config { Clk_master {/processing_system7_0/FCLK_CLK0} Clk_slave {Auto} Clk_xbar {Auto} Master {/grad_extractor/m_axi_gmem} Slave {/processing_system7_0/S_AXI_HP3} ddr_seg {Auto} intc_ip {New AXI Interconnect} master_apm {0}}  [get_bd_intf_pins processing_system7_0/S_AXI_HP3]
-set_property name axi_mem_intercon_gr [get_bd_cells axi_mem_intercon]
-delete_bd_objs [get_bd_addr_segs grad_extractor/Data_m_axi_gmem/*]
 
-assign_bd_address -target_address_space /forward/Data_m_axi_gmem [get_bd_addr_segs processing_system7_0/S_AXI_HP0/HP0_DDR_LOWOCM] -force
-assign_bd_address -target_address_space /backward/Data_m_axi_gmem [get_bd_addr_segs processing_system7_0/S_AXI_HP1/HP1_DDR_LOWOCM] -force
-assign_bd_address -target_address_space /param_loader/Data_m_axi_gmem [get_bd_addr_segs processing_system7_0/S_AXI_HP2/HP2_DDR_LOWOCM] -force
-assign_bd_address -target_address_space /grad_extractor/Data_m_axi_gmem [get_bd_addr_segs processing_system7_0/S_AXI_HP3/HP3_DDR_LOWOCM] -force
+
+# AXI Interconnect forward <==> DMA <==> HP Slave 0/1
+startgroup
+create_bd_cell -type ip -vlnv xilinx.com:ip:axi_dma:7.1 axi_dma_fw
+set_property -dict [list CONFIG.c_include_sg {0} CONFIG.c_sg_include_stscntrl_strm {0}] [get_bd_cells axi_dma_fw]
+connect_bd_intf_net [get_bd_intf_pins axi_dma_fw/M_AXIS_MM2S] [get_bd_intf_pins forward/axis_x]
+connect_bd_intf_net [get_bd_intf_pins axi_dma_fw/S_AXIS_S2MM] [get_bd_intf_pins forward/axis_y]
+apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config { Clk_master {Auto} Clk_slave {/processing_system7_0/FCLK_CLK0} Clk_xbar {/processing_system7_0/FCLK_CLK0} Master {/axi_dma_fw/M_AXI_MM2S} Slave {/processing_system7_0/S_AXI_HP1} ddr_seg {Auto} intc_ip {/axi_mem_intercon_1} master_apm {0}}  [get_bd_intf_pins axi_dma_fw/M_AXI_MM2S]
+apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config { Clk_master {Auto} Clk_slave {/processing_system7_0/FCLK_CLK0} Clk_xbar {/processing_system7_0/FCLK_CLK0} Master {/axi_dma_fw/M_AXI_S2MM} Slave {/processing_system7_0/S_AXI_HP0} ddr_seg {Auto} intc_ip {/axi_mem_intercon} master_apm {0}}  [get_bd_intf_pins axi_dma_fw/M_AXI_S2MM]
+endgroup
+
+
+
+
+
+# AXI Interconnect backward <==> DMA <==> HP Slave 2
+startgroup
+create_bd_cell -type ip -vlnv xilinx.com:ip:axi_dma:7.1 axi_dma_bw
+set_property -dict [list CONFIG.c_include_sg {0} CONFIG.c_sg_include_stscntrl_strm {0} CONFIG.c_include_s2mm {0}] [get_bd_cells axi_dma_bw]
+connect_bd_intf_net [get_bd_intf_pins axi_dma_bw/M_AXIS_MM2S] [get_bd_intf_pins backward/axis_grad_y]
+apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config { Clk_master {Auto} Clk_slave {/processing_system7_0/FCLK_CLK0} Clk_xbar {Auto} Master {/axi_dma_bw/M_AXI_MM2S} Slave {/processing_system7_0/S_AXI_HP2} ddr_seg {Auto} intc_ip {New AXI Interconnect} master_apm {0}}  [get_bd_intf_pins processing_system7_0/S_AXI_HP2]
 endgroup
 
 
@@ -144,6 +156,9 @@ endgroup
 
 # AXI Slave GP 0 to DMAs
 startgroup
+apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config { Clk_master {Auto} Clk_slave {/processing_system7_0/FCLK_CLK0} Clk_xbar {Auto} Master {/processing_system7_0/M_AXI_GP0} Slave {/axi_dma_fw/S_AXI_LITE} ddr_seg {0x4020_0000} intc_ip {New AXI Interconnect} master_apm {0}}  [get_bd_intf_pins axi_dma_fw/S_AXI_LITE]
+apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config { Clk_master {Auto} Clk_slave {/processing_system7_0/FCLK_CLK0} Clk_xbar {Auto} Master {/processing_system7_0/M_AXI_GP0} Slave {/axi_dma_bw/S_AXI_LITE} ddr_seg {0x4021_0000} intc_ip {New AXI Interconnect} master_apm {0}}  [get_bd_intf_pins axi_dma_bw/S_AXI_LITE]
+apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config { Clk_master {Auto} Clk_slave {/processing_system7_0/FCLK_CLK0} Clk_xbar {Auto} Master {/processing_system7_0/M_AXI_GP0} Slave {/axi_dma_pg/S_AXI_LITE} ddr_seg {0x4022_0000} intc_ip {New AXI Interconnect} master_apm {0}}  [get_bd_intf_pins axi_dma_pg/S_AXI_LITE]
 apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config { Clk_master {Auto} Clk_slave {/processing_system7_0/FCLK_CLK0} Clk_xbar {Auto} Master {/processing_system7_0/M_AXI_GP0} Slave {/forward/s_axi_control} ddr_seg {0x4000_0000} intc_ip {New AXI Interconnect} master_apm {0}}  [get_bd_intf_pins forward/s_axi_control]
 apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config { Clk_master {Auto} Clk_slave {/processing_system7_0/FCLK_CLK0} Clk_xbar {Auto} Master {/processing_system7_0/M_AXI_GP0} Slave {/backward/s_axi_control} ddr_seg {0x4001_0000} intc_ip {New AXI Interconnect} master_apm {0}}  [get_bd_intf_pins backward/s_axi_control]
 apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config { Clk_master {Auto} Clk_slave {/processing_system7_0/FCLK_CLK0} Clk_xbar {Auto} Master {/processing_system7_0/M_AXI_GP0} Slave {/param_loader/s_axi_control} ddr_seg {0x4002_0000} intc_ip {New AXI Interconnect} master_apm {0}}  [get_bd_intf_pins param_loader/s_axi_control]
