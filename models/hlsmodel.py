@@ -59,6 +59,9 @@ class HlsActorCritic(AbstractActorCritic):
         self.ip_backward = self.overlay.backward
         self.ip_param_loader = self.overlay.param_loader
         self.ip_grad_extractor = self.overlay.grad_extractor
+        self.ip_dma_fw = self.overlay.axi_dma_fw
+        self.ip_dma_bw = self.overlay.axi_dma_bw
+        self.ip_dma_pg = self.overlay.axi_dma_pg
 
         self.sys_reset_o   = GPIO(GPIO.get_gpio_pin(0x10), 'out')
         self.pa_reset_o    = GPIO(GPIO.get_gpio_pin(0x11), 'out')
@@ -128,11 +131,15 @@ class HlsActorCritic(AbstractActorCritic):
         while not self.ip_param_loader.register_map.CTRL.AP_IDLE:
             pass
 
-        self.ip_param_loader.register_map.in_r=self.params.device_address
-
         self.ip_param_loader.register_map.CTRL.AP_START=1
 
-        while not self.ip_param_loader.register_map.CTRL.AP_DONE:
+        self.ip_dma_pg.register_map.MM2S_DMACR.RS=1
+        self.ip_dma_pg.sendchannel.transfer(self.params)
+        # self.ip_dma_pg.register_map.MM2S_SA=self.params.device_address
+        # self.ip_dma_pg.register_map.MM2S_LENGTH=len(self.params)*4
+
+        self.ip_dma_pg.sendchannel.wait()
+        while not (x := self.ip_param_loader.register_map.CTRL).AP_DONE and not x.AP_IDLE:
             pass
 
         _logger.info("Parameters syncing finished!")
@@ -151,7 +158,7 @@ class HlsActorCritic(AbstractActorCritic):
         value = np.zeros((len(obs), 1), dtype=np_cm_float)
 
         holder_x = pynq.allocate((self.obs_dim, ), dtype=np_cm_float)
-        holder_y = pynq.allocate((self.act_dim * 5 + 1, ), dtype=np_cm_float)
+        holder_y = pynq.allocate((self.act_dim * 2 + 1, ), dtype=np_cm_float)
         self.bram_sel_o.write(1)
         self.cache_en_o.write(1 if requires_grad else 0)
 
@@ -162,10 +169,18 @@ class HlsActorCritic(AbstractActorCritic):
             print(f"Forwarding #{i:2d}...", end="\r")
             np.copyto(holder_x, o.numpy())
             holder_x.sync_to_device()
-            self.ip_forward.register_map.maxi_x=holder_x.device_address
-            self.ip_forward.register_map.maxi_y=holder_y.device_address
-            self.ip_forward.register_map.CTRL.AP_START=1
-            while not self.ip_forward.register_map.CTRL.AP_DONE:
+            self.ip_forward.register_map.CTRL.AP_START = 1
+            self.ip_dma_fw.register_map.S2MM_DMACR.RS = 1
+            self.ip_dma_fw.recvchannel.transfer(holder_y)
+            self.ip_dma_fw.register_map.MM2S_DMACR.RS = 1
+            self.ip_dma_fw.sendchannel.transfer(holder_x)
+            # self.ip_dma_fw.register_map.MM2S_SA = holder_x.device_address
+            # self.ip_dma_fw.register_map.MM2S_LENGTH = len(holder_x)*4
+            # self.ip_dma_fw.register_map.S2MM_DA = holder_y.device_address
+            # self.ip_dma_fw.register_map.S2MM_LENGTH = len(holder_y)*4
+            # self.ip_dma_fw.sendchannel.wait()
+            # self.ip_dma_fw.recvchannel.wait()
+            while not (x := self.ip_forward.register_map.CTRL).AP_DONE and not x.AP_IDLE:
                 pass
             holder_y.sync_from_device()
             mu[i, :]=holder_y[:self.act_dim]
@@ -209,12 +224,15 @@ class HlsActorCritic(AbstractActorCritic):
             
             np.copyto(holder, g.numpy())
             holder.sync_to_device()
-            self.ip_backward.register_map.maxi_grad_y=holder.device_address
             self.ip_backward.register_map.CTRL.AP_START=1
-            while not self.ip_backward.register_map.CTRL.AP_DONE:
+            self.ip_dma_bw.register_map.MM2S_DMACR.RS=1
+            # self.ip_dma_bw.register_map.MM2S_SA=holder.device_address
+            # self.ip_dma_bw.register_map.MM2S_LENGTH=len(holder)*4
+            self.ip_dma_bw.sendchannel.transfer(holder)
+            self.ip_dma_bw.sendchannel.wait()
+            while not (x := self.ip_backward.register_map.CTRL).AP_DONE and not x.AP_IDLE:
                 pass
 
-        
     def _actual_zero_grad(self):
         self.gr_reset_o.write(1)
         # TODO: test this
@@ -230,10 +248,11 @@ class HlsActorCritic(AbstractActorCritic):
         while not self.ip_grad_extractor.register_map.CTRL.AP_IDLE:
             pass
 
-        self.ip_grad_extractor.register_map.out_r=self.grads.device_address
-
+        self.ip_dma_pg.register_map.S2MM_DMACR.RS=1
+        self.ip_dma_pg.register_map.S2MM_DA=self.grads.device_address
+        self.ip_dma_pg.register_map.S2MM_LENGTH=len(self.grads)*4
         self.ip_grad_extractor.register_map.CTRL.AP_START=1
-        while not self.ip_grad_extractor.register_map.CTRL.AP_DONE:
+        while not (x := self.ip_grad_extractor.register_map.CTRL).AP_DONE and not x.AP_IDLE:
             pass
 
         self.grads.sync_from_device()
