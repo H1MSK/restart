@@ -19,6 +19,7 @@ if __name__ == '__main__':
     data_io_src = "generated.data_io.cpp"
     data_io_tcl = "generated.data_io.tcl"
     system_tcl = "generated.system.tcl"
+    pg_system_tcl = "generated.pg_system.tcl"
     ip_sim_src = "generated.nn.sim.cpp"
     ip_test_src = "generated.nn.test.cpp"
     post_system_sh = "generated.wait_and_export.sh"
@@ -40,4 +41,4 @@ if __name__ == '__main__':
     gen_data_io_source(data_io_src)
     gen_data_io_tcl(data_io_tcl, data_io_src)
     gen_nn_ip_simulation_product(ip_sim_lib, [ip_src, ip_sim_src, data_io_src])
-    gen_system_tcl(system_tcl, post_system_sh, struct_id)
+    gen_system_tcl(system_tcl, pg_system_tcl, post_system_sh, struct_id)

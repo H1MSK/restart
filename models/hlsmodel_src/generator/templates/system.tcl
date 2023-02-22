@@ -180,9 +180,11 @@ connect_bd_net [get_bd_pins gpio_connection/grad_reset_busy] [get_bd_pins reduce
 
 connect_bd_net [get_bd_pins gpio_connection/system_reset] [get_bd_pins proc_sys_reset_0/aux_reset_in]
 
-$bram_mux_sel_connections
+$param_mux_sel_connections
+$grad_mux_sel_connections
 
-$bram_rst_connections
+$param_rst_connections
+$grad_rst_connections
 endgroup
 
 
