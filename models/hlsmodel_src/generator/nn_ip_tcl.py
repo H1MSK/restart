@@ -13,6 +13,7 @@ open_project build_forward
 open_solution -flow_target vivado sol
 add_files {ip_source_name}
 create_clock -period {synthesis_clock_period_ns}ns
+set_clock_uncertainty {synthesis_clock_uncertainty}
 set_part {part_name}
 set_top top_forward
 {fw_source_directive}
@@ -24,6 +25,7 @@ open_project build_backward
 open_solution -flow_target vivado sol
 add_files {ip_source_name}
 create_clock -period {synthesis_clock_period_ns}ns
+set_clock_uncertainty {synthesis_clock_uncertainty}
 set_part {part_name}
 set_top top_backward
 {bw_source_directive}
@@ -37,6 +39,7 @@ open_project build_nn_ip
 open_solution -flow_target vivado sol
 add_files {ip_source_name}
 create_clock -period {synthesis_clock_period_ns}ns
+set_clock_uncertainty {synthesis_clock_uncertainty}
 set_part {part_name}
 set_top nn_ip
 {fw_source_directive}
