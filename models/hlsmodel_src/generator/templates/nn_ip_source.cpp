@@ -17,7 +17,7 @@ void task_forward(hls::stream<cm_float, $nn_in_size>& in_x,
 
     $param_rom1p_pragmas
     $cache_fifo_interface_pragmas
-    
+
     $fw_content
 }
 
@@ -29,7 +29,6 @@ void top_forward(
     $param_signatures,
     $cache_signatures) {
     #pragma HLS INTERFACE mode=s_axilite port=return
-    #pragma HLS DATAFLOW
     #pragma HLS INTERFACE mode=m_axi port=maxi_x depth=$nn_in_size
     #pragma HLS INTERFACE mode=m_axi port=maxi_y depth=$nn_out_size
     #pragma HLS INTERFACE mode=s_axilite port=cache_en
