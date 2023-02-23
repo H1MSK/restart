@@ -9,9 +9,9 @@ MODEL_API void extract_grad(cm_float grads[$all_param_count]);
 
 MODEL_API void zero_grad();
 
-MODEL_API void forward(bool cache_en, cm_float in_x[$nn_in_size], cm_float out_y[$nn_out_size]);
+MODEL_API void forward(bool cache_en, int n, cm_float in_x[$nn_in_size], cm_float out_y[$nn_out_size]);
 
-MODEL_API void backward(cm_float grad_y[$nn_out_size]);
+MODEL_API void backward(int n, cm_float grad_y[$nn_out_size]);
 
 int main() {
     cm_float params[$all_param_count];
@@ -36,9 +36,9 @@ int main() {
 
     load_param(params);
 
-    forward(false, maxi_x, maxi_y);
-    forward(true, maxi_x, maxi_y);
-    backward(maxi_grad_y);
+    forward(false, 1, maxi_x, maxi_y);
+    forward(true, 1, maxi_x, maxi_y);
+    backward(1, maxi_grad_y);
 
     extract_grad(grads);
 }

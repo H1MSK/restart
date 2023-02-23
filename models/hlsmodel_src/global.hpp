@@ -3,6 +3,7 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-variable"
 #pragma GCC diagnostic ignored "-Wsign-compare"
+#pragma GCC diagnostic ignored "-Wdeprecated-copy"
 #include <hls_stream.h>
 #include <ap_axi_sdata.h>
 #pragma GCC diagnostic pop
@@ -11,11 +12,7 @@
 namespace hlsnn {
 using cm_float = float;
 constexpr size_t cm_float_bitwidth = sizeof(cm_float) * 8;
-#ifdef HLS_BUILD_SIM
-struct cm_axis_data { int32_t data; };
-#else
 using cm_axis_data = ap_axis<cm_float_bitwidth, 0, 0, 0>;
-#endif
 }  //namespace hlsnn
 
 #include <hls_math.h>

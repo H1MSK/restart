@@ -68,14 +68,14 @@ struct FloatBusCarrier {
         }
     }
     static cm_axis_data pack(cm_float x, bool isLast) {
-        cm_axis_data e;
-
-        #ifndef HLS_BUILD_SIM
-        e.last = isLast;
-        #endif
-
-        e.data = (View{.f = x}.i);
-        return e;
+        return cm_axis_data {
+            .data = (View{.f = x}.i),
+            .keep = 0xFFFFFFFFUL,
+            .strb = 0xFFFFFFFFUL,
+            .user = 0,
+            .last = isLast,
+            .id = 0,
+            .dest = 0};
     }
     static cm_float unpack(const cm_axis_data& i) {
         return View{.i = int(i.data)}.f;

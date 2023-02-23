@@ -174,7 +174,7 @@ startgroup
 create_bd_cell -type ip -vlnv h1msk.cc:fpga_nn.hls:gpio_connection:1.0 gpio_connection
 connect_bd_intf_net [get_bd_intf_pins processing_system7_0/GPIO_0] [get_bd_intf_pins gpio_connection/GPIO]
 
-connect_bd_net [get_bd_pins forward/cache_en] [get_bd_pins gpio_connection/cache_en]
+# connect_bd_net [get_bd_pins forward/cache_en] [get_bd_pins gpio_connection/cache_en]
 connect_bd_net [get_bd_pins gpio_connection/param_reset_busy] [get_bd_pins reduce_param_reset/Res]
 connect_bd_net [get_bd_pins gpio_connection/grad_reset_busy] [get_bd_pins reduce_grad_reset/Res]
 
@@ -224,7 +224,7 @@ add_files -norecurse ./build_system/system.gen/sources_1/bd/system/hdl/system_wr
 
 reset_run impl_1
 reset_run synth_1
-launch_runs impl_1 -to_step write_bitstream -jobs 2
+launch_runs impl_1 -to_step write_bitstream -jobs 4
 
 # Todo: synthesis, implement, export
 
