@@ -19,6 +19,20 @@
                 "${workspaceFolder}/models/hlsmodel_src/hls_headers"
             ],
             "defines": [
+                "INTELLISENSE"
+            ],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "gnu11",
+            "cppStandard": "gnu++17",
+            "intelliSenseMode": "linux-gcc-x64"
+        },
+        {
+            "name": "Linux HLSSimModel",
+            "includePath": [
+                "${workspaceFolder}/models/hlsmodel_src",
+                "${workspaceFolder}/models/hlsmodel_src/hls_headers"
+            ],
+            "defines": [
                 "INTELLISENSE",
                 "HLS_BUILD_SIM"
             ],
