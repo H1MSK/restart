@@ -2,42 +2,12 @@
 
 using namespace hlsnn;
 
-void param_loader(
-    cm_float in[$all_param_count],
-    $param_signatures);
+MODEL_API void load_param(cm_float params[$all_param_count]);
+MODEL_API void extract_grad(cm_float grads[$all_param_count]);
+MODEL_API void zero_grad();
+MODEL_API void forward(bool cache_en, int n, cm_float in_x[$nn_in_size], cm_float out_y[$nn_out_size]);
+MODEL_API void backward(int n, cm_float grad_y[$nn_out_size]);
 
-void grad_extractor(
-    $grad_signatures,
-    cm_float out[$all_param_count]);
-
-void top_forward(
-    cm_float maxi_x[$nn_in_size],
-    cm_float maxi_y[$nn_out_size],
-    bool cache_en,
-    $param_signatures,
-    $cache_signatures);
-
-void top_backward(
-    cm_float maxi_grad_y[$nn_out_size],
-    $param_signatures,
-    $grad_signatures,
-    $cache_signatures);
-
-$cache_static_definitions;
-$param_static_definitions;
-$grad_static_definitions;
-
-MODEL_API void load_param(cm_float params[$all_param_count]) {
-    param_loader(params, $param_variables);
-}
-
-MODEL_API void extract_grad(cm_float grads[$all_param_count]) {
-    grad_extractor($grad_variables, grads);
-}
-
-MODEL_API void zero_grad() {
-    $zero_grads;
-}
 
 int main() {
     cm_float params[$all_param_count];
@@ -62,17 +32,10 @@ int main() {
 
     load_param(params);
 
-    top_forward(maxi_x, maxi_y, false,
-        $param_variables,
-        $cache_variables);
+    forward(false, 1, maxi_x, maxi_y);
 
-    top_forward(maxi_x, maxi_y, true,
-        $param_variables,
-        $cache_variables);
-    top_backward(maxi_grad_y,
-        $param_variables,
-        $grad_variables,
-        $cache_variables);
+    forward(true, 1, maxi_x, maxi_y);
+    backward(1, maxi_grad_y);
 
     extract_grad(grads);
 }

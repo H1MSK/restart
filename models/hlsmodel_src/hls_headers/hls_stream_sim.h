@@ -28,6 +28,11 @@ class stream<Type, 0> {
         return x;
     }
 
+    void read(Type &x) {
+        x = data.front();
+        data.pop_front();
+    }
+
     void write(Type x) {
         data.push_back(x);
     }
