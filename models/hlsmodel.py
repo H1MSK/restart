@@ -67,7 +67,7 @@ class HlsActorCritic(AbstractActorCritic):
         self.pa_rst_busy_i = GPIO(GPIO.get_gpio_pin(0x14), 'in')
         self.gr_rst_busy_i = GPIO(GPIO.get_gpio_pin(0x15), 'in')
 
-        self.cache_en_o    = GPIO(GPIO.get_gpio_pin(0x18), 'out')
+        # self.cache_en_o    = GPIO(GPIO.get_gpio_pin(0x18), 'out')
 
         self.bram_sel_o    = GPIO(GPIO.get_gpio_pin(0x19), 'out')
 
@@ -132,7 +132,7 @@ class HlsActorCritic(AbstractActorCritic):
 
         self.ip_param_loader.register_map.CTRL.AP_START=1
 
-        while not self.ip_param_loader.register_map.CTRL.AP_DONE:
+        while not (x := self.ip_param_loader.register_map.CTRL).AP_DONE and not x.AP_IDLE:
             pass
 
         _logger.info("Parameters syncing finished!")
@@ -146,35 +146,30 @@ class HlsActorCritic(AbstractActorCritic):
         self.lr_critic_modifier = value / self.lr_actor
 
     def forward(self, obs: torch.Tensor, requires_grad=False) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        mu = np.zeros((len(obs), self.act_dim), dtype=np_cm_float)
-        sigma = np.zeros((len(obs), self.act_dim), dtype=np_cm_float)
-        value = np.zeros((len(obs), 1), dtype=np_cm_float)
-
-        holder_x = pynq.allocate((self.obs_dim, ), dtype=np_cm_float)
-        holder_y = pynq.allocate((self.act_dim * 5 + 1, ), dtype=np_cm_float)
+        holder_x = pynq.allocate((len(obs), self.obs_dim), dtype=np_cm_float)
+        holder_y = pynq.allocate((len(obs), self.act_dim * 2 + 1), dtype=np_cm_float)
+        np.copyto(holder_x, obs.numpy())
         self.bram_sel_o.write(1)
-        self.cache_en_o.write(1 if requires_grad else 0)
 
         while not self.ip_forward.register_map.CTRL.AP_IDLE:
             pass
 
-        for i, o in enumerate(obs):
-            print(f"Forwarding #{i:2d}...", end="\r")
-            np.copyto(holder_x, o.numpy())
-            holder_x.sync_to_device()
-            self.ip_forward.register_map.maxi_x=holder_x.device_address
-            self.ip_forward.register_map.maxi_y=holder_y.device_address
-            self.ip_forward.register_map.CTRL.AP_START=1
-            while not self.ip_forward.register_map.CTRL.AP_DONE:
-                pass
-            holder_y.sync_from_device()
-            mu[i, :]=holder_y[:self.act_dim]
-            sigma[i, :]=holder_y[self.act_dim:self.act_dim*2]
-            value[i, 0]=holder_y[self.act_dim*2]
+        holder_x.sync_to_device()
 
-        return (torch.from_numpy(value).requires_grad_(requires_grad),
-                torch.from_numpy(mu).requires_grad_(requires_grad),
-                torch.from_numpy(sigma).requires_grad_(requires_grad))
+        self.ip_forward.register_map.n=len(obs)
+        self.ip_forward.register_map.cache_en = (1 if requires_grad else 0)
+        self.ip_forward.register_map.maxi_x=holder_x.device_address
+        self.ip_forward.register_map.maxi_y=holder_y.device_address
+        self.ip_forward.register_map.CTRL.AP_START = 1
+
+        while not (x:=self.ip_forward.register_map.CTRL).AP_IDLE and not x.AP_DONE:
+            pass
+
+        holder_y.sync_from_device()
+
+        return (torch.from_numpy(holder_y[:, :self.act_dim]).requires_grad_(requires_grad),
+                torch.from_numpy(holder_y[:, self.act_dim:self.act_dim*2]).requires_grad_(requires_grad),
+                torch.from_numpy(holder_y[:, self.act_dim*2]).requires_grad_(requires_grad))
 
     def act(self, obs: torch.Tensor, requires_grad=False) -> Tuple[torch.Tensor, torch.Tensor]:
         # To avoid messing up cache
@@ -199,22 +194,21 @@ class HlsActorCritic(AbstractActorCritic):
         assert(len(grads.shape) == 2)
         self.bram_sel_o.write(1)
 
-        holder = pynq.allocate(grads.shape[1:], dtype=np_cm_float)
+        holder = pynq.allocate(grads.shape, dtype=np_cm_float)
+        np.copyto(holder, grads)
 
         while not self.ip_backward.register_map.CTRL.AP_IDLE:
             pass
 
-        for i, g in enumerate(grads):
-            print(f"Backwarding #{i:2d}...", end="\r")
-            
-            np.copyto(holder, g.numpy())
-            holder.sync_to_device()
-            self.ip_backward.register_map.maxi_grad_y=holder.device_address
-            self.ip_backward.register_map.CTRL.AP_START=1
-            while not self.ip_backward.register_map.CTRL.AP_DONE:
-                pass
+        holder.sync_to_device()
 
-        
+        self.ip_backward.register_map.n = len(grads)
+        self.ip_backward.register_map.maxi_grad_y=holder.device_address
+        self.ip_backward.register_map.CTRL.AP_START=1
+
+        while not (x:=self.ip_backward.register_map.CTRL).AP_IDLE and not x.AP_DONE:
+            pass
+
     def _actual_zero_grad(self):
         self.gr_reset_o.write(1)
         # TODO: test this
@@ -230,10 +224,12 @@ class HlsActorCritic(AbstractActorCritic):
         while not self.ip_grad_extractor.register_map.CTRL.AP_IDLE:
             pass
 
+        self.grads.sync_to_device()
+
         self.ip_grad_extractor.register_map.out_r=self.grads.device_address
 
         self.ip_grad_extractor.register_map.CTRL.AP_START=1
-        while not self.ip_grad_extractor.register_map.CTRL.AP_DONE:
+        while not (x := self.ip_grad_extractor.register_map.CTRL).AP_DONE and not x.AP_IDLE:
             pass
 
         self.grads.sync_from_device()
