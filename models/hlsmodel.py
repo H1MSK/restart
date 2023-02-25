@@ -167,9 +167,9 @@ class HlsActorCritic(AbstractActorCritic):
 
         holder_y.sync_from_device()
 
-        return (torch.from_numpy(holder_y[:, :self.act_dim]).requires_grad_(requires_grad),
-                torch.from_numpy(holder_y[:, self.act_dim:self.act_dim*2]).requires_grad_(requires_grad),
-                torch.from_numpy(holder_y[:, self.act_dim*2]).requires_grad_(requires_grad))
+        return (torch.from_numpy(holder_y[:, self.act_dim*2:]).requires_grad_(requires_grad),
+                torch.from_numpy(holder_y[:, :self.act_dim]).requires_grad_(requires_grad),
+                torch.from_numpy(holder_y[:, self.act_dim:self.act_dim*2]).requires_grad_(requires_grad))
 
     def act(self, obs: torch.Tensor, requires_grad=False) -> Tuple[torch.Tensor, torch.Tensor]:
         # To avoid messing up cache
