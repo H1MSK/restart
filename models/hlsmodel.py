@@ -33,6 +33,8 @@ class HlsActorCritic(AbstractActorCritic):
     def __init__(self, obs_dim, act_dim, /, lr_actor=0.0001, lr_critic=0.001, hidden_width=64, act_continuous=True, use_orthogonal_init=False) -> None:
         super().__init__(obs_dim, act_dim, lr_actor, lr_critic, hidden_width, act_continuous, use_orthogonal_init)
         _logger.info("Constructing HlsActorCritic...")
+        
+        self.holders = {}
 
         self._init_backend()
 
@@ -120,7 +122,7 @@ class HlsActorCritic(AbstractActorCritic):
         )
 
     def _apply_params(self):
-        _logger.info("Parameters syncing out...")
+        # _logger.info("Parameters syncing out...")
         self.bram_sel_o.write(0)
 
         self.params.sync_to_device()
@@ -135,7 +137,7 @@ class HlsActorCritic(AbstractActorCritic):
         while not (x := self.ip_param_loader.register_map.CTRL).AP_DONE and not x.AP_IDLE:
             pass
 
-        _logger.info("Parameters syncing finished!")
+        # _logger.info("Parameters syncing finished!")
 
     @property
     def lr_critic(self):
@@ -146,8 +148,16 @@ class HlsActorCritic(AbstractActorCritic):
         self.lr_critic_modifier = value / self.lr_actor
 
     def forward(self, obs: torch.Tensor, requires_grad=False) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        holder_x = pynq.allocate((len(obs), self.obs_dim), dtype=np_cm_float)
-        holder_y = pynq.allocate((len(obs), self.act_dim * 2 + 1), dtype=np_cm_float)
+        x_shape = (len(obs), self.obs_dim)
+        y_shape = (len(obs), self.act_dim * 2 + 1)
+        try:
+            holder_x = self.holders[x_shape]
+            holder_y = self.holders[y_shape]
+        except KeyError:
+            holder_x = pynq.allocate(x_shape, dtype=np_cm_float)
+            holder_y = pynq.allocate(y_shape, dtype=np_cm_float)
+            self.holders[x_shape] = holder_x
+            self.holders[y_shape] = holder_y
         np.copyto(holder_x, obs.numpy())
         self.bram_sel_o.write(1)
 
@@ -194,7 +204,12 @@ class HlsActorCritic(AbstractActorCritic):
         assert(len(grads.shape) == 2)
         self.bram_sel_o.write(1)
 
-        holder = pynq.allocate(grads.shape, dtype=np_cm_float)
+        try:
+            holder = self.holders[grads.shape]
+        except KeyError:
+            holder = pynq.allocate(grads.shape, dtype=np_cm_float)
+            self.holders[grads.shape] = holder
+
         np.copyto(holder, grads)
 
         while not self.ip_backward.register_map.CTRL.AP_IDLE:
@@ -223,8 +238,6 @@ class HlsActorCritic(AbstractActorCritic):
 
         while not self.ip_grad_extractor.register_map.CTRL.AP_IDLE:
             pass
-
-        self.grads.sync_to_device()
 
         self.ip_grad_extractor.register_map.out_r=self.grads.device_address
 
