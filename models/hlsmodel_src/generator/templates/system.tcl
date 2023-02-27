@@ -10,6 +10,7 @@ if {[file exists ./build_system]} {
 
 
 
+add_files ./generated_cache_debug_mux.v
 set_property  ip_repo_paths  . [current_project]
 update_ip_catalog -rebuild
 
@@ -32,6 +33,7 @@ create_bd_cell -type ip -vlnv xilinx.com:hls:forward:1.0 forward
 create_bd_cell -type ip -vlnv xilinx.com:hls:backward:1.0 backward
 create_bd_cell -type ip -vlnv xilinx.com:hls:grad_extractor:1.0 grad_extractor
 create_bd_cell -type ip -vlnv xilinx.com:hls:param_loader:1.0 param_loader
+create_bd_cell -type module -reference cache_debug_mux cache_debug_mux
 endgroup
 
 
@@ -159,6 +161,9 @@ startgroup
 create_bd_cell -type ip -vlnv h1msk.cc:fpga_nn.hls:gpio_connection:1.0 gpio_connection
 connect_bd_intf_net [get_bd_intf_pins processing_system7_0/GPIO_0] [get_bd_intf_pins gpio_connection/GPIO]
 
+connect_bd_net [get_bd_pins cache_debug_mux/cnt_o] [get_bd_pins gpio_connection/cache_cnt]
+connect_bd_net [get_bd_pins cache_debug_mux/sel] [get_bd_pins gpio_connection/cache_sel]
+
 # connect_bd_net [get_bd_pins forward/cache_en] [get_bd_pins gpio_connection/cache_en]
 connect_bd_net [get_bd_pins gpio_connection/param_reset_busy] [get_bd_pins reduce_param_reset/Res]
 connect_bd_net [get_bd_pins gpio_connection/grad_reset_busy] [get_bd_pins reduce_grad_reset/Res]
@@ -206,6 +211,9 @@ save_bd_design
 generate_target all [get_files  ./build_system/system.srcs/sources_1/bd/system/system.bd]
 make_wrapper -files [get_files ./build_system/system.srcs/sources_1/bd/system/system.bd] -top
 add_files -norecurse ./build_system/system.gen/sources_1/bd/system/hdl/system_wrapper.v
+set_property top system_wrapper [current_fileset]
+set_property top_lib xil_defaultlib [current_fileset]
+set_property top_file ./build_system/system.gen/sources_1/bd/system/hdl/system_wrapper.v [current_fileset]
 
 reset_run impl_1
 reset_run synth_1

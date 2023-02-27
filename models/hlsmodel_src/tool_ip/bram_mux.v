@@ -1,33 +1,56 @@
 `timescale 1ns / 1ps
 
-module fifo_switch#(
+module bram_mux#(
     parameter ADDR_WIDTH=32,
     parameter DATA_WIDTH=32,
     parameter WEN_WIDTH=DATA_WIDTH / 8 + (DATA_WIDTH & 7 ? 1 : 0)
 )(
+    (* X_INTERFACE_INFO = "xilinx.com:interface:bram:1.0 P0 ADDR" *)
+    (* X_INTERFACE_PARAMETER = "MASTER_TYPE BRAM_CTRL" *)
     input [ADDR_WIDTH-1:0]  P0_Addr,
+    (* X_INTERFACE_INFO = "xilinx.com:interface:bram:1.0 P0 EN" *)
     input                   P0_EN,
+    (* X_INTERFACE_INFO = "xilinx.com:interface:bram:1.0 P0 DIN" *)
     input [DATA_WIDTH-1:0]  P0_Din,
+    (* X_INTERFACE_INFO = "xilinx.com:interface:bram:1.0 P0 DOUT" *)
     output [DATA_WIDTH-1:0] P0_Dout,
+    (* X_INTERFACE_INFO = "xilinx.com:interface:bram:1.0 P0 WE" *)
     input [WEN_WIDTH-1:0]   P0_WEN,
+    (* X_INTERFACE_INFO = "xilinx.com:interface:bram:1.0 P0 CLK" *)
     input                   P0_Clk,
+    (* X_INTERFACE_INFO = "xilinx.com:interface:bram:1.0 P0 RST" *)
     input                   P0_Rst,
     
+    (* X_INTERFACE_INFO = "xilinx.com:interface:bram:1.0 P1 ADDR" *)
+    (* X_INTERFACE_PARAMETER = "MASTER_TYPE BRAM_CTRL" *)
     input [ADDR_WIDTH-1:0]  P1_Addr,
+    (* X_INTERFACE_INFO = "xilinx.com:interface:bram:1.0 P1 EN" *)
     input                   P1_EN,
+    (* X_INTERFACE_INFO = "xilinx.com:interface:bram:1.0 P1 DIN" *)
     input [DATA_WIDTH-1:0]  P1_Din,
+    (* X_INTERFACE_INFO = "xilinx.com:interface:bram:1.0 P1 DOUT" *)
     output [DATA_WIDTH-1:0] P1_Dout,
+    (* X_INTERFACE_INFO = "xilinx.com:interface:bram:1.0 P1 WE" *)
     input [WEN_WIDTH-1:0]   P1_WEN,
+    (* X_INTERFACE_INFO = "xilinx.com:interface:bram:1.0 P1 CLK" *)
     input                   P1_Clk,
+    (* X_INTERFACE_INFO = "xilinx.com:interface:bram:1.0 P1 RST" *)
     input                   P1_Rst,
 
 
+    (* X_INTERFACE_INFO = "xilinx.com:interface:bram:1.0 O ADDR" *)
     output [ADDR_WIDTH-1:0] O_Addr,
+    (* X_INTERFACE_INFO = "xilinx.com:interface:bram:1.0 O EN" *)
     output                  O_EN,
+    (* X_INTERFACE_INFO = "xilinx.com:interface:bram:1.0 O DIN" *)
     output [DATA_WIDTH-1:0] O_Din,
+    (* X_INTERFACE_INFO = "xilinx.com:interface:bram:1.0 O DOUT" *)
     input [DATA_WIDTH-1:0]  O_Dout,
+    (* X_INTERFACE_INFO = "xilinx.com:interface:bram:1.0 O WE" *)
     output [WEN_WIDTH-1:0]  O_WEN,
+    (* X_INTERFACE_INFO = "xilinx.com:interface:bram:1.0 O CLK" *)
     output                  O_Clk,
+    (* X_INTERFACE_INFO = "xilinx.com:interface:bram:1.0 O RST" *)
     output                  O_Rst,
     
     input                   sel

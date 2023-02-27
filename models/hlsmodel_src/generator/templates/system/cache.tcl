@@ -11,15 +11,14 @@ connect_bd_intf_net [get_bd_intf_pins fifocon_$cache_name/BRAM_PORT_W] [get_bd_i
 connect_bd_net [get_bd_pins mem_$cache_name/rstb_busy] [get_bd_pins fifocon_$cache_name/bram_rst_busy]
 
 # Write adaptor
-create_bd_cell -type ip -vlnv h1msk.cc:fpga_nn.hls:ap_fifo_w:1.0 fifo_${cache_name}_w
-connect_bd_intf_net [get_bd_intf_pins forward/${cache_name}] [get_bd_intf_pins fifo_${cache_name}_w/acc_fifo_s]
-connect_bd_intf_net [get_bd_intf_pins fifo_${cache_name}_w/fifo_m] [get_bd_intf_pins fifocon_$cache_name/FIFO_WRITE]
+connect_bd_intf_net [get_bd_intf_pins forward/${cache_name}] [get_bd_intf_pins fifocon_$cache_name/FIFO_WRITE]
 
 # Read adaptor
-create_bd_cell -type ip -vlnv h1msk.cc:fpga_nn.hls:ap_fifo_r:1.0 fifo_${cache_name}_r
-connect_bd_intf_net [get_bd_intf_pins backward/${cache_name}] [get_bd_intf_pins fifo_${cache_name}_r/acc_fifo_s]
-connect_bd_intf_net [get_bd_intf_pins fifo_${cache_name}_r/fifo_m] [get_bd_intf_pins fifocon_$cache_name/FIFO_READ]
+connect_bd_intf_net [get_bd_intf_pins backward/${cache_name}] [get_bd_intf_pins fifocon_$cache_name/FIFO_READ]
 
 # Clk & Rst
 connect_bd_net [get_bd_pins processing_system7_0/FCLK_CLK0] [get_bd_pins fifocon_$cache_name/clk]
 connect_bd_net [get_bd_pins proc_sys_reset_0/peripheral_reset] [get_bd_pins fifocon_$cache_name/reset]
+
+# Debug
+connect_bd_net [get_bd_pins fifocon_$cache_name/cnt] [get_bd_pins cache_debug_mux/cnt_$cache_name]

@@ -1,5 +1,6 @@
 import logging
 import dag
+from cache_debug_mux import gen_cache_debug_mux
 from nn_ip_source import gen_nn_ip_source
 from nn_ip_tcl import gen_nn_ip_tcl
 from nn_ip_directives import gen_nn_ip_directives
@@ -41,4 +42,5 @@ if __name__ == '__main__':
     gen_data_io_source(data_io_src)
     gen_data_io_tcl(data_io_tcl, data_io_src)
     gen_nn_ip_simulation_product(ip_sim_lib, [ip_src, ip_sim_src, data_io_src])
+    gen_cache_debug_mux()
     gen_system_tcl(system_tcl, pg_system_tcl, post_system_sh, struct_id)

@@ -74,7 +74,7 @@ def _gen_cache_scripts():
         scripts.append(template.substitute(
             cache_name=cache.name,
             cache_size=cache.count*batch_size,
-            cache_addr_width=math.floor(math.log2(cache.count*batch_size - 1))+1
+            cache_addr_width=math.ceil(math.log2(cache.count*batch_size))
         ))
     return '\n'.join(scripts)
 
