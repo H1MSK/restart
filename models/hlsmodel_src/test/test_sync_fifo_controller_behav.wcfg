@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="test_sfc_behav.wdb" id="1">
+         <top_modules>
+            <top_module name="glbl" />
+            <top_module name="test_sfc" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="1,393.910 ns"></ZoomStartTime>
+      <ZoomEndTime time="1,436.261 ns"></ZoomEndTime>
+      <Cursor1Time time="1,418.000 ns"></Cursor1Time>
+   </zoom_setting>
+   <column_width_setting>
+      <NameColumnWidth column_width="271"></NameColumnWidth>
+      <ValueColumnWidth column_width="80"></ValueColumnWidth>
+   </column_width_setting>
+   <WVObjectSize size="24" />
+   <wvobject type="array" fp_name="/test_sfc/data">
+      <obj_property name="ElementShortName">data[23:0]</obj_property>
+      <obj_property name="ObjectShortName">data[23:0]</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/test_sfc/uut/internal_reset">
+      <obj_property name="ElementShortName">internal_reset</obj_property>
+      <obj_property name="ObjectShortName">internal_reset</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/test_sfc/we">
+      <obj_property name="ElementShortName">we</obj_property>
+      <obj_property name="ObjectShortName">we</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/test_sfc/count">
+      <obj_property name="ElementShortName">count[5:0]</obj_property>
+      <obj_property name="ObjectShortName">count[5:0]</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/test_sfc/write_en">
+      <obj_property name="ElementShortName">write_en</obj_property>
+      <obj_property name="ObjectShortName">write_en</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/test_sfc/q">
+      <obj_property name="ElementShortName">q[23:0]</obj_property>
+      <obj_property name="ObjectShortName">q[23:0]</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/test_sfc/clk">
+      <obj_property name="ElementShortName">clk</obj_property>
+      <obj_property name="ObjectShortName">clk</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/test_sfc/fifo_wr_en">
+      <obj_property name="ElementShortName">fifo_wr_en</obj_property>
+      <obj_property name="ObjectShortName">fifo_wr_en</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/test_sfc/uut/next_fifo_full">
+      <obj_property name="ElementShortName">next_fifo_full</obj_property>
+      <obj_property name="ObjectShortName">next_fifo_full</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/test_sfc/fifo_full_n">
+      <obj_property name="ElementShortName">fifo_full_n</obj_property>
+      <obj_property name="ObjectShortName">fifo_full_n</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/test_sfc/write_addr">
+      <obj_property name="ElementShortName">write_addr[4:0]</obj_property>
+      <obj_property name="ObjectShortName">write_addr[4:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/test_sfc/uut/next_write_addr">
+      <obj_property name="ElementShortName">next_write_addr[4:0]</obj_property>
+      <obj_property name="ObjectShortName">next_write_addr[4:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/test_sfc/fifo_wr_data">
+      <obj_property name="ElementShortName">fifo_wr_data[23:0]</obj_property>
+      <obj_property name="ObjectShortName">fifo_wr_data[23:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/test_sfc/count">
+      <obj_property name="ElementShortName">count[5:0]</obj_property>
+      <obj_property name="ObjectShortName">count[5:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/test_sfc/x_w">
+      <obj_property name="ElementShortName">x_w[31:0]</obj_property>
+      <obj_property name="ObjectShortName">x_w[31:0]</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/test_sfc/fifo_rd_en">
+      <obj_property name="ElementShortName">fifo_rd_en</obj_property>
+      <obj_property name="ObjectShortName">fifo_rd_en</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/test_sfc/uut/next_fifo_empty">
+      <obj_property name="ElementShortName">next_fifo_empty</obj_property>
+      <obj_property name="ObjectShortName">next_fifo_empty</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/test_sfc/fifo_empty_n">
+      <obj_property name="ElementShortName">fifo_empty_n</obj_property>
+      <obj_property name="ObjectShortName">fifo_empty_n</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/test_sfc/read_en">
+      <obj_property name="ElementShortName">read_en</obj_property>
+      <obj_property name="ObjectShortName">read_en</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/test_sfc/read_addr">
+      <obj_property name="ElementShortName">read_addr[4:0]</obj_property>
+      <obj_property name="ObjectShortName">read_addr[4:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/test_sfc/uut/next_read_addr">
+      <obj_property name="ElementShortName">next_read_addr[4:0]</obj_property>
+      <obj_property name="ObjectShortName">next_read_addr[4:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/test_sfc/fifo_rd_data">
+      <obj_property name="ElementShortName">fifo_rd_data[23:0]</obj_property>
+      <obj_property name="ObjectShortName">fifo_rd_data[23:0]</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/test_sfc/uut/next_fifo_empty">
+      <obj_property name="ElementShortName">next_fifo_empty</obj_property>
+      <obj_property name="ObjectShortName">next_fifo_empty</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/test_sfc/x_r">
+      <obj_property name="ElementShortName">x_r[31:0]</obj_property>
+      <obj_property name="ObjectShortName">x_r[31:0]</obj_property>
+   </wvobject>
+</wave_config>
