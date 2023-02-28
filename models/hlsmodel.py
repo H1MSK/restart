@@ -249,7 +249,7 @@ class HlsActorCritic(AbstractActorCritic):
     
     def _actual_step(self):
         self._extract_grads()
-        self.params_tensor.grad = torch.from_numpy(self.grads)
+        self.params_tensor.grad = torch.from_numpy(np.clip(self.grads, -5, 5))
         self.optim.step()
         self._apply_params()
 
