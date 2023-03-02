@@ -1,12 +1,12 @@
 import logging
 import dag
 from cache_debug_mux import gen_cache_debug_mux
-from nn_ip_source import gen_nn_ip_source
-from nn_ip_tcl import gen_nn_ip_tcl
-from nn_ip_directives import gen_nn_ip_directives
+from gen_sources.nn_ip import gen_nn_ip_source
+from gen_tcl.nn_ip import gen_nn_ip_tcl
+from gen_tcl.nn_ip_directives import gen_nn_ip_directives
 from nn_ip_simulation_compile import gen_nn_ip_simulation_product
-from data_io_source import gen_data_io_source
-from data_io_tcl import gen_data_io_tcl
+from gen_sources.data_io import gen_data_io_source
+from gen_tcl.data_io import gen_data_io_tcl
 from system_tcl import gen_system_tcl
 from params import *
 

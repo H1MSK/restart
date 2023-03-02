@@ -1,5 +1,5 @@
 from typing import List
-from generic_source import get_source_template_map
+from .generic_source import get_source_template_map
 from params import *
 import logging
 from template_loader import load_template
