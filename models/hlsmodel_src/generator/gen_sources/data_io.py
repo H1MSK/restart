@@ -1,5 +1,6 @@
 from .generic_source import get_source_template_map
 from template_loader import load_template
+from dag import net
 
 def _gen_pl_content():
     contents = []

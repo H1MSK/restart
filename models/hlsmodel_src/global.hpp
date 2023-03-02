@@ -13,6 +13,7 @@ using cm_float = float;
 }  //namespace hlsnn
 
 #include <hls_math.h>
+#include <ap_int.h>
 
 #define UNUSED(x)       ((void)(x))
 
@@ -52,6 +53,17 @@ using cm_float = float;
 
 #define $fw_content                 Linear<$nn_in_size, $nn_out_size>::forward(param1, in_x, out_y, cache1, cache_en);
 #define $bw_content                 Linear<$nn_in_size, $nn_out_size>::backward_no(param1, grad1, cache1, in_grad_y);
+
 #define $param_loader_content       int x = 0; for(int i = 0; i < 12; ++i) param1[i] = in[x++]; for (int i = 0; i < 1; ++i) param2[i] = in[x++];
 #define $grad_extractor_content     int x = 0; for(int i = 0; i < 12; ++i) out[x++] = grad1[i]; for (int i = 0; i < 1; ++i) out[x++] = grad2[i];
+
+#define $cache_writter_cases        case 1: cache1 << val; break; case 2: cache2 << val; break;
+#define $cache_reader_cases         case 1: *val = cache1.read(); break; case 2: *val = cache2.read(); break;
+
+// TODO: change type of generated inputs to ap_uint
+#define $cache_monitor_inputs       ap_uint<3> in_size1, ap_uint<1> in_size2
+#define $cache_monitor_outputs      int *out_size1, int *out_size2
+#define $cache_monitor_pragmas
+#define $cache_monitor_content
+
 #endif

@@ -10,6 +10,7 @@ echo -e "\033[32mPlease refer to build_*.log to check each output.\033[0m"
 sleep 3s
 vitis_hls generated.nn.tcl -l build_nn.log &
 vitis_hls generated.data_io.tcl -l build_data_io.log &
+vitis_hls generated.cache_tools.tcl -l build_cache_tools.log &
 cd tool_ip && ./gen.sh && cd .. &
 wait
 
