@@ -1,4 +1,3 @@
-from typing import Iterable, Optional
 from params import *
 
 def gen_tcl_of_ip(source_filename, directive_filename, ip_name, top_name, /, customized_directives=""):

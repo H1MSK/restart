@@ -1,5 +1,4 @@
 import dag
-from params import nn_structures
 import os
 import logging
 

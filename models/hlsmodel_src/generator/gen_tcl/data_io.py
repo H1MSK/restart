@@ -1,4 +1,3 @@
-from params import *
 from .generic_tcl import gen_tcl_of_ip
 
 def gen_data_io_tcl(filename, source_name):

@@ -1,4 +1,3 @@
-from itertools import chain
 import math
 from dag import net
 from template_loader import load_template

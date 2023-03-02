@@ -1,8 +1,5 @@
-from typing import List, Tuple
 from .generic_source import get_source_template_map
 from template_loader import load_template
-from dag import net, Param
-from params import element_name, nn_in_size, nn_out_size
 
 def _gen_pl_content():
     contents = []
