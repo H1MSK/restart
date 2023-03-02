@@ -34,7 +34,7 @@ module sync_fifo_controller#(
     // output                  fifo_wr_err,
     // output                  fifo_rd_err,
 
-    // BRAM Read port
+    // BRAM Write port
     (* X_INTERFACE_INFO = "xilinx.com:interface:bram:1.0 BRAM_PORT_R ADDR" *)
     (* X_INTERFACE_PARAMETER = "MODE Master" *)
     output[ADDR_WIDTH-1:0]  bram_addra,
@@ -49,7 +49,7 @@ module sync_fifo_controller#(
     (* X_INTERFACE_INFO = "xilinx.com:interface:bram:1.0 BRAM_PORT_R EN" *)
     output                  bram_ena,
 
-    // BRAM Write port
+    // BRAM Read port
     (* X_INTERFACE_INFO = "xilinx.com:interface:bram:1.0 BRAM_PORT_W ADDR" *)
     (* X_INTERFACE_PARAMETER = "MODE Master" *)
     output[ADDR_WIDTH-1:0]  bram_addrb,
@@ -74,8 +74,9 @@ module sync_fifo_controller#(
     reg fifo_empty;
     reg fifo_full;
 
-    wire next_fifo_full = (data_cnt == SIZE && ~fifo_rd_en || data_cnt == SIZE-1 && fifo_wr_en);
-    wire next_fifo_empty = (data_cnt == 0 && ~fifo_wr_en || data_cnt == 1 && fifo_rd_en);
+    // TODO: test fifo full & empty signals
+    wire next_fifo_full = (data_cnt == SIZE && (~fifo_rd_en || fifo_wr_en) || data_cnt == SIZE-1 && (fifo_wr_en && ~fifo_rd_en));
+    wire next_fifo_empty = (data_cnt == 0 && (~fifo_wr_en || fifo_rd_en) || data_cnt == 1 && (fifo_rd_en && ~fifo_wr_en));
 
     assign fifo_empty_n = !fifo_empty;
     assign fifo_full_n = !fifo_full;
@@ -87,12 +88,21 @@ module sync_fifo_controller#(
     assign bram_dina = fifo_wr_data;
     assign bram_rsta = reset;
     assign bram_ena = fifo_wr_en;
-    assign bram_wea = 1;  // TODO: Check this implementation
+    assign bram_wea = 1;
+
+    // Compensate register for FWFT as a workaround to 1 cycle latency of BRAM
+    // Used in fifo_rd_data
+    reg[DATA_WIDTH-1:0] last_write;
+    always@(posedge clk)
+        if (internal_reset)
+            last_write <= 0;
+        else if (fifo_wr_en)
+            last_write <= fifo_wr_data;
     
-    assign bram_addrb = read_addr;
+    assign bram_addrb = fifo_rd_en ? next_read_addr : read_addr;    // First word fall through
     assign bram_clkb = clk;
     assign bram_rstb = reset;
-    assign fifo_rd_data = bram_doutb;
+    assign fifo_rd_data = (data_cnt == 1 && fifo_rd_en) ? last_write : bram_doutb;
     assign bram_enb = 1;
 
     // assign fifo_wr_err = (data_cnt == SIZE && fifo_wr_en);
@@ -119,14 +129,14 @@ module sync_fifo_controller#(
     always@(posedge clk)
     if (internal_reset)
         read_addr <= 0;
-    else if (fifo_rd_en && ~fifo_empty)
+    else if (fifo_rd_en && (~fifo_empty || fifo_wr_en))
         read_addr <= next_read_addr;
 
     // write data address
     always@(posedge clk)
     if (internal_reset)
         write_addr <= 0;
-    else if (fifo_wr_en && ~fifo_full)
+    else if (fifo_wr_en && (~fifo_full || fifo_rd_en))
         write_addr <= next_write_addr;
 
     // full register
@@ -146,8 +156,8 @@ module sync_fifo_controller#(
     reg[ADDR_WIDTH:0]  next_data_cnt;
     
     always@(*) begin
-        if (~fifo_full && fifo_wr_en && ~fifo_rd_en) next_data_cnt <= data_cnt + 1;
-        else if (~fifo_empty && fifo_rd_en && ~fifo_wr_en) next_data_cnt <= data_cnt - 1;
+        if (data_cnt != SIZE && fifo_wr_en && ~fifo_rd_en) next_data_cnt <= data_cnt + 1;
+        else if (data_cnt != 0 && fifo_rd_en && ~fifo_wr_en) next_data_cnt <= data_cnt - 1;
         else next_data_cnt <= data_cnt;
     end
 
