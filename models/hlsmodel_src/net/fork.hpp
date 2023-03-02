@@ -70,4 +70,46 @@ struct Fork3 {
     }
 };
 
+template <int len>
+struct Fork4 {
+    static void forward(hls::stream<cm_float>& in,
+                        hls::stream<cm_float>& out1,
+                        hls::stream<cm_float>& out2,
+                        hls::stream<cm_float>& out3,
+                        hls::stream<cm_float>& out4) {
+#pragma HLS INTERFACE mode=ap_ctrl_chain port=return
+#pragma HLS INTERFACE mode=ap_fifo port=in
+#pragma HLS INTERFACE mode=ap_fifo port=out1
+#pragma HLS INTERFACE mode=ap_fifo port=out2
+#pragma HLS INTERFACE mode=ap_fifo port=out3
+#pragma HLS INTERFACE mode=ap_fifo port=out4
+    f4f: for (int i = 0; i < len; ++i) {
+            cm_float x = in.read();
+            out1.write(x);
+            out2.write(x);
+            out3.write(x);
+            out4.write(x);
+        }
+    }
+    static void backward(hls::stream<cm_float>& in1,
+                         hls::stream<cm_float>& in2,
+                         hls::stream<cm_float>& in3,
+                         hls::stream<cm_float>& in4,
+                         hls::stream<cm_float>& out) {
+#pragma HLS INTERFACE mode=ap_ctrl_chain port=return
+#pragma HLS INTERFACE mode=ap_fifo port=in1
+#pragma HLS INTERFACE mode=ap_fifo port=in2
+#pragma HLS INTERFACE mode=ap_fifo port=in3
+#pragma HLS INTERFACE mode=ap_fifo port=in4
+#pragma HLS INTERFACE mode=ap_fifo port=out
+    f4b: for (int i = 0; i < len; ++i) {
+            cm_float x1 = in1.read();
+            cm_float x2 = in2.read();
+            cm_float x3 = in3.read();
+            cm_float x4 = in4.read();
+            out.write(x1 + x2 + x3 + x4);
+        }
+    }
+};
+
 }  //namespace hlsnn
