@@ -13,15 +13,22 @@ from params import *
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
     
+    struct_id = f"{nn_in_size}.{act_size}.{nn_hidden_size}.{1 if act_continuous else 0}"
+
     ip_src = "generated.nn.cpp"
-    ip_tcl = "generated.nn.tcl"
-    ip_directive = "generated.directives.tcl"
-    data_io_src = "generated.data_io.cpp"
-    data_io_tcl = "generated.data_io.tcl"
-    system_tcl = "generated.system.tcl"
-    pg_system_tcl = "generated.pg_system.tcl"
     ip_sim_src = "generated.nn.sim.cpp"
     ip_test_src = "generated.nn.test.cpp"
+    ip_tcl = "generated.nn.tcl"
+    ip_directive = "generated.directives.tcl"
+
+    ip_sim_lib = f"generated.nn.sim.{struct_id}.so"
+    
+    data_io_src = "generated.data_io.cpp"
+    data_io_tcl = "generated.data_io.tcl"
+    
+    system_tcl = "generated.system.tcl"
+    pg_system_tcl = "generated.pg_system.tcl"
+    
     post_system_sh = "generated.wait_and_export.sh"
 
     dag.build()
@@ -32,8 +39,6 @@ if __name__ == '__main__':
     with open("generated.param_usage.txt", "w") as f:
         f.write(dag.net.report_param_usage())
 
-    struct_id = f"{nn_in_size}.{act_size}.{nn_hidden_size}.{1 if act_continuous else 0}"
-    ip_sim_lib = f"generated.nn.sim.{struct_id}.so"
 
     gen_nn_ip_source(ip_src, ip_sim_src, ip_test_src)
     gen_nn_ip_directives(ip_directive)
