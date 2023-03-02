@@ -1,4 +1,5 @@
 from typing import List
+from generic_source import get_source_template_map
 from params import *
 import logging
 from template_loader import load_template
@@ -152,62 +153,12 @@ def _gen_bw_content():
 
 
 def gen_nn_ip_source(source, simulation, test):
-    template_strings = {
-        "param_static_definitions": ";\n".join(
-            f"static {element_name} param{p.name}[{p.count}]" for p in net.all_params()
-        ),
-        "param_signatures": ", ".join(
-            f"{element_name} param{p.name}[{p.count}]" for p in net.all_params()
-        ),
-        "param_variables": ", ".join(f"param{p.name}" for p in net.all_params()),
-        "grad_static_definitions": ";\n".join(
-            f"static {element_name} grad{p.name}[{p.count}]" for p in net.all_params()
-        ),
-        "grad_signatures": ", ".join(
-            f"{element_name} grad{p.name}[{p.count}]" for p in net.all_params()
-        ),
-        "grad_variables": ", ".join(f"grad{p.name}" for p in net.all_params()),
-        "cache_static_definitions": ";\n".join(
-            f"static hls::stream<{c.element_type}, {c.count * batch_size}> {c.name}" for c in net.all_caches()
-        ),
-        "cache_signatures": ", ".join(
-            f"hls::stream<{c.element_type}, {c.count * batch_size}>& {c.name}" for c in net.all_caches()
-        ),
-        "cache_variables": ", ".join(
-            c.name for c in net.all_caches()
-        ),
-
-        "nn_in_size": nn_in_size,
-        "nn_out_size": nn_out_size,
-        "all_param_count": sum(p.count for p in net.all_params()),
-
-        "zero_grads": ";\n    ".join(
+    template_strings = get_source_template_map(
+        zero_grads=";\n    ".join(
             f"memset(grad{p.name}, 0, sizeof(grad{p.name}))" for p in net.all_params()
         ),
-
-        "param_rom1p_pragmas": "\n    ".join(
-            f"#pragma HLS INTERFACE mode=bram storage_type=rom_1p port=param{p.name} latency=1 depth={p.count}"
-            for p in net.all_params()
-        ),
-        "param_rom2p_pragmas": "\n    ".join(
-            f"#pragma HLS INTERFACE mode=bram storage_type=rom_2p port=param{p.name} latency=1 depth={p.count}"
-            for p in net.all_params()
-        ),
-        "grad_rams2p_pragmas": "\n    ".join(
-            f"#pragma HLS INTERFACE mode=bram storage_type=ram_s2p port=grad{p.name} latency=1 depth={p.count}"
-            for p in net.all_params()
-        ),
-        "cache_fifo_interface_pragmas": "\n    ".join(
-            f"#pragma HLS INTERFACE mode=ap_fifo port={c.name} depth={c.count * batch_size}"
-            for c in net.all_caches()
-        ),
-        "cache_fifo_storage_pragmas": "\n    ".join(
-            f"#pragma HLS BIND_STORAGE variable={c.name} type=fifo"
-            for c in net.all_caches()
-        ),
-        "fw_content": _gen_fw_content(),
-        "bw_content": _gen_bw_content()
-    }
+        fw_content=_gen_fw_content(),
+        bw_content=_gen_bw_content())
 
     with open(source, "w") as f:
         f.write(load_template("nn_ip_source.cpp").substitute(template_strings))
