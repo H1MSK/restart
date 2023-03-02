@@ -11,18 +11,179 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="1,393.910 ns"></ZoomStartTime>
-      <ZoomEndTime time="1,436.261 ns"></ZoomEndTime>
-      <Cursor1Time time="1,418.000 ns"></Cursor1Time>
+      <ZoomStartTime time="1,501.900 ns"></ZoomStartTime>
+      <ZoomEndTime time="1,576.501 ns"></ZoomEndTime>
+      <Cursor1Time time="1,558.000 ns"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
-      <NameColumnWidth column_width="271"></NameColumnWidth>
-      <ValueColumnWidth column_width="80"></ValueColumnWidth>
+      <NameColumnWidth column_width="174"></NameColumnWidth>
+      <ValueColumnWidth column_width="79"></ValueColumnWidth>
    </column_width_setting>
    <WVObjectSize size="24" />
    <wvobject type="array" fp_name="/test_sfc/data">
       <obj_property name="ElementShortName">data[23:0]</obj_property>
       <obj_property name="ObjectShortName">data[23:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/test_sfc/ram">
+      <obj_property name="ElementShortName">ram[30:0][23:0]</obj_property>
+      <obj_property name="ObjectShortName">ram[30:0][23:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+      <wvobject type="array" fp_name="/test_sfc/ram[30]">
+         <obj_property name="ElementShortName">[30][23:0]</obj_property>
+         <obj_property name="ObjectShortName">[30][23:0]</obj_property>
+         <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/test_sfc/ram[29]">
+         <obj_property name="ElementShortName">[29][23:0]</obj_property>
+         <obj_property name="ObjectShortName">[29][23:0]</obj_property>
+         <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/test_sfc/ram[28]">
+         <obj_property name="ElementShortName">[28][23:0]</obj_property>
+         <obj_property name="ObjectShortName">[28][23:0]</obj_property>
+         <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/test_sfc/ram[27]">
+         <obj_property name="ElementShortName">[27][23:0]</obj_property>
+         <obj_property name="ObjectShortName">[27][23:0]</obj_property>
+         <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/test_sfc/ram[26]">
+         <obj_property name="ElementShortName">[26][23:0]</obj_property>
+         <obj_property name="ObjectShortName">[26][23:0]</obj_property>
+         <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/test_sfc/ram[25]">
+         <obj_property name="ElementShortName">[25][23:0]</obj_property>
+         <obj_property name="ObjectShortName">[25][23:0]</obj_property>
+         <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/test_sfc/ram[24]">
+         <obj_property name="ElementShortName">[24][23:0]</obj_property>
+         <obj_property name="ObjectShortName">[24][23:0]</obj_property>
+         <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/test_sfc/ram[23]">
+         <obj_property name="ElementShortName">[23][23:0]</obj_property>
+         <obj_property name="ObjectShortName">[23][23:0]</obj_property>
+         <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/test_sfc/ram[22]">
+         <obj_property name="ElementShortName">[22][23:0]</obj_property>
+         <obj_property name="ObjectShortName">[22][23:0]</obj_property>
+         <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/test_sfc/ram[21]">
+         <obj_property name="ElementShortName">[21][23:0]</obj_property>
+         <obj_property name="ObjectShortName">[21][23:0]</obj_property>
+         <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/test_sfc/ram[20]">
+         <obj_property name="ElementShortName">[20][23:0]</obj_property>
+         <obj_property name="ObjectShortName">[20][23:0]</obj_property>
+         <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/test_sfc/ram[19]">
+         <obj_property name="ElementShortName">[19][23:0]</obj_property>
+         <obj_property name="ObjectShortName">[19][23:0]</obj_property>
+         <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/test_sfc/ram[18]">
+         <obj_property name="ElementShortName">[18][23:0]</obj_property>
+         <obj_property name="ObjectShortName">[18][23:0]</obj_property>
+         <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/test_sfc/ram[17]">
+         <obj_property name="ElementShortName">[17][23:0]</obj_property>
+         <obj_property name="ObjectShortName">[17][23:0]</obj_property>
+         <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/test_sfc/ram[16]">
+         <obj_property name="ElementShortName">[16][23:0]</obj_property>
+         <obj_property name="ObjectShortName">[16][23:0]</obj_property>
+         <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/test_sfc/ram[15]">
+         <obj_property name="ElementShortName">[15][23:0]</obj_property>
+         <obj_property name="ObjectShortName">[15][23:0]</obj_property>
+         <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/test_sfc/ram[14]">
+         <obj_property name="ElementShortName">[14][23:0]</obj_property>
+         <obj_property name="ObjectShortName">[14][23:0]</obj_property>
+         <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/test_sfc/ram[13]">
+         <obj_property name="ElementShortName">[13][23:0]</obj_property>
+         <obj_property name="ObjectShortName">[13][23:0]</obj_property>
+         <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/test_sfc/ram[12]">
+         <obj_property name="ElementShortName">[12][23:0]</obj_property>
+         <obj_property name="ObjectShortName">[12][23:0]</obj_property>
+         <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/test_sfc/ram[11]">
+         <obj_property name="ElementShortName">[11][23:0]</obj_property>
+         <obj_property name="ObjectShortName">[11][23:0]</obj_property>
+         <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/test_sfc/ram[10]">
+         <obj_property name="ElementShortName">[10][23:0]</obj_property>
+         <obj_property name="ObjectShortName">[10][23:0]</obj_property>
+         <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/test_sfc/ram[9]">
+         <obj_property name="ElementShortName">[9][23:0]</obj_property>
+         <obj_property name="ObjectShortName">[9][23:0]</obj_property>
+         <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/test_sfc/ram[8]">
+         <obj_property name="ElementShortName">[8][23:0]</obj_property>
+         <obj_property name="ObjectShortName">[8][23:0]</obj_property>
+         <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/test_sfc/ram[7]">
+         <obj_property name="ElementShortName">[7][23:0]</obj_property>
+         <obj_property name="ObjectShortName">[7][23:0]</obj_property>
+         <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/test_sfc/ram[6]">
+         <obj_property name="ElementShortName">[6][23:0]</obj_property>
+         <obj_property name="ObjectShortName">[6][23:0]</obj_property>
+         <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/test_sfc/ram[5]">
+         <obj_property name="ElementShortName">[5][23:0]</obj_property>
+         <obj_property name="ObjectShortName">[5][23:0]</obj_property>
+         <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/test_sfc/ram[4]">
+         <obj_property name="ElementShortName">[4][23:0]</obj_property>
+         <obj_property name="ObjectShortName">[4][23:0]</obj_property>
+         <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/test_sfc/ram[3]">
+         <obj_property name="ElementShortName">[3][23:0]</obj_property>
+         <obj_property name="ObjectShortName">[3][23:0]</obj_property>
+         <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/test_sfc/ram[2]">
+         <obj_property name="ElementShortName">[2][23:0]</obj_property>
+         <obj_property name="ObjectShortName">[2][23:0]</obj_property>
+         <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/test_sfc/ram[1]">
+         <obj_property name="ElementShortName">[1][23:0]</obj_property>
+         <obj_property name="ObjectShortName">[1][23:0]</obj_property>
+         <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/test_sfc/ram[0]">
+         <obj_property name="ElementShortName">[0][23:0]</obj_property>
+         <obj_property name="ObjectShortName">[0][23:0]</obj_property>
+         <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      </wvobject>
    </wvobject>
    <wvobject type="logic" fp_name="/test_sfc/uut/internal_reset">
       <obj_property name="ElementShortName">internal_reset</obj_property>
@@ -32,10 +193,6 @@
       <obj_property name="ElementShortName">we</obj_property>
       <obj_property name="ObjectShortName">we</obj_property>
    </wvobject>
-   <wvobject type="array" fp_name="/test_sfc/count">
-      <obj_property name="ElementShortName">count[5:0]</obj_property>
-      <obj_property name="ObjectShortName">count[5:0]</obj_property>
-   </wvobject>
    <wvobject type="logic" fp_name="/test_sfc/write_en">
       <obj_property name="ElementShortName">write_en</obj_property>
       <obj_property name="ObjectShortName">write_en</obj_property>
@@ -43,6 +200,7 @@
    <wvobject type="array" fp_name="/test_sfc/q">
       <obj_property name="ElementShortName">q[23:0]</obj_property>
       <obj_property name="ObjectShortName">q[23:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
    </wvobject>
    <wvobject type="logic" fp_name="/test_sfc/clk">
       <obj_property name="ElementShortName">clk</obj_property>
@@ -51,6 +209,8 @@
    <wvobject type="logic" fp_name="/test_sfc/fifo_wr_en">
       <obj_property name="ElementShortName">fifo_wr_en</obj_property>
       <obj_property name="ObjectShortName">fifo_wr_en</obj_property>
+      <obj_property name="CustomSignalColor">#E0FFFF</obj_property>
+      <obj_property name="UseCustomSignalColor">true</obj_property>
    </wvobject>
    <wvobject type="logic" fp_name="/test_sfc/uut/next_fifo_full">
       <obj_property name="ElementShortName">next_fifo_full</obj_property>
@@ -61,18 +221,23 @@
       <obj_property name="ObjectShortName">fifo_full_n</obj_property>
    </wvobject>
    <wvobject type="array" fp_name="/test_sfc/write_addr">
+      <obj_property name="DisplayName">label</obj_property>
       <obj_property name="ElementShortName">write_addr[4:0]</obj_property>
       <obj_property name="ObjectShortName">write_addr[4:0]</obj_property>
       <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      <obj_property name="label">BRAM write_addr[4:0]</obj_property>
    </wvobject>
    <wvobject type="array" fp_name="/test_sfc/uut/next_write_addr">
+      <obj_property name="DisplayName">label</obj_property>
       <obj_property name="ElementShortName">next_write_addr[4:0]</obj_property>
       <obj_property name="ObjectShortName">next_write_addr[4:0]</obj_property>
       <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      <obj_property name="label">FIFO next_write_addr[4:0]</obj_property>
    </wvobject>
    <wvobject type="array" fp_name="/test_sfc/fifo_wr_data">
       <obj_property name="ElementShortName">fifo_wr_data[23:0]</obj_property>
       <obj_property name="ObjectShortName">fifo_wr_data[23:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
    </wvobject>
    <wvobject type="array" fp_name="/test_sfc/count">
       <obj_property name="ElementShortName">count[5:0]</obj_property>
@@ -82,10 +247,13 @@
    <wvobject type="array" fp_name="/test_sfc/x_w">
       <obj_property name="ElementShortName">x_w[31:0]</obj_property>
       <obj_property name="ObjectShortName">x_w[31:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
    </wvobject>
    <wvobject type="logic" fp_name="/test_sfc/fifo_rd_en">
       <obj_property name="ElementShortName">fifo_rd_en</obj_property>
       <obj_property name="ObjectShortName">fifo_rd_en</obj_property>
+      <obj_property name="CustomSignalColor">#E0FFFF</obj_property>
+      <obj_property name="UseCustomSignalColor">true</obj_property>
    </wvobject>
    <wvobject type="logic" fp_name="/test_sfc/uut/next_fifo_empty">
       <obj_property name="ElementShortName">next_fifo_empty</obj_property>
@@ -100,16 +268,23 @@
       <obj_property name="ObjectShortName">read_en</obj_property>
    </wvobject>
    <wvobject type="array" fp_name="/test_sfc/read_addr">
+      <obj_property name="DisplayName">label</obj_property>
       <obj_property name="ElementShortName">read_addr[4:0]</obj_property>
       <obj_property name="ObjectShortName">read_addr[4:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      <obj_property name="label">BRAM read_addr[4:0]</obj_property>
    </wvobject>
    <wvobject type="array" fp_name="/test_sfc/uut/next_read_addr">
+      <obj_property name="DisplayName">label</obj_property>
       <obj_property name="ElementShortName">next_read_addr[4:0]</obj_property>
       <obj_property name="ObjectShortName">next_read_addr[4:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      <obj_property name="label">FIFO next_read_addr[4:0]</obj_property>
    </wvobject>
    <wvobject type="array" fp_name="/test_sfc/fifo_rd_data">
       <obj_property name="ElementShortName">fifo_rd_data[23:0]</obj_property>
       <obj_property name="ObjectShortName">fifo_rd_data[23:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
    </wvobject>
    <wvobject type="logic" fp_name="/test_sfc/uut/next_fifo_empty">
       <obj_property name="ElementShortName">next_fifo_empty</obj_property>
@@ -118,5 +293,6 @@
    <wvobject type="array" fp_name="/test_sfc/x_r">
       <obj_property name="ElementShortName">x_r[31:0]</obj_property>
       <obj_property name="ObjectShortName">x_r[31:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
    </wvobject>
 </wave_config>

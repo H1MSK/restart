@@ -15,14 +15,14 @@ module test_sfc;
   wire                       write_clk;  //clock signal for write operation
   reg [DATA_WIDTH-1:0] q;                //read data
     
-  reg [DATA_WIDTH-1:0] ram [2**ADDR_WIDTH-1:0]; // ** is exponentiation
+  reg [DATA_WIDTH-1:0] ram [DATA_CNT-1:0]; // ** is exponentiation
 
   reg rst_bsy_1;
   reg rst_bsy_2;
 
   always @(posedge write_clk) begin //WRITE
     if (rst1) begin
-      for (integer i=0; i<2**ADDR_WIDTH; i = i+1)
+      for (integer i=0; i<DATA_CNT; i = i+1)
         ram[i] <= 0;
       rst_bsy_1 <= 1;
     end else begin
@@ -35,7 +35,7 @@ module test_sfc;
     
   always @(posedge read_clk) begin //READ
     if (rst2) begin
-      for (integer i=0; i<2**ADDR_WIDTH; i = i+1)
+      for (integer i=0; i<DATA_CNT; i = i+1)
         ram[i] <= 0;
       rst_bsy_2 <= 1;
     end else if (read_en) begin
@@ -115,9 +115,10 @@ module test_sfc;
     #50;
     for (x_w = 0; x_w < DATA_CNT + 2; x_w = x_w + 1) begin
       #1;
-      fifo_wr_data = x_w;
+      fifo_wr_data = x_w+1;
       fifo_wr_en = 1;
       #2;
+      fifo_wr_data = 0;
       fifo_wr_en = 0;
       #17;
     end
@@ -125,12 +126,34 @@ module test_sfc;
     #4;
     for (x_w = DATA_CNT + 2; x_w < DATA_CNT + 6; x_w = x_w + 1) begin
       #1;
-      fifo_wr_data = x_w;
+      fifo_wr_data = x_w+1;
       fifo_wr_en = 1;
       #2;
+      fifo_wr_data = 0;
       fifo_wr_en = 0;
       #17;
     end
+    #2;
+    reset = 1;
+    #30;
+    reset = 0;
+    #21;
+    
+    fifo_wr_data = 51;
+    for (x_w = 0; x_w < DATA_CNT + 4; x_w = x_w + 1) begin
+      fifo_wr_en = 1;
+      #2;
+      fifo_wr_data = x_w+52;
+    end
+    fifo_wr_en = 0;
+    wait (count == 1);
+    #1;
+    for (x_w = DATA_CNT+4; x_w < DATA_CNT + 8; x_w = x_w + 1) begin
+      fifo_wr_en = 1;
+      #2;
+      fifo_wr_data = x_w+52;
+    end
+    fifo_wr_en = 0;
   end
 
   integer x_r;
@@ -140,10 +163,20 @@ module test_sfc;
     for (x_r = 0; x_r < DATA_CNT + 6; x_r = x_r + 1) begin
       #1;
       fifo_rd_en = 1;
+      if(fifo_rd_data != x_r + 1) $stop;
       #2;
       fifo_rd_en = 0;
       #17;
     end
+    wait (count == DATA_CNT);
+    #1;
+    for (x_r = 0; x_r < DATA_CNT + 8; x_r = x_r + 1) begin
+      fifo_rd_en = 1;
+      if(fifo_rd_data != x_r + 51) $stop;
+      #2;
+    end
+    fifo_rd_en = 0;
+    #20;
     $finish;
   end
 
