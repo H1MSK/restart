@@ -15,8 +15,7 @@ if __name__ == '__main__':
     
     ip_src = "generated.nn.cpp"
     ip_tcl = "generated.nn.tcl"
-    fw_directive = "generated.fw_directives.tcl"
-    bw_directive = "generated.bw_directives.tcl"
+    ip_directive = "generated.directives.tcl"
     data_io_src = "generated.data_io.cpp"
     data_io_tcl = "generated.data_io.tcl"
     system_tcl = "generated.system.tcl"
@@ -37,8 +36,8 @@ if __name__ == '__main__':
     ip_sim_lib = f"generated.nn.sim.{struct_id}.so"
 
     gen_nn_ip_source(ip_src, ip_sim_src, ip_test_src)
-    gen_nn_ip_directives(fw_directive, bw_directive)
-    gen_nn_ip_tcl(ip_tcl, ip_src, [fw_directive, bw_directive], export_design=True)
+    gen_nn_ip_directives(ip_directive)
+    gen_nn_ip_tcl(ip_tcl, ip_src, ip_directive)
     gen_data_io_source(data_io_src)
     gen_data_io_tcl(data_io_tcl, data_io_src)
     gen_nn_ip_simulation_product(ip_sim_lib, [ip_src, ip_sim_src, data_io_src])

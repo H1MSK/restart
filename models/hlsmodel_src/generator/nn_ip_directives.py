@@ -43,10 +43,8 @@ def _gen_target_ii():
     ]
     return directives
 
-def gen_nn_ip_directives(fw_name, bw_name):
+def gen_nn_ip_directives(filename):
     # fw_ii, bw_ii = _find_target_ii(ip_tcl_name)
     directives = _gen_target_ii()
-    with open(fw_name, 'w') as f:
-        f.writelines(x + '\n' for x in directives)
-    with open(bw_name, 'w') as f:
+    with open(filename, 'w') as f:
         f.writelines(x + '\n' for x in directives)
