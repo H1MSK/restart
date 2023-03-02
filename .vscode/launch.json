@@ -44,6 +44,16 @@
             // "preLaunchTask": "rm_run"
         },
         {
+            "name": "Python: Run Source Generator",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/models/hlsmodel_src/generator",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/models/hlsmodel_src",
+            "justMyCode": false,
+            // "preLaunchTask": "rm_run"
+        },
+        {
             "name": "Python: Train Humanoid (HLS)",
             "type": "python",
             "request": "launch",
