@@ -45,10 +45,10 @@ class HlsSimActorCritic(AbstractActorCritic):
         self.net_zero_grad = self.model.zero_grad
 
         self.net_forward = self.model.forward
-        self.net_forward.argtypes = (c_bool, cm_float_p, cm_float_p)
+        self.net_forward.argtypes = (c_bool, c_int, cm_float_p, cm_float_p)
 
         self.net_backward = self.model.backward
-        self.net_backward.argtypes = (cm_float_p, )
+        self.net_backward.argtypes = (c_int, cm_float_p, )
 
         self.backward_fff = _FuncFlipFlop(self._actual_backward)
         self.step_fff = _FuncFlipFlop(self._actual_step)
@@ -123,12 +123,15 @@ class HlsSimActorCritic(AbstractActorCritic):
         sigma = holder[:, self.act_dim:self.act_dim*2]
         value = holder[:, self.act_dim*2:]
 
-        for i, o in enumerate(obs):
-            self.net_forward(
-                c_bool(requires_grad),
-                o.numpy().ctypes.data_as(cm_float_p),
-                holder[i].numpy().ctypes.data_as(cm_float_p)
-            )
+        if not obs.is_contiguous():
+            obs = obs.contiguous()
+
+        self.net_forward(
+            c_bool(requires_grad),
+            c_int(len(obs)),
+            obs.numpy().ctypes.data_as(cm_float_p),
+            holder.numpy().ctypes.data_as(cm_float_p)
+        )
 
         return (value.detach().requires_grad_(requires_grad),
                 mu.detach().requires_grad_(requires_grad),
@@ -152,12 +155,12 @@ class HlsSimActorCritic(AbstractActorCritic):
         if len(grads.shape) == 1:
             grads = grads.unsqueeze(0)
 
-        assert(len(grads.shape) == 2)
+        assert(len(grads.shape) == 2 and grads.is_contiguous())
 
-        for g in grads:
-            self.net_backward(
-                g.numpy().ctypes.data_as(cm_float_p)
-            )
+        self.net_backward(
+            c_int(len(grads)),
+            grads.numpy().ctypes.data_as(cm_float_p)
+        )
         
     def _actual_zero_grad(self):
         self.net_zero_grad()
