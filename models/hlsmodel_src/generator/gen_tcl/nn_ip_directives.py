@@ -35,8 +35,6 @@ def _gen_target_ii():
         f'set_directive_pipeline -II 256 "{x}"' for x in slow_pipelines
     ] + [
         f'set_directive_pipeline -II 1 "{x}"' for x in fast_pipelines
-    ] + [
-        "config_interface -m_axi_addr64=false"
     ]
     return directives
 
