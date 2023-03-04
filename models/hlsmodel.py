@@ -251,6 +251,7 @@ class HlsActorCritic(AbstractActorCritic):
         self._extract_grads()
         self.params_tensor.grad = torch.from_numpy(np.clip(self.grads, -5, 5))
         self.optim.step()
+        np.copyto(self.params, self.params_tensor.detach().numpy())
         self._apply_params()
 
     def actor_backward(self, mu_grad, std_grad):
