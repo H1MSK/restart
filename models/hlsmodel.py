@@ -105,7 +105,6 @@ class HlsActorCritic(AbstractActorCritic):
 
     def _set_net_parameters(self, /, lr_critic: float, lr_actor: float, params: torch.Tensor):
         self.lr_critic_modifier = lr_critic / lr_actor
-        self.lr_actor = lr_actor
 
         self.params = pynq.allocate(params.shape, dtype=np_cm_float)
         np.copyto(self.params, params.detach().numpy(), casting='same_kind')
@@ -147,6 +146,15 @@ class HlsActorCritic(AbstractActorCritic):
     def lr_critic(self, value):
         self.lr_critic_modifier = value / self.lr_actor
 
+    @property
+    def lr_actor(self):
+        return self.optim.param_groups[0]['lr']
+    
+    @lr_actor.setter
+    def lr_actor(self, value):
+        for p in self.optim.param_groups:
+            p['lr'] = value
+
     def forward(self, obs: torch.Tensor, requires_grad=False) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         x_shape = (len(obs), self.obs_dim)
         y_shape = (len(obs), self.act_dim * 2 + 1)
@@ -158,6 +166,10 @@ class HlsActorCritic(AbstractActorCritic):
             holder_y = pynq.allocate(y_shape, dtype=np_cm_float)
             self.holders[x_shape] = holder_x
             self.holders[y_shape] = holder_y
+
+        if not obs.is_contiguous():
+            obs = obs.contiguous()
+
         np.copyto(holder_x, obs.numpy())
         self.bram_sel_o.write(1)
 
@@ -177,9 +189,9 @@ class HlsActorCritic(AbstractActorCritic):
 
         holder_y.sync_from_device()
 
-        return (torch.from_numpy(holder_y[:, self.act_dim*2:]).requires_grad_(requires_grad),
-                torch.from_numpy(holder_y[:, :self.act_dim]).requires_grad_(requires_grad),
-                torch.from_numpy(holder_y[:, self.act_dim:self.act_dim*2]).requires_grad_(requires_grad))
+        return (torch.from_numpy(holder_y[:, self.act_dim*2:].copy()).requires_grad_(requires_grad),
+                torch.from_numpy(holder_y[:, :self.act_dim].copy()).requires_grad_(requires_grad),
+                torch.from_numpy(holder_y[:, self.act_dim:self.act_dim*2].copy()).requires_grad_(requires_grad))
 
     def act(self, obs: torch.Tensor, requires_grad=False) -> Tuple[torch.Tensor, torch.Tensor]:
         # To avoid messing up cache
@@ -201,7 +213,7 @@ class HlsActorCritic(AbstractActorCritic):
         if len(grads.shape) == 1:
             grads = grads.unsqueeze(0)
 
-        assert(len(grads.shape) == 2)
+        assert(len(grads.shape) == 2 and grads.is_contiguous())
         self.bram_sel_o.write(1)
 
         try:
@@ -226,12 +238,15 @@ class HlsActorCritic(AbstractActorCritic):
 
     def _actual_zero_grad(self):
         self.gr_reset_o.write(1)
-        # TODO: test this
         while not self.gr_rst_busy_i.read():
             pass
         self.gr_reset_o.write(0)
         while self.gr_rst_busy_i.read():
             pass
+        # TODO: Delete below after fixing the issue
+        self._extract_grads()
+        print(self.grads)
+        assert(self.grads.min() == 0 and self.grads.max() == 0)
 
     def _extract_grads(self):
         self.bram_sel_o.write(0)
@@ -246,12 +261,11 @@ class HlsActorCritic(AbstractActorCritic):
             pass
 
         self.grads.sync_from_device()
+        self.params_tensor.grad = torch.from_numpy(np.clip(self.grads, -5, 5))
     
     def _actual_step(self):
         self._extract_grads()
-        self.params_tensor.grad = torch.from_numpy(np.clip(self.grads, -5, 5))
         self.optim.step()
-        np.copyto(self.params, self.params_tensor.detach().numpy())
         self._apply_params()
 
     def actor_backward(self, mu_grad, std_grad):
