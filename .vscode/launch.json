@@ -5,6 +5,25 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "(gdb) Attach",
+            "type": "cppdbg",
+            "request": "attach",
+            "program": "${workspaceFolder}/models/hlsmodel_src/generated.nn.sim.27.8.64.1.so",
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
             "name": "Python: Generator Test",
             "type": "python",
             "request": "launch",
@@ -63,6 +82,40 @@
                 "--env", "Humanoid",
                 "--seed", "10000",
                 "--model", "hls",
+                "--test_interval", "0"
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            // "preLaunchTask": "rm_run"
+        },
+        {
+            "name": "Python: Train Ant (HLS)",
+            "type": "python",
+            "request": "launch",
+            "sudo": true,
+            "program": "${workspaceFolder}/train.py",
+            "args": [
+                "--env", "Ant",
+                "--seed", "10000",
+                "--model", "hls",
+                "--max_episode_steps", "512",
+                "--test_interval", "0"
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            // "preLaunchTask": "rm_run"
+        },
+        {
+            "name": "Python: Train Ant (HLS SIM)",
+            "type": "python",
+            "request": "launch",
+            "sudo": true,
+            "program": "${workspaceFolder}/train.py",
+            "args": [
+                "--env", "Ant",
+                "--seed", "10000",
+                "--model", "hlssim",
+                "--max_episode_steps", "512",
                 "--test_interval", "0"
             ],
             "console": "integratedTerminal",
