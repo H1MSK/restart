@@ -5,6 +5,11 @@ def gen_cache_tools_tcl(filename, source_filename):
         f.write(
             "\n".join(
                 gen_tcl_of_ip(source_filename, None, ip_name, ip_name)
-                for ip_name in ["cache_writter", "cache_reader", "cache_monitor"]
+                for ip_name in [
+                    "cache_writter",
+                    "cache_reader",
+                    "cache_monitor",
+                    "cache_loader",
+                    "cache_extractor"]
             )
         )

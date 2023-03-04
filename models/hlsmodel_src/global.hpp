@@ -65,5 +65,7 @@ using cm_float = float;
 #define $cache_monitor_outputs      int *out_size1, int *out_size2
 #define $cache_monitor_pragmas
 #define $cache_monitor_content
+#define $cache_loader_content
+#define $cache_extractor_content
 
 #endif

@@ -18,5 +18,15 @@ def gen_cache_tools_source(cache_debugger_filename):
                 f"#pragma HLS INTERFACE mode=ap_none port={c.name}_in\n    "
                 f"#pragma HLS INTERFACE mode=s_axilite port={c.name}_out"
                 ) for c in net.all_caches()),
-            cache_monitor_content="\n    ".join(f"*{c.name}_out = {c.name}_in;" for c in net.all_caches()),
+            cache_monitor_content="\n    ".join((
+                    f"*{c.name}_out = {c.name}_in;"
+                ) for c in net.all_caches()),
+            cache_loader_content="\n    ".join((
+                    f"for (int i = 0; i < {c.count}; ++i) {c.name} << src[x++];"
+                ) for c in net.all_caches()
+            ),
+            cache_extractor_content="\n    ".join((
+                    f"for (int i = 0; i < {c.count}; ++i) dst[x++] = {c.name}.read();"
+                ) for c in net.all_caches()
+            ),
         )))

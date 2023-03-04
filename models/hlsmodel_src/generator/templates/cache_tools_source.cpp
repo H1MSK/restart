@@ -40,3 +40,27 @@ void cache_monitor(
 
     $cache_monitor_content
 }
+
+void cache_loader(
+    cm_float *src,
+    $cache_signatures
+) {
+    #pragma HLS INTERFACE mode=s_axilite port=return
+    #pragma HLS INTERFACE mode=m_axi port=src
+    $cache_fifo_interface_pragmas
+
+    int x = 0;
+    $cache_loader_content
+}
+
+void cache_extractor(
+    cm_float *dst,
+    $cache_signatures
+) {
+    #pragma HLS INTERFACE mode=s_axilite port=return
+    #pragma HLS INTERFACE mode=m_axi port=dst
+    $cache_fifo_interface_pragmas
+
+    int x = 0;
+    $cache_extractor_content
+}
