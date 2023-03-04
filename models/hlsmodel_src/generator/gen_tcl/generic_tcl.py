@@ -11,6 +11,7 @@ set_clock_uncertainty {synthesis_clock_uncertainty}
 set_part {part_name}
 set_top {top_name}
 {source_directive_cmd}
+config_interface -m_axi_addr64=false
 {customized_directives}
 
 csynth_design
