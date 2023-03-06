@@ -237,25 +237,19 @@ class HlsActorCritic(AbstractActorCritic):
             pass
 
     def _actual_zero_grad(self):
-        self.gr_reset_o.write(1)
-        while not self.gr_rst_busy_i.read():
-            pass
-        self.gr_reset_o.write(0)
-        while self.gr_rst_busy_i.read():
-            pass
-        # TODO: Delete below after fixing the issue
-        self._extract_grads()
-        print(self.grads)
-        assert(self.grads.min() == 0 and self.grads.max() == 0)
+        # zero_grad is performed in extract_grads
+        return
 
     def _extract_grads(self):
+        # Check upper logic to call zero_grad once between each two extract_grads
+        assert(self.zero_grad_fff.diff == 0)
         self.bram_sel_o.write(0)
 
         while not self.ip_grad_extractor.register_map.CTRL.AP_IDLE:
             pass
 
         self.ip_grad_extractor.register_map.out_r=self.grads.device_address
-
+        self.ip_grad_extractor.register_map.reset_grad_after_extract=1
         self.ip_grad_extractor.register_map.CTRL.AP_START=1
         while not (x := self.ip_grad_extractor.register_map.CTRL).AP_DONE and not x.AP_IDLE:
             pass
