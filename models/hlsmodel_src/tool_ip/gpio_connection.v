@@ -6,8 +6,8 @@ module GPIO_Connection(
     (* X_INTERFACE_INFO = "xilinx.com:interface:gpio_rtl:1.0 GPIO TRI_T" *)
     input[31:0] GPIO_T,
 
-    input[15:0] cache_cnt,
-    output[15:0] cache_sel,
+    // input[15:0] cache_cnt,
+    // output[15:0] cache_sel,
 
     (* X_INTERFACE_INFO = "xilinx.com:signal:reset:1.0 system_reset RST" *)
     (* X_INTERFACE_PARAMETER = "POLARITY ACTIVE_HIGH" *)
@@ -34,7 +34,7 @@ module GPIO_Connection(
 
     assign bram_sel = GPIO_O['h19];
     
-    assign cache_sel = GPIO_O['h0f:'h00];
+    // assign cache_sel = GPIO_O['h0f:'h00];
 
     assign GPIO_I = {
         // 0x1c-0x1f: not used currently
@@ -48,6 +48,7 @@ module GPIO_Connection(
         // 0x10-0x13: reset signals
         4'b1111,
         // 0x00-0x0f: debug
-        cache_cnt
+        16'b1111_1111_1111_1111
+        // cache_cnt
     };
 endmodule

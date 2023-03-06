@@ -53,14 +53,17 @@ module bram_mux#(
     (* X_INTERFACE_INFO = "xilinx.com:interface:bram:1.0 O RST" *)
     output                  O_Rst,
     
-    input                   sel
+    input                   sel,
+    (* X_INTERFACE_INFO = "xilinx.com:signal:reset:1.0 inj_rst RST" *)
+    (* X_INTERFACE_PARAMETER = "POLARITY ACTIVE_HIGH" *)
+    input                   inj_rst
 );
     assign O_Addr = sel ? P1_Addr : P0_Addr;
-    assign O_EN = sel ? P1_EN : P0_EN;
+    assign O_EN = inj_rst ? 1 : (sel ? P1_EN : P0_EN);
     assign O_Din = sel ? P1_Din : P0_Din;
     assign P0_Dout = sel ? 0 : O_Dout;
     assign P1_Dout = sel ? O_Dout : 0;
     assign O_WEN = sel ? P1_WEN : P0_WEN;
     assign O_Clk = sel ? P1_Clk : P0_Clk;
-    assign O_Rst = sel ? P1_Rst : P0_Rst;
+    assign O_Rst = inj_rst ? 1 : (sel ? P1_Rst : P0_Rst);
 endmodule

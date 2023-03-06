@@ -33,6 +33,9 @@ def gen_data_io_source(filename):
         f.write(load_template('data_io_source.cpp').substitute(
             get_source_template_map(
                 param_loader_content=_gen_pl_content(),
-                grad_extractor_content=_gen_ge_content()
+                grad_extractor_content=_gen_ge_content(),
+                zero_grads="\n        ".join(
+                    f"memset(grad{p.name}, 0, sizeof(cm_float) * {p.count});" for p in net.all_params()
+                )
             )
         ))

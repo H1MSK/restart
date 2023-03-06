@@ -14,10 +14,16 @@ $param_loader_content
 
 void grad_extractor(
     $grad_signatures,
-    cm_float out[$all_param_count]) {
+    cm_float out[$all_param_count],
+    bool *reset_grad_after_extract) {
 #pragma HLS INTERFACE mode=s_axilite port=return
 #pragma HLS INTERFACE mode=m_axi port=out
 $grad_ram1p_pragmas
+#pragma HLS INTERFACE mode=s_axilite port=reset_grad_after_extract
 
 $grad_extractor_content
+
+    if (*reset_grad_after_extract) {
+        $zero_grads;
+    }
 }

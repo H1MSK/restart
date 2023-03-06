@@ -83,7 +83,7 @@ endgroup
 startgroup
 create_bd_cell -type ip -vlnv xilinx.com:ip:xlconcat:2.1 concat_param_reset
 set_property -dict [list CONFIG.NUM_PORTS {$param_count}] [get_bd_cells concat_param_reset]
-$param_rsta_busy_out_scripts
+$param_rstb_busy_out_scripts
 create_bd_cell -type ip -vlnv xilinx.com:ip:util_reduced_logic:2.0 reduce_param_reset
 set_property -dict [list CONFIG.C_SIZE {$param_count} CONFIG.C_OPERATION {or} CONFIG.LOGO_FILE {data/sym_orgate.png}] [get_bd_cells reduce_param_reset]
 connect_bd_net [get_bd_pins reduce_param_reset/Op1] [get_bd_pins concat_param_reset/dout]
