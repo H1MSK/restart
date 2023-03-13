@@ -3,7 +3,7 @@ import os
 from typing import Literal, Optional, Union
 import torch
 from torch.utils.tensorboard.writer import SummaryWriter
-import configparser
+from core.agent import Agent
 from param_choice import *
 import imageio
 import numpy as np
@@ -109,7 +109,7 @@ class TrainManager:
         else:
             act_dim = self.train_env.action_space.n
 
-        self.agent = agent_choices[agent_name](
+        self.agent: Agent = agent_choices[agent_name](
             model_choices[model_name],
             obs_dim,
             act_dim,
@@ -125,8 +125,8 @@ class TrainManager:
             obs_cut_end=obs_cut_end,
             epsilon=0.2)
         self.writer = SummaryWriter(f'./run/{session_name}/logs')
-        self.train_count = 0
-        self.test_count = 0
+        self.train_epoch_count = 0
+        self.test_epoch_count = 0
 
         self.session_name = session_name
 
@@ -143,7 +143,10 @@ class TrainManager:
             max_episode_steps=max_episode_steps)
 
         for step, score in scores:
-            self.writer.add_scalar("Episode reward", score, batch_size * self.train_count + step)
+            self.writer.add_scalar("Episode reward @ Step", score, batch_size * self.agent.train_batch_count + step)
+        self.train_epoch_count += 1
+        self.writer.add_scalar("Episode reward @ Epoch", sum(i[1] for i in scores) / len(scores), self.train_epoch_count)
+
         score_avg = sum(i[1] for i in scores) / len(scores)
 
         memory = np.array(memory, dtype=object)
@@ -179,9 +182,8 @@ class TrainManager:
                 critic_loss, actor_loss = self.agent.train_batch(
                     b_states, b_advants, b_actions, b_returns, b_old_logprobs)
 
-                self.train_count += 1
-                self.writer.add_scalar('Actor loss', actor_loss.item(), self.train_count)
-                self.writer.add_scalar('Critic loss', critic_loss.item(), self.train_count)
+                self.writer.add_scalar('Actor loss @ Batch', actor_loss.item(), self.agent.train_batch_count)
+                self.writer.add_scalar('Critic loss @ Batch', critic_loss.item(), self.agent.train_batch_count)
 
         return score_avg
 
@@ -191,10 +193,10 @@ class TrainManager:
             self.test_env,
             epoch_size=1,
             max_episode_steps=max_step)
-        self.test_count += 1
+        self.test_epoch_count += 1
         self.writer.add_scalar(
-            'Test reward', rewards[0][1], self.test_count)
-        _logger.info(f"Test  #{self.test_count:8d}: reward={rewards[0][1]:8.2f} steps={len(rb)}")
+            'Test reward @ Episode', rewards[0][1], self.test_epoch_count)
+        _logger.info(f"Test  #{self.test_epoch_count:8d}: reward={rewards[0][1]:8.2f} steps={len(rb)}")
         if save_gif:
             frames = self.test_env.render()
             name = f'./run/{self.session_name}/{gif_name}.gif'
@@ -207,15 +209,15 @@ class TrainManager:
         with open(f"./run/{self.session_name}/{prefix}.run", 'r') as f:
             line = f.readline()
             ints = [int(x) for x in line.split(' ')]
-            self.train_count = ints[0]
-            self.test_count = ints[1]
+            self.train_epoch_count = ints[0]
+            self.test_epoch_count = ints[1]
 
     def save(self, prefix: Union[Literal['last', 'best'], str]):
         self.agent.save(f"./run/{self.session_name}/{prefix}")
         with open(f"./run/{self.session_name}/{prefix}.run", 'w') as f:
-            f.write(f"{self.train_count} {self.test_count}")
+            f.write(f"{self.train_epoch_count} {self.test_epoch_count}")
 
-    def set_run(self, /, total_train_epochs=2000000, epoch_size=2048, max_episode_steps=10000, batch_size=64, test_interval=4096):
+    def set_run(self, /, total_train_epochs=2000000, epoch_size=2048, max_episode_steps=10000, batch_size=64, test_interval=128):
         self.conf.update({"run": {}})
         self.conf["run"].update({
             "steps": str(total_train_epochs),
@@ -228,7 +230,7 @@ class TrainManager:
             assert(self.test_env != None)
         config.save_config(f'./run/{self.session_name}/conf.ini', self.conf)
 
-    def run(self, total_train_epochs=2000000, epoch_size=2048, max_episode_steps=10000, batch_size=64, test_interval=4096):
+    def run(self, total_train_epochs=2000000, epoch_size=2048, max_episode_steps=10000, batch_size=64, test_interval=128):
         s = self.conf["run"]
         total_train_epochs = int(s["steps"])
         epoch_size = int(s["epoch_size"])
@@ -244,12 +246,12 @@ class TrainManager:
         )
 
         best_reward = -math.inf
-        while self.train_count < total_train_epochs:
-            if test_interval != 0 and self.train_count // test_interval != (self.train_count-1) // test_interval:
+        while self.train_epoch_count < total_train_epochs:
+            if test_interval != 0 and self.train_epoch_count // test_interval != (self.train_epoch_count-1) // test_interval:
                 # If this call raises mujoco.FatalError with OpenGL platform
                 #  library not loaded, please add --test_interval=0 to stop test
-                self.test_episode(str(self.train_count // test_interval))
-                self.save(str(self.train_count // test_interval))
+                self.test_episode(str(self.train_epoch_count // test_interval))
+                self.save(str(self.train_epoch_count // test_interval))
             rew = self.train_epoch(epoch_size=epoch_size, batch_size=batch_size, max_episode_steps=max_episode_steps)
             self.save('last')
             if rew > best_reward:

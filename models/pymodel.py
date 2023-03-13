@@ -64,6 +64,13 @@ class PyModel(nn.Module):
         else:
             _default_init(self.critic_net[4], gain=0.1)
             
+    def forward(self, obs: torch.Tensor)-> Tuple[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
+        value = self.critic_net(obs)
+        act_feat = self.act_feat_net(obs)
+        mu = self.mu_net(act_feat)
+        rho = self.rho_net(act_feat)
+        sigma = torch.exp(rho)
+        return (value, mu, sigma)
 
 class PyActorCritic(AbstractActorCritic):
     def __init__(self,
@@ -75,6 +82,14 @@ class PyActorCritic(AbstractActorCritic):
                  hidden_width=64,
                  act_continuous=True,
                  use_orthogonal_init=False) -> None:
+        super().__init__(
+            obs_dim,
+            act_dim,
+            lr_actor=lr_actor,
+            lr_critic=lr_critic,
+            hidden_width=hidden_width,
+            act_continuous=act_continuous,
+            use_orthogonal_init=use_orthogonal_init)
         _logger.info("Init PyActorCritic with "
             f"obs_dim={obs_dim} "
             f"act_dim={act_dim} "
