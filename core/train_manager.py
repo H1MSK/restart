@@ -10,7 +10,7 @@ import numpy as np
 import logging
 import core.config as config
 
-_logger = logging.getLogger("TM")
+_logger = logging.getLogger("TrainManager")
 
 class TrainManager:
     def __init__(self, /,
