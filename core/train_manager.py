@@ -217,11 +217,12 @@ class TrainManager:
         with open(f"./run/{self.session_name}/{prefix}.run", 'w') as f:
             f.write(f"{self.train_epoch_count} {self.test_epoch_count}")
 
-    def set_run(self, /, total_train_epochs=2000000, epoch_size=2048, max_episode_steps=10000, batch_size=64, test_interval=128):
+    def set_run(self, /, total_train_epochs=2000000, epoch_size=2048, epoch=1, max_episode_steps=10000, batch_size=64, test_interval=128):
         self.conf.update({"run": {}})
         self.conf["run"].update({
             "steps": str(total_train_epochs),
             "epoch_size": str(epoch_size),
+            "epoch": str(epoch),
             "max_episode_step": str(max_episode_steps),
             "batch_size": str(batch_size),
             "test_interval": str(test_interval)
@@ -234,6 +235,7 @@ class TrainManager:
         s = self.conf["run"]
         total_train_epochs = int(s["steps"])
         epoch_size = int(s["epoch_size"])
+        epoch = int(s["epoch"])
         max_episode_steps = int(s["max_episode_step"])
         batch_size = int(s["batch_size"])
         test_interval = int(s["test_interval"])
@@ -252,7 +254,7 @@ class TrainManager:
                 #  library not loaded, please add --test_interval=0 to stop test
                 self.test_episode(str(self.train_epoch_count // test_interval))
                 self.save(str(self.train_epoch_count // test_interval))
-            rew = self.train_epoch(epoch_size=epoch_size, batch_size=batch_size, max_episode_steps=max_episode_steps)
+            rew = self.train_epoch(epoch_size=epoch_size, batch_size=batch_size, max_episode_steps=max_episode_steps, epoch=epoch)
             self.save('last')
             if rew > best_reward:
                 best_reward = rew

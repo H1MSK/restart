@@ -15,6 +15,7 @@ if __name__ == '__main__':
     store_obs=args.store_obs
     obs_cut_start=args.obs_cut_start
     obs_cut_end=args.obs_cut_end
+    epoch=args.epoch
 
     logging.basicConfig(level=logging.INFO)
     logging.info(f"Args={args}")
@@ -40,6 +41,7 @@ if __name__ == '__main__':
             total_train_epochs=total_train_epochs,
             max_episode_steps=max_episode_step,
             epoch_size=min_epoch_size,
+            epoch=epoch,
             batch_size=batch_size,
             test_interval=test_interval)
     
