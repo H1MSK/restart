@@ -16,6 +16,8 @@ if __name__ == '__main__':
     obs_cut_start=args.obs_cut_start
     obs_cut_end=args.obs_cut_end
     epoch=args.epoch
+    discount=args.discount
+    lambda_gae=args.lambda_gae
 
     logging.basicConfig(level=logging.INFO)
     logging.info(f"Args={args}")
@@ -43,6 +45,8 @@ if __name__ == '__main__':
             epoch_size=min_epoch_size,
             epoch=epoch,
             batch_size=batch_size,
-            test_interval=test_interval)
+            test_interval=test_interval,
+            discount=discount,
+            lambda_gae=lambda_gae)
     
     tm.run()

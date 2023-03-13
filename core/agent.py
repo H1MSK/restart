@@ -216,13 +216,13 @@ class Agent(ABC):
             scores.append((steps, score))
         return memory, scores
 
-    def calculate_gae(self, memory):
+    def calculate_gae(self, memory, discount, lambda_gae):
         rewards = torch.tensor(list(memory[:, 2]), dtype=torch.float32)
         masks = torch.tensor(list(memory[:, 3]), dtype=torch.float32)
 
         values = torch.tensor(np.vstack(memory[:, 5]), dtype=torch.float32)
 
-        returns, advants = gae(len(memory), rewards, masks, values, 0.98, 0.98)
+        returns, advants = gae(len(memory), rewards, masks, values, discount, lambda_gae)
         return returns, advants
 
 
