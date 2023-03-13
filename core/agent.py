@@ -1,11 +1,13 @@
 from abc import ABC, abstractmethod
-from typing import Tuple, Type
+from typing import Tuple, Type, final
+from typing_extensions import override
 import torch
 from core.optimizations.observation_cut import ObservationCut
 from core.optimizations.pca import PrincipalComponentProjection
 from models.interfaces import AbstractActorCritic
 from core.optimizations.observation_normalizer import ObservationNormalizer, RecordedObservationNormalizer
 from core.optimizations.gae import gae
+import math
 try:
     from gym import Env
 except ModuleNotFoundError:
@@ -30,7 +32,7 @@ class Agent(ABC):
         use_obs_normalization=True,
         pca_dim=0,
         pca_load_file=None,
-        store_obs=True,
+        store_obs=False,
         obs_cut_start=0,
         obs_cut_end=-1
     ) -> None:
@@ -98,6 +100,8 @@ class Agent(ABC):
 
         _logger.info(
             f"Agent initialized with obs_dim={obs_dim}, act_dim={act_dim}{f', pca_dim={pca_dim}' if pca_dim > 0 else ''}")
+        
+        self.train_batch_count:int = 0
 
     def obs_preprocess(self, obs):
         for f in self.obs_preprocessors:
@@ -130,6 +134,7 @@ class Agent(ABC):
         # if self.pca:
         #     self.pca.save(f'{prefix}.pca.npz')
         self.ac.save(f"{prefix}.model.dat")
+        np.savez(f"{prefix}.agent.npz", train_batch_count = self.train_batch_count)
 
     def load(self, prefix):
         # if self.obs_cut:
@@ -139,6 +144,9 @@ class Agent(ABC):
         # if self.pca:
         #     self.pca.load(f'{prefix}.pca.npz')
         self.ac.load(f"{prefix}.model.dat")
+
+        with np.load(f"{prefix}.agent.npz") as npzfile:
+            self.train_batch_count = npzfile['train_batch_count']
 
     def forward(self, obs) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         v, mu, sigma = self.ac.forward(obs)
@@ -154,8 +162,13 @@ class Agent(ABC):
         return pi.log_prob(act).sum(1, keepdim=True)
 
     @abstractmethod
-    def train_batch(self, b_obs, b_acts, b_target_logprobs, b_returns, b_advantages):
+    def _actual_train_batch(self, b_obs, b_acts, b_target_logprobs, b_returns, b_advantages):
         raise NotImplementedError()
+
+    @final
+    def train_batch(self, b_obs, b_acts, b_target_logprobs, b_returns, b_advantages):
+        self.train_batch_count += 1
+        return self._actual_train_batch(b_obs, b_acts, b_target_logprobs, b_returns, b_advantages)
 
     @property
     def obs_dim(self):
@@ -228,7 +241,7 @@ class PPOAgent(Agent):
         use_obs_normalization=True,
         pca_dim=0,
         pca_load_file=None,
-        store_obs=True,
+        store_obs=False,
         obs_cut_start=0,
         obs_cut_end=-1,
         epsilon=0.2
@@ -247,7 +260,10 @@ class PPOAgent(Agent):
                          obs_cut_end)
         self.epsilon = epsilon
 
-    def train_batch(self, b_states, b_advants, b_actions, b_returns, old_prob):
+    def ratio_clip_func(self, ratio):
+        return torch.clamp(ratio, 1.0-self.epsilon, 1.0+self.epsilon)
+
+    def _actual_train_batch(self, b_states, b_advants, b_actions, b_returns, old_prob):
         values, mu, std = self.ac.forward(b_states, requires_grad=True)
 
         pi = self.distribution(mu, std)
@@ -266,12 +282,12 @@ class PPOAgent(Agent):
             self.ac.critic_backward(values.grad)
         self.ac.critic_step()
 
-        ratio = torch.clamp(ratio, 1.0-self.epsilon, 1.0+self.epsilon)
+        ratio = self.ratio_clip_func(ratio)
 
         clipped_loss = ratio * b_advants
 
         actor_loss = -torch.min(surrogate_loss, clipped_loss).mean()
-        #actor_loss = -(surrogate_loss-beta*KL_penalty).mean()
+        # actor_loss = -(surrogate_loss-beta*KL_penalty).mean()
 
         # self.agent.ac.optim_actor.zero_grad()
         self.ac.actor_zero_grad()
@@ -285,3 +301,39 @@ class PPOAgent(Agent):
         print(f"Sync state3: {actor_loss} {critic_loss}")
 
         return critic_loss, actor_loss
+
+class DPPSAgent(PPOAgent):
+    def __init__(self,
+                 model_class: Type[AbstractActorCritic],
+                 obs_dim, act_dim, /,
+                 lr_actor=0.0001, lr_critic=0.001,
+                 hidden_width=64,
+                 act_continuous=True,
+                 use_orthogonal_init=False,
+                 use_obs_normalization=True,
+                 pca_dim=0, pca_load_file=None,
+                 store_obs=False, obs_cut_start=0, obs_cut_end=-1,
+                 epsilon=0.2,
+                 mu=0.2) -> None:
+        super().__init__(model_class,
+                         obs_dim, act_dim,
+                         lr_actor, lr_critic,
+                         hidden_width,
+                         act_continuous,
+                         use_orthogonal_init,
+                         use_obs_normalization,
+                         pca_dim,
+                         pca_load_file,
+                         store_obs,
+                         obs_cut_start,
+                         obs_cut_end,
+                         epsilon)
+        self.mu = mu
+
+    @override
+    def ratio_clip_func(self, ratio):
+        positive_delta = self.epsilon - self.mu * math.tanh(self.epsilon)
+
+        return torch.where(ratio < 1 - self.epsilon, (self.mu * torch.tanh(ratio - 1) + 1 - positive_delta),
+               torch.where(ratio > 1 + self.epsilon, (self.mu * torch.tanh(ratio - 1) + 1 + positive_delta),
+                        ratio))

@@ -8,7 +8,7 @@ from models.hls_simmodel import HlsSimActorCritic
 from models.pymodel import PyActorCritic
 from models.light_pymodel import LPyActorCritic
 from models.hlsmodel import HlsActorCritic
-from core.agent import PPOAgent
+from core.agent import DPPSAgent, PPOAgent
 
 model_choices = {
     'py': PyActorCritic,
@@ -19,7 +19,8 @@ model_choices = {
 }
 
 agent_choices = {
-    'ppo': PPOAgent
+    'ppo': PPOAgent,
+    'dpps': DPPSAgent
 }
 
 env_choices = {
