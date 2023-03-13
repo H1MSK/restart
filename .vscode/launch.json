@@ -27,8 +27,27 @@
             "name": "Python: Generator Test",
             "type": "python",
             "request": "launch",
-            "program": "${file}",
-            "cwd": "${fileDirname}",
+            "program": "generator",
+            "cwd": "${workspaceFolder}/models/hlsmodel_src",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            "name": "Python: Dag Test(Structures)",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/models/hlsmodel_src/generator/test_dag_build.py",
+            "cwd": "${workspaceFolder}/models/hlsmodel_src/generator",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            "name": "Python: Dag Test(Onnx)",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/models/hlsmodel_src/generator/test_dag_build_from_onnx.py",
+            "cwd": "${workspaceFolder}/models/hlsmodel_src/generator",
+            "args": ["generated.27.8.64.onnx"],
             "console": "integratedTerminal",
             "justMyCode": true
         },
