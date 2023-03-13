@@ -6,80 +6,30 @@ import logging
 
 _logger = logging.getLogger("Dag")
 
-class DAG:
+class Dag:
     def __init__(self) -> None:
         self.nodes: List[Node] = []
         self.input = Node(NodeType.Input)
         self.output = Node(NodeType.Output)
 
-    def build_from_structure(self, nn_structures: Tuple[Tuple[str, int, Optional[int]]]):
-        _logger.info("Building dag from defined structure...")
-        self._build_skeleton(nn_structures)
-        _logger.info("Trimming...")
-        self._trim_dag()
-        _logger.info("Binding params and caches...")
-        self._bind_params()
-        self._bind_caches()
-        _logger.info("Generating names for channels...")
-        self._set_channel_names()
-        _logger.info("Build finished")
+    def build_from_onnx(self, onnx_file, /, output_debug_pngs = False):
+        raise NotImplementedError
 
-    def _build_skeleton(self, nn_structures):
+    def build_from_structure(self, nn_structures, /, output_debug_pngs = False):
+        raise NotImplementedError
 
-        input_stack: List[Node] = []
-        predecessor = self.input
-        fork_tails: List[List[Node]] = []
-        output_sizes: Dict[Node, int] = {self.input: nn_in_size}
-
-        plain_nets = {
-            "Linear": NodeType.Linear,
-            "Tanh": NodeType.Tanh,
-            "Exp": NodeType.Exp,
-            "ReLU": NodeType.ReLU
-        }
-
-        def _get_output_size(info, pred: Node):
-            if info[0] == "Linear":
-                return info[1]
-            return output_sizes[pred]
-
-        for info in nn_structures:
-            if info[0] == "Fork":
-                current = Node(NodeType.Fork)
-                self.nodes.append(current)
-                input_stack.append(current)
-                Node.add_link(predecessor, current, count=output_sizes[predecessor])
-                fork_tails.append([])
-                output_sizes[current] = output_sizes[predecessor]
-                predecessor = current
-            elif info[0] == "ForkAgain":
-                fork_tails[-1].append(predecessor)
-                predecessor = input_stack[-1]
-            elif info[0] == "Cat":
-                current = Node(NodeType.Cat)
-                fork_tails[-1].append(predecessor)
-                self.nodes.append(current)
-                total_count = 0
-                for tail in fork_tails[-1]:
-                    this_count = output_sizes[tail]
-                    total_count += this_count
-                    Node.add_link(tail, current, count=this_count)
-                fork_tails.pop()
-                output_sizes[current] = total_count
-                input_stack.pop()
-                predecessor = current
+    def _generate_class_names(self):
+        for n in self.nodes:
+            # Generate function name
+            if n.type == NodeType.Fork:
+                class_name = f"Fork{len(n.outputs)}<{n.first_input_size}>"
+            elif n.type == NodeType.Cat:
+                class_name = f"Cat{len(n.inputs)}<{', '.join(str(x.data_count) for x in n.inputs)}>"
+            elif n.type == NodeType.Linear:
+                class_name = f"{str(n.type).split('.')[1]}<{n.first_input_size}, {n.first_output_size}>"
             else:
-                # Doesn't catch KeyError
-                node_type = plain_nets[info[0]]
-                current = Node(node_type)
-                self.nodes.append(current)
-                Node.add_link(predecessor, current,
-                            count=output_sizes[predecessor])
-                output_sizes[current] = _get_output_size(info, predecessor)
-                predecessor = current
-
-        Node.add_link(predecessor, self.output,
-                        count=output_sizes[predecessor])
+                class_name = f"{str(n.type).split('.')[1]}<{n.first_input_size}>"
+            n.class_name = f"{class_name}"
 
     def _trim_dag(self):
         removed_nodes: List[Node] = []

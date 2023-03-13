@@ -117,6 +117,7 @@ class Node:
     def __init__(self, node_type: NodeType, /) -> None:
 
         self.type = node_type
+        self.class_name: str = ""
 
         Node._node_count += 1
         self.kth = Node._node_count

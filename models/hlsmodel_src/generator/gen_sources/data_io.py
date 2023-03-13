@@ -1,6 +1,6 @@
 from .generic_source import get_source_template_map
 from template_loader import load_template
-from dag import net
+import dag
 
 def _gen_pl_content():
     contents = []
@@ -8,7 +8,7 @@ def _gen_pl_content():
     contents.append("int x = 0;")
     contents.append("")
 
-    for p in net.all_params():
+    for p in dag.all_params():
         contents.append(f"for (int i = 0; i < {p.count}; ++i)")
         contents.append(f"    param{p.name}[i] = in[x++];")
         contents.append("")
@@ -21,7 +21,7 @@ def _gen_ge_content():
     contents.append("int x = 0;")
     contents.append("")
 
-    for p in net.all_params():
+    for p in dag.all_params():
         contents.append(f"for (int i = 0; i < {p.count}; ++i)")
         contents.append(f"    out[x++] = grad{p.name}[i];")
         contents.append("")
@@ -35,7 +35,7 @@ def gen_data_io_source(filename):
                 param_loader_content=_gen_pl_content(),
                 grad_extractor_content=_gen_ge_content(),
                 zero_grads="\n        ".join(
-                    f"memset(grad{p.name}, 0, sizeof(cm_float) * {p.count});" for p in net.all_params()
+                    f"memset(grad{p.name}, 0, sizeof(cm_float) * {p.count});" for p in dag.all_params()
                 )
             )
         ))

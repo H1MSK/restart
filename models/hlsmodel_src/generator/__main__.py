@@ -39,13 +39,13 @@ if __name__ == '__main__':
     
     post_system_sh = "generated.wait_and_export.sh"
 
-    dag.build()
+    dag.build_from_structures()
 
-    dag.net.output_dag("generated.dag.png")
+    dag.output_dag("generated.dag.png")
     with open("generated.cache_usage.txt", "w") as f:
-        f.write(dag.net.report_cache_usage())
+        f.write(dag.report_cache_usage())
     with open("generated.param_usage.txt", "w") as f:
-        f.write(dag.net.report_param_usage())
+        f.write(dag.report_param_usage())
 
     gen_nn_ip_source(ip_src, ip_sim_src, ip_test_src)
     gen_nn_ip_directives(ip_directive)

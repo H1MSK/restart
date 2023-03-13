@@ -1,10 +1,11 @@
 import dag
 import os
 import logging
+from sys import argv
 
 logging.basicConfig(level=logging.DEBUG)
 
-dag.build_from_structures(output_debug_pngs=True)
+dag.build_from_onnx_file(argv[1], output_debug_pngs=True)
 
 print(os.path.abspath(os.curdir))
 print("done")

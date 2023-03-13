@@ -3,7 +3,7 @@ from .generic_source import get_source_template_map
 from params import *
 import logging
 from template_loader import load_template
-from dag import net, NodeType
+import dag
 
 _logger = logging.getLogger("IpSrcGen")
 
@@ -11,21 +11,12 @@ def _gen_fw_content():
     _logger.info("Generating forward content...")
     contents = []
 
-    for n in net.nodes:
+    for n in dag.nodes():
 
         # Add comment to indicate code for which node
         contents.append(f"// {repr(n)}")
 
-        # Generate function name
-        if n.type == NodeType.Fork:
-            class_name = f"Fork{len(n.outputs)}<{n.first_input_size}>"
-        elif n.type == NodeType.Cat:
-            class_name = f"Cat{len(n.inputs)}<{', '.join(str(x.data_count) for x in n.inputs)}>"
-        elif n.type == NodeType.Linear:
-            class_name = f"{str(n.type).split('.')[1]}<{n.first_input_size}, {n.first_output_size}>"
-        else:
-            class_name = f"{str(n.type).split('.')[1]}<{n.first_input_size}>"
-        function_name = f"{class_name}::forward"
+        function_name = f"{n.class_name}::forward"
 
         # Generate parameters
         parameters = []
@@ -41,7 +32,7 @@ def _gen_fw_content():
 
         # Add output stream on need
         for ch in n.outputs:
-            if ch == net.output.inputs[0]:
+            if ch == dag.output_node().inputs[0]:
                 continue
             contents.append(f"hls::stream<{element_name}, {ch.data_count}> {ch.name};")
         
@@ -59,7 +50,7 @@ def _find_bw_passes():
     _logger.info("Marking trimmable backward pathes...")
     passed_nodes = set()
     start_nodes = set()
-    g = net.bfs_nodes()
+    g = dag.bfs_nodes()
     cur = next(g)
 
     try:
@@ -75,8 +66,7 @@ def _find_bw_passes():
     except StopIteration:
         pass
 
-    # passed_nodes.add(net.input)
-    passed_nodes.add(net.output)
+    passed_nodes.add(dag.output_node())
 
     return passed_nodes, start_nodes
 
@@ -84,7 +74,7 @@ def _gen_bw_content():
     _logger.info("Generating backward content...")
     contents: List[str] = []
     passed_nodes, start_nodes = _find_bw_passes()
-    reversed_nodes = reversed(list(net.bfs_nodes()))
+    reversed_nodes = reversed(list(dag.bfs_nodes()))
     _logger.debug(passed_nodes)
     for n in reversed_nodes:
         if n in passed_nodes:
@@ -110,16 +100,7 @@ def _gen_bw_content():
         # Add comment to indicate code for which node
         contents.append(f"// {repr(n)}")
 
-        # Generate function name
-        if n.type == NodeType.Fork:
-            class_name = f"Fork{len(n.outputs)}<{n.first_input_size}>"
-        elif n.type == NodeType.Cat:
-            class_name = f"Cat{len(n.inputs)}<{', '.join(str(x.data_count) for x in n.inputs)}>"
-        elif n.type == NodeType.Linear:
-            class_name = f"{str(n.type).split('.')[1]}<{n.first_input_size}, {n.first_output_size}>"
-        else:
-            class_name = f"{str(n.type).split('.')[1]}<{n.first_input_size}>"
-        function_name = f"{class_name}::backward{'_no' if n in start_nodes else ''}"
+        function_name = f"{n.class_name}::backward{'_no' if n in start_nodes else ''}"
 
         # Generate parameters
         parameters = []
@@ -137,7 +118,7 @@ def _gen_bw_content():
 
         # Add output stream on need
         for ch in n.inputs:
-            if ch == net.output.inputs[0]:
+            if ch == dag.output_node().inputs[0]:
                 continue
             contents.append(f"hls::stream<{element_name}, {ch.data_count}> {ch.back_name};")
 
@@ -155,7 +136,7 @@ def _gen_bw_content():
 def gen_nn_ip_source(source, simulation, test):
     template_strings = get_source_template_map(
         zero_grads=";\n    ".join(
-            f"memset(grad{p.name}, 0, sizeof(grad{p.name}))" for p in net.all_params()
+            f"memset(grad{p.name}, 0, sizeof(grad{p.name}))" for p in dag.all_params()
         ),
         fw_content=_gen_fw_content(),
         bw_content=_gen_bw_content())

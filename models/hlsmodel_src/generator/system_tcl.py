@@ -1,5 +1,5 @@
 import math
-from dag import net
+import dag
 from template_loader import load_template
 from params import *
 import os, stat
@@ -8,7 +8,7 @@ def _gen_memory_scripts():
     scripts=[]
     memory_template = load_template("system", "memory.tcl")
 
-    for param in net.all_params():
+    for param in dag.all_params():
         scripts.append(
             memory_template.substitute(
                 suffix=param.name,
@@ -23,7 +23,7 @@ def _gen_pg_memory_scripts():
     scripts=[]
     memory_template = load_template("pg_system", "memory.tcl")
 
-    for param in net.all_params():
+    for param in dag.all_params():
         scripts.append(
             memory_template.substitute(
                 suffix=param.name,
@@ -37,39 +37,39 @@ def _gen_pg_memory_scripts():
 def _gen_param_rst_connections():
     params = (
         f"connect_bd_net [get_bd_pins gpio_connection/param_reset] [get_bd_pins mux_param{p.name}/inj_rst]"
-        for p in net.all_params())
+        for p in dag.all_params())
     return '\n'.join(params)
 
 def _gen_grad_rst_connections():
     grads = (
         f"connect_bd_net [get_bd_pins gpio_connection/grad_reset] [get_bd_pins mux_grad{p.name}/inj_rst]"
-        for p in net.all_params())
+        for p in dag.all_params())
     return '\n'.join(grads)
 
 def _gen_grad_mux_sel_connections():
     return '\n'.join(
         f"connect_bd_net [get_bd_pins gpio_connection/bram_sel] [get_bd_pins mux_grad{p.name}/sel]"
-        for p in net.all_params())
+        for p in dag.all_params())
 
 def _gen_param_mux_sel_connections():
     return '\n'.join(
         f"connect_bd_net [get_bd_pins gpio_connection/bram_sel] [get_bd_pins mux_param{p.name}/sel]"
-        for p in net.all_params())
+        for p in dag.all_params())
 
 def _gen_param_rstb_busy_out_scripts():
     return '\n'.join(
         f"connect_bd_net [get_bd_pins concat_param_reset/In{i}] [get_bd_pins mem_param{p.name}/rstb_busy]"
-        for i, p in enumerate(net.all_params()))
+        for i, p in enumerate(dag.all_params()))
 
 def _gen_grad_rstb_busy_out_scripts():
     return '\n'.join(
         f"connect_bd_net [get_bd_pins concat_grad_reset/In{i}] [get_bd_pins mem_grad{p.name}/rstb_busy]"
-        for i, p in enumerate(net.all_params()))
+        for i, p in enumerate(dag.all_params()))
 
 def _gen_cache_scripts():
     scripts=[]
     template = load_template("system", "cache.tcl")
-    for cache in net.all_caches():
+    for cache in dag.all_caches():
         scripts.append(template.substitute(
             cache_name=cache.name,
             cache_size=cache.count*batch_size,
@@ -86,7 +86,7 @@ def gen_system_tcl(filename, pg_filename, post_filename, struct_id):
         "grad_rst_connections": _gen_grad_rst_connections(),
         "param_mux_sel_connections": _gen_param_mux_sel_connections(),
         "grad_mux_sel_connections": _gen_grad_mux_sel_connections(),
-        "param_count": len(list(net.all_params())),
+        "param_count": len(list(dag.all_params())),
         "cache_scripts": _gen_cache_scripts(),
         "param_rstb_busy_out_scripts": _gen_param_rstb_busy_out_scripts(),
         "grad_rstb_busy_out_scripts": _gen_grad_rstb_busy_out_scripts(),
