@@ -1,7 +1,7 @@
 __pycache__
 logs
 *.gif
-run
+run*
 build*
 
 misc
