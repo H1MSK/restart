@@ -10,7 +10,7 @@ class ObservationNormalizer:
         x = np.asarray(x)
         # Whether to update the mean and std.
         # During evaluation,update=Flase
-        if self.update_normalizer:  
+        if self.update_normalizer:
             self.running_ms.update(x)
         x = (x - self.running_ms.mean) / (self.running_ms.std + 1e-8)
 

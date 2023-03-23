@@ -11,7 +11,10 @@ def parse(argv):
 
     parser.add_argument('--seed', type=int, default=0, help='Environment seed')
 
-    parser.add_argument('--total_train_epochs', type=int, default=2000000, help='Total count of trained epochs')
+    parser.add_argument('--envs', type=int, default=8, help='Total count of parallel train environments')
+
+    parser.add_argument('--total_train_steps', type=int, default=0, help='Total count of train steps')
+    parser.add_argument('--total_train_epochs', type=int, default=0, help='Total count of train epochs')
     parser.add_argument('--max_episode_steps', type=int, default=10000, help='Max steps in each episode')
     parser.add_argument('--epoch', type=int, default=1, help='Repeat each epoch for this times')
     parser.add_argument('--discount', type=float, default=0.99, help='Parameter for discounted returns')
@@ -28,6 +31,8 @@ def parse(argv):
 
     parser.add_argument('--obs_cut_start', type=int, default=0, help='Observation cut range start, inclusive')
     parser.add_argument('--obs_cut_end', type=int, default=-1, help='Observation cut range end, exclusive')
+
+    parser.add_argument('--parameter_decay', action='store_true', help='Decay parameters when training')
 
 
     default_model=None

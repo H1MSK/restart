@@ -24,9 +24,9 @@ agent_choices = {
 }
 
 env_choices = {
-    'LunarLanderContinuous': (lambda **kwargs: gym.make('LunarLanderContinuous-v2', **kwargs)),
-    'Humanoid': (lambda **kwargs: gym.make('Humanoid-v4', healthy_reward=3.0, **kwargs)),
-    'Walker2D': (lambda **kwargs: gym.make('Walker2d-v4', **kwargs)),
-    'HalfCheetah': (lambda **kwargs: gym.make('HalfCheetah-v4', **kwargs)),
-    'Ant': (lambda **kwargs: gym.make('Ant-v4', **kwargs)),
+    'LunarLanderContinuous': 'LunarLanderContinuous-v2',
+    'Humanoid': 'Humanoid-v4',
+    'Walker2D': 'Walker2d-v4',
+    'HalfCheetah': 'HalfCheetah-v4',
+    'Ant': 'Ant-v4',
 }

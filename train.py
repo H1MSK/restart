@@ -7,6 +7,7 @@ if __name__ == '__main__':
     args = parse(argv=argv[1:])
 
     total_train_epochs=args.total_train_epochs
+    total_train_steps=args.total_train_steps
     max_episode_step=args.max_episode_steps
     min_epoch_size=args.min_epoch_size
     batch_size=args.batch_size
@@ -19,6 +20,13 @@ if __name__ == '__main__':
     discount=args.discount
     lambda_gae=args.lambda_gae
 
+    if total_train_epochs == 0 and total_train_steps == 0:
+        raise ValueError("Either total_train_epochs or total_train_steps should be set")
+    elif total_train_epochs != 0 and total_train_steps != 0:
+        logging.info("Both total_train_epochs and total_train_steps are set. OR condition is applied.")
+
+    parameter_decay = args.parameter_decay
+
     logging.basicConfig(level=logging.INFO)
     logging.info(f"Args={args}")
     if args.session != None:
@@ -28,6 +36,7 @@ if __name__ == '__main__':
             model_name=args.model,
             agent_name=args.agent,
             env_name=args.env,
+            num_envs=args.envs,
             lr_actor=args.lr_actor,
             lr_critic=args.lr_critic,
             hidden_width=args.hidden_width,
@@ -41,12 +50,14 @@ if __name__ == '__main__':
         )
         tm.set_run(
             total_train_epochs=total_train_epochs,
+            total_train_steps=total_train_steps,
             max_episode_steps=max_episode_step,
             epoch_size=min_epoch_size,
             epoch=epoch,
             batch_size=batch_size,
             test_interval=test_interval,
             discount=discount,
-            lambda_gae=lambda_gae)
+            lambda_gae=lambda_gae,
+            parameter_decay=parameter_decay)
     
     tm.run()

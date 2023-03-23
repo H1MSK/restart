@@ -9,6 +9,10 @@ import imageio
 import numpy as np
 import logging
 import core.config as config
+try:
+    import gym
+except ImportError:
+    import gymnasium as gym
 
 _logger = logging.getLogger("TrainManager")
 
@@ -18,6 +22,7 @@ class TrainManager:
             model_name: str = None,
             agent_name: str = None,
             env_name: str = None,
+            num_envs=1,
             lr_actor=1e-4,
             lr_critic=1e-3,
             hidden_width=64,
@@ -85,9 +90,19 @@ class TrainManager:
                    isinstance(hidden_width, int))
 
 
-        self.train_env = env_choices[env_name]()
+        if num_envs == 1:
+            self.train_env = gym.make(env_choices[env_name])
+            act_continuous = not isinstance(self.train_env.action_space, gym.spaces.Discrete)
+            obs_dim = self.train_env.observation_space.shape[0]
+            act_dim = self.train_env.action_space.shape[0]
+        else:
+            self.train_env = gym.vector.make(env_choices[env_name], num_envs=num_envs)
+            act_continuous = not isinstance(self.train_env.action_space, gym.spaces.MultiDiscrete)
+            obs_dim = self.train_env.observation_space.shape[1]
+            act_dim = self.train_env.action_space.shape[1]
+
         if enable_test:
-            self.test_env = env_choices[env_name](render_mode='rgb_array_list')
+            self.test_env = gym.make(env_choices[env_name], render_mode='rgb_array_list')
         else:
             self.test_env = None
 
@@ -101,13 +116,6 @@ class TrainManager:
             if enable_test:
                 self.test_env.reset(seed=seed)
             _logger.info(f"Set seed to {seed}")
-
-        act_continuous = not isinstance(self.train_env.action_space, gym.spaces.discrete.Discrete)
-        obs_dim = self.train_env.observation_space.shape[0]
-        if act_continuous:
-            act_dim = self.train_env.action_space.shape[0]
-        else:
-            act_dim = self.train_env.action_space.n
 
         self.agent: Agent = agent_choices[agent_name](
             model_choices[model_name],
@@ -127,6 +135,7 @@ class TrainManager:
         self.writer = SummaryWriter(f'./run/{session_name}/logs')
         self.train_epoch_count = 0
         self.test_epoch_count = 0
+        self.train_step_count = 0
 
         self.session_name = session_name
 
@@ -137,15 +146,25 @@ class TrainManager:
 
     def train_epoch(self, epoch_size=2048, max_episode_steps=10000, epoch=1, batch_size=64, discount=0.99, lambda_gae=0.99):
         # memory, scores = self.generate_epoch(epoch_size, max_episode_steps)
-        memory, scores = self.agent.generate_epoch(
+        if isinstance(self.train_env, gym.vector.VectorEnv):
+            memory, scores = self.agent.generate_epoch_vec(
             self.train_env,
             epoch_size=epoch_size,
             max_episode_steps=max_episode_steps)
+        else:
+            memory, scores = self.agent.generate_epoch(
+                self.train_env,
+                epoch_size=epoch_size,
+                max_episode_steps=max_episode_steps)
 
         for step, score in scores:
-            self.writer.add_scalar("Episode reward @ Step", score, batch_size * self.agent.train_batch_count + step)
+            self.writer.add_scalar("Episode reward @ Step", score, self.train_step_count + step)
         self.train_epoch_count += 1
-        self.writer.add_scalar("Episode reward @ Epoch", sum(i[1] for i in scores) / len(scores), self.train_epoch_count)
+        self.train_step_count += scores[-1][0]
+        
+        total_score = sum(i[1] for i in scores)
+        self.writer.add_scalar("Episode reward @ Epoch", total_score / len(scores), self.train_epoch_count)
+        _logger.info(f"Train #{self.train_epoch_count:8d}: reward={total_score/len(scores):8.2f} steps={len(memory)}")
 
         score_avg = sum(i[1] for i in scores) / len(scores)
 
@@ -218,24 +237,28 @@ class TrainManager:
             f.write(f"{self.train_epoch_count} {self.test_epoch_count}")
 
     def set_run(self, /,
-                total_train_epochs=2000000,
-                epoch_size=2048,
-                epoch=1,
-                max_episode_steps=10000,
-                batch_size=64,
-                test_interval=128,
-                discount=0.98,
-                lambda_gae=0.98):
+                total_train_epochs,
+                total_train_steps,
+                epoch_size,
+                epoch,
+                max_episode_steps,
+                batch_size,
+                test_interval,
+                discount,
+                lambda_gae,
+                parameter_decay):
         self.conf.update({"run": {}})
         self.conf["run"].update({
-            "steps": str(total_train_epochs),
+            "total_epochs": str(total_train_epochs),
+            "total_steps": str(total_train_steps),
             "epoch_size": str(epoch_size),
             "epoch": str(epoch),
             "max_episode_step": str(max_episode_steps),
             "batch_size": str(batch_size),
             "test_interval": str(test_interval),
             "discount": str(discount),
-            "lambda_gae": str(lambda_gae)
+            "lambda_gae": str(lambda_gae),
+            "parameter_decay": str(int(parameter_decay))
         })
         if test_interval != 0:
             assert(self.test_env != None)
@@ -243,7 +266,8 @@ class TrainManager:
 
     def run(self):
         s = self.conf["run"]
-        total_train_epochs = int(s["steps"])
+        total_train_epochs = int(s["total_epochs"])
+        total_train_steps = int(s["total_steps"])
         epoch_size = int(s["epoch_size"])
         epoch = int(s["epoch"])
         max_episode_steps = int(s["max_episode_step"])
@@ -251,6 +275,13 @@ class TrainManager:
         test_interval = int(s["test_interval"])
         discount = float(s["discount"])
         lambda_gae = float(s["lambda_gae"])
+        parameter_decay = True if int(s['parameter_decay']) != 0 else False
+
+        if total_train_epochs == 0:
+            assert(total_train_steps != 0)
+            total_train_epochs = math.inf
+        elif total_train_steps == 0:
+            total_train_steps = math.inf
 
         _logger.info(f"Running with total_train_epochs={total_train_epochs}, "
                      f"epoch_size={epoch_size}, "
@@ -260,7 +291,7 @@ class TrainManager:
         )
 
         best_reward = -math.inf
-        while self.train_epoch_count < total_train_epochs:
+        while self.train_epoch_count < total_train_epochs and self.train_step_count < total_train_steps:
             if test_interval != 0 and self.train_epoch_count // test_interval != (self.train_epoch_count-1) // test_interval:
                 # If this call raises mujoco.FatalError with OpenGL platform
                 #  library not loaded, please add --test_interval=0 to stop test
@@ -277,6 +308,10 @@ class TrainManager:
             if rew > best_reward:
                 best_reward = rew
                 self.save('best')
+            if parameter_decay:
+                self.agent.parameter_decay(
+                    max(self.train_epoch_count / total_train_epochs,
+                        self.train_step_count / total_train_steps))
 
     def test(self, count=10):
         for i in range(count):

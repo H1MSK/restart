@@ -10,8 +10,10 @@ from core.optimizations.gae import gae
 import math
 try:
     from gym import Env
+    from gym.vector import VectorEnv
 except ModuleNotFoundError:
     from gymnasium import Env
+    from gymnasium.vector import VectorEnv
 import logging
 import numpy as np
 
@@ -103,6 +105,9 @@ class Agent(ABC):
         
         self.train_batch_count:int = 0
 
+        self.initial_lr_actor = lr_actor
+        self.initial_lr_critic = lr_critic
+
     def obs_preprocess(self, obs):
         for f in self.obs_preprocessors:
             obs = f(obs)
@@ -186,7 +191,6 @@ class Agent(ABC):
         memory = []
         scores = []
         steps = 0
-        print(f"Sync state1:{torch.rand(1)} {np.random.rand()}")
         while steps < epoch_size:  # Horizen
             s = self.obs_preprocess(env.reset()[0])
             score = 0
@@ -206,14 +210,53 @@ class Agent(ABC):
                 mask = (1-done)*1
                 memory.append([s, a, r, mask, p, v])
 
-                # print(f"Sync state2:{s_}")
-
                 score += r
                 s = s_
                 if done:
                     break
 
             scores.append((steps, score))
+        return memory, scores
+
+    # Not test with observation_cut & pca
+    def generate_epoch_vec(self, envs: VectorEnv, epoch_size: int, max_episode_steps: int):
+        memory = []
+        scores = []
+        running_step_start = [0 for _ in range(envs.num_envs)]
+        steps = 0
+        running_scores = [0 for _ in range(envs.num_envs)]
+        running_memories = [[] for _ in range(envs.num_envs)]
+        s = self.obs_preprocess(envs.reset()[0])
+        # finish = [False for _ in range(envs.num_envs)]
+        while len(memory) < epoch_size:
+            print(f"{steps} {len(memory)}           ", end='\r')
+            steps += 1
+            v, a, p = self.forward(torch.from_numpy(
+                np.array(s).astype(np.float32)))
+
+            s_, r, done, _, info = envs.step(a)
+            s_ = self.obs_preprocess(s_)
+
+            mask = (1-done)*1
+            for i in range(envs.num_envs):
+                # if finish[i]:
+                #     continue
+                running_memories[i].append([s[i], a[i], r[i], mask[i], p[i], v[i]])
+                running_scores[i] += r[i]
+                if done[i] or steps - running_step_start[i] == max_episode_steps:
+                    memory.extend(running_memories[i])
+                    running_memories[i] = []
+                    scores.append((steps - running_step_start[i], running_scores[i]))
+                    running_scores[i] = 0
+                    running_step_start[i] = steps
+                    # if steps > epoch_size / envs.num_envs:
+                    #     finish[i] = True
+
+            s = s_
+
+        for i in range(1, len(scores)):
+            scores[i] = (scores[i - 1][0] + scores[i][0], scores[i][1])
+
         return memory, scores
 
     def calculate_gae(self, memory, discount, lambda_gae):
@@ -224,6 +267,10 @@ class Agent(ABC):
 
         returns, advants = gae(len(memory), rewards, masks, values, discount, lambda_gae)
         return returns, advants
+
+    def parameter_decay(self, train_pencentage):
+        self.lr_actor = self.initial_lr_actor * (1 - train_pencentage)
+        self.lr_critic = self.initial_lr_critic * (1 - train_pencentage)
 
 
 class PPOAgent(Agent):
@@ -259,6 +306,7 @@ class PPOAgent(Agent):
                          obs_cut_start,
                          obs_cut_end)
         self.epsilon = epsilon
+        self.initial_epsilon = epsilon
 
     def ratio_clip_func(self, ratio):
         return torch.clamp(ratio, 1.0-self.epsilon, 1.0+self.epsilon)
@@ -298,9 +346,12 @@ class PPOAgent(Agent):
         # self.agent.ac.optim_actor.step()
         self.ac.actor_step()
 
-        print(f"Sync state3: {actor_loss} {critic_loss}")
-
         return critic_loss, actor_loss
+    
+    @override
+    def parameter_decay(self, train_pencentage):
+        super().parameter_decay(train_pencentage)
+        self.epsilon = self.initial_epsilon * (1 - train_pencentage)
 
 class DPPSAgent(PPOAgent):
     def __init__(self,

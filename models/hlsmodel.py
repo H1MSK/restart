@@ -152,8 +152,10 @@ class HlsActorCritic(AbstractActorCritic):
     
     @lr_actor.setter
     def lr_actor(self, value):
+        previous_lr_critic = self.lr_critic
         for p in self.optim.param_groups:
             p['lr'] = value
+        self.lr_critic = previous_lr_critic
 
     def forward(self, obs: torch.Tensor, requires_grad=False) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         x_shape = (len(obs), self.obs_dim)

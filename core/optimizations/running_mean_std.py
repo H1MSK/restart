@@ -10,16 +10,29 @@ class RunningMeanStd:
         self.std = np.zeros(shape)
 
     def update(self, x):
-        x = np.asarray(x)
-        self.n += 1
-        if self.n == 1:
-            self.mean = x
-            self.std = x
+        arr = np.asarray(x)
+        if len(arr.shape) != 1:
+            for x in arr:
+                self.n += 1
+                if self.n == 1:
+                    self.mean = x
+                    self.std = x
+                else:
+                    old_mean = self.mean.copy()
+                    self.mean = old_mean + (x - old_mean) / self.n
+                    self.S = self.S + (x - old_mean) * (x - self.mean)
+                    self.std = np.sqrt(self.S / (self.n - 1))
         else:
-            old_mean = self.mean.copy()
-            self.mean = old_mean + (x - old_mean) / self.n
-            self.S = self.S + (x - old_mean) * (x - self.mean)
-            self.std = np.sqrt(self.S / (self.n - 1))
+            x = arr
+            self.n += 1
+            if self.n == 1:
+                self.mean = x
+                self.std = x
+            else:
+                old_mean = self.mean.copy()
+                self.mean = old_mean + (x - old_mean) / self.n
+                self.S = self.S + (x - old_mean) * (x - self.mean)
+                self.std = np.sqrt(self.S / (self.n - 1))
 
     def load(self, file):
         if os.path.exists(file):
