@@ -311,9 +311,6 @@ class PPOAgent(Agent):
         self.epsilon = epsilon
         self.initial_epsilon = epsilon
 
-    def ratio_clip_func(self, ratio):
-        return torch.clamp(ratio, 1.0-self.epsilon, 1.0+self.epsilon)
-
     def _actual_train_batch(self, b_states, b_advants, b_actions, b_returns, old_prob):
         values, mu, std = self.ac.forward(b_states, requires_grad=True)
 
@@ -333,7 +330,7 @@ class PPOAgent(Agent):
             self.ac.critic_backward(values.grad)
         self.ac.critic_step()
 
-        ratio = self.ratio_clip_func(ratio)
+        ratio = torch.clamp(ratio, 1.0-self.epsilon, 1.0+self.epsilon)
 
         clipped_loss = ratio * b_advants
 
@@ -368,6 +365,7 @@ class DPPSAgent(PPOAgent):
                  pca_dim=0, pca_load_file=None,
                  store_obs=False, obs_cut_start=0, obs_cut_end=-1,
                  epsilon=0.2,
+                 use_ldpps=False,
                  mu=0.2) -> None:
         super().__init__(model_class,
                          obs_dim, act_dim,
@@ -383,11 +381,52 @@ class DPPSAgent(PPOAgent):
                          obs_cut_end,
                          epsilon)
         self.mu = mu
+        self.use_ldpps=use_ldpps
 
-    @override
     def ratio_clip_func(self, ratio):
         positive_delta = self.epsilon - self.mu * math.tanh(self.epsilon)
 
         return torch.where(ratio < 1 - self.epsilon, (self.mu * torch.tanh(ratio - 1) + 1 - positive_delta),
                torch.where(ratio > 1 + self.epsilon, (self.mu * torch.tanh(ratio - 1) + 1 + positive_delta),
                         ratio))
+
+    def _actual_train_batch(self, b_states, b_advants, b_actions, b_returns, old_prob):
+        values, mu, std = self.ac.forward(b_states, requires_grad=True)
+
+        pi = self.distribution(mu, std)
+        new_prob = pi.log_prob(b_actions).sum(1, keepdim=True)
+
+        ratio = new_prob-old_prob
+
+        if not self.use_ldpps:
+            ratio = torch.exp(ratio)
+
+        surrogate_loss = ratio*b_advants
+        # values = self.ac.critic(b_states, requires_grad=True)
+
+        critic_loss: torch.Tensor = self.critic_loss_func(values, b_returns)
+
+        self.ac.critic_zero_grad()
+        critic_loss.backward()
+        if values.is_leaf:
+            self.ac.critic_backward(values.grad)
+        self.ac.critic_step()
+
+        ratio = self.ratio_clip_func(ratio)
+
+        clipped_loss = ratio * b_advants
+
+        actor_loss = -torch.min(surrogate_loss, clipped_loss).mean()
+        # actor_loss = -(surrogate_loss-beta*KL_penalty).mean()
+
+        # self.agent.ac.optim_actor.zero_grad()
+        self.ac.actor_zero_grad()
+        actor_loss.backward()
+        if mu.is_leaf:
+            assert (std.is_leaf)
+            self.ac.actor_backward(mu.grad, std.grad)
+        # self.agent.ac.optim_actor.step()
+        self.ac.actor_step()
+
+        return critic_loss, actor_loss
+    
