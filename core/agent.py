@@ -241,9 +241,12 @@ class Agent(ABC):
             for i in range(envs.num_envs):
                 # if finish[i]:
                 #     continue
+                if steps - running_step_start[i] == max_episode_steps:
+                    done[i] = True
+                    mask[i] = 0
                 running_memories[i].append([s[i], a[i], r[i], mask[i], p[i], v[i]])
                 running_scores[i] += r[i]
-                if done[i] or steps - running_step_start[i] == max_episode_steps:
+                if done[i]:
                     memory.extend(running_memories[i])
                     running_memories[i] = []
                     scores.append((steps - running_step_start[i], running_scores[i]))
